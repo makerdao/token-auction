@@ -51,17 +51,19 @@ contract SplittingAuctionManagerTest is Test {
     }
     function testNewAuction() {
         var balance_before = dai.balanceOf(seller);
-        var id = manager.newAuction(seller,// beneficiary
-                                    dai,   // selling
-                                    mkr,   // buying
-                                    100,   // sell amount (dai)
-                                    0,     // minimum bid (mkr)
-                                    1);    // minimum increase
+        var id = manager.newAuction(seller,  // beneficiary
+                                    dai,     // selling
+                                    mkr,     // buying
+                                    100,     // sell amount (dai)
+                                    0,       // minimum bid (mkr)
+                                    1,       // minimum increase
+                                    1 years  // duration
+                                   );
         assertEq(id, 1);
         var balance_after = dai.balanceOf(seller);
 
         var (beneficiary, selling, buying,
-             sell_amount, min_bid, min_increase) = manager.getAuction(id);
+             sell_amount, min_bid, min_increase, expiration) = manager.getAuction(id);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == dai);
@@ -69,12 +71,13 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(sell_amount, 100);
         assertEq(min_bid, 0);
         assertEq(min_increase, 1);
+        assertEq(expiration, block.timestamp + 1 years);
 
         var balance_diff = balance_before - balance_after;
         assertEq(balance_diff, 100);
     }
     function testNewAuctionlet() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 0, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 0, 1, 1 years);
 
         // can't always know what the auctionlet id is as it is
         // only an internal type. But for the case of a single auction
@@ -88,15 +91,15 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(quantity, 100);
     }
     function testFailBidTooLittle() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
         Manager(bidder1).bid(1, 9);
     }
     function testFailBidOverLast() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 0, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 0, 1, 1 years);
         Manager(bidder1).bid(1, 0);
     }
     function testBid() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
         Manager(bidder1).bid(1, 11);
 
         var (auction_id, last_bidder1,
@@ -106,13 +109,13 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(last_bid, 11);
     }
     function testFailBidTransfer() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
 
         // this should throw as bidder1 only has 1000 mkr
         Manager(bidder1).bid(1, 1001);
     }
     function testBidTransfer() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
 
         var bidder1_mkr_balance_before = mkr.balanceOf(bidder1);
         Manager(bidder1).bid(1, 11);
@@ -122,7 +125,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(balance_diff, 11);
     }
     function testBidReturnsToPrevBidder() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
 
         var bidder1_mkr_balance_before = mkr.balanceOf(bidder1);
         var manager_mkr_balance_before = mkr.balanceOf(manager);
@@ -140,7 +143,7 @@ contract SplittingAuctionManagerTest is Test {
         var seller_mkr_balance_before = mkr.balanceOf(seller);
         var seller_dai_balance_before = dai.balanceOf(seller);
 
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
         Manager(bidder1).bid(1, 11);
         Manager(seller).claim(id);
 
@@ -154,7 +157,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(diff_dai, 100);
     }
     function testBenefactorClaimLogged() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
         Manager(bidder1).bid(1, 11);
         Manager(seller).claim(id);
 
@@ -178,7 +181,7 @@ contract SplittingAuctionManagerTest is Test {
         var bidder_mkr_balance_before = mkr.balanceOf(bidder1);
         var bidder_dai_balance_before = dai.balanceOf(bidder1);
 
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
         Manager(bidder1).bid(1, 11);
         Manager(bidder1).claim(1);
 
@@ -192,7 +195,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(diff_dai, 100);
     }
     function testFailClaimNonParty() {
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
         Manager(bidder1).bid(1, 11);
         // bidder2 is not party to the auction and should not be able to
         // initiate a claim

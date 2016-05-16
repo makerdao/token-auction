@@ -16,6 +16,7 @@ contract SplittableAuctionManager is Assertive {
         uint sell_amount;
         uint claimable;
         uint claimed;
+        uint expiration;
     }
     struct Auctionlet {
         uint     auction_id;
@@ -39,6 +40,7 @@ contract SplittableAuctionManager is Assertive {
                         , uint sell_amount
                         , uint min_bid
                         , uint min_increase
+                        , uint duration
                         )
         returns (uint auction_id)
     {
@@ -49,6 +51,7 @@ contract SplittableAuctionManager is Assertive {
         a.sell_amount = sell_amount;
         a.min_bid = min_bid;
         a.min_increase = min_increase;
+        a.expiration = block.timestamp + duration;
 
         var received_lot = selling.transferFrom(beneficiary, this, sell_amount);
         assert(received_lot);
@@ -64,11 +67,11 @@ contract SplittableAuctionManager is Assertive {
         return _last_auction_id;
     }
     function getAuction(uint id) constant
-        returns (address, ERC20, ERC20, uint, uint, uint)
+        returns (address, ERC20, ERC20, uint, uint, uint, uint)
     {
         Auction a = _auctions[id];
         return (a.beneficiary, a.selling, a.buying,
-                a.sell_amount, a.min_bid, a.min_increase);
+                a.sell_amount, a.min_bid, a.min_increase, a.expiration);
     }
     function getAuctionlet(uint id) constant
         returns (uint, address, uint, uint)

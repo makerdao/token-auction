@@ -1,10 +1,12 @@
 import 'erc20/erc20.sol';
 
+import 'assertive.sol';
+
 // This contract contains a number of Auctions, each of which is
 // *splittable*.  The splittable unit of an Auction is an Auctionlet,
 // which has all of the Auctions properties but allows for bidding on a
 // subset of the full Auction lot.
-contract SplittableAuctionManager {
+contract SplittableAuctionManager is Assertive {
     struct Auction {
         address beneficiary;
         ERC20 selling;
@@ -72,7 +74,11 @@ contract SplittableAuctionManager {
         return (a.auction_id, a.last_bidder, a.last_bid, a.quantity);
     }
     // bid on a specifc auctionlet
-    function bid(uint auctionlet_id, uint bid_how_much) {}
+    function bid(uint auctionlet_id, uint bid_how_much) {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+        assert(bid_how_much > (A.min_bid + A.min_increase));
+    }
     // bid on a specific quantity of an auctionlet
     function split(uint auctionlet_id, uint quantity, uint bid_how_much) {}
     // claim the existing bids from all auctionlets connected to a

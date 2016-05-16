@@ -2,15 +2,28 @@ import 'dapple/test.sol';
 import 'erc20/base.sol';
 import 'splitting_auction.sol';
 
+contract AuctionTester is Tester {}
+
+// shorthand
+contract Manager is SplittableAuctionManager {}
+
 contract SplittingAuctionManagerTest is Test {
-    SplittableAuctionManager manager;
+    Manager manager;
+    AuctionTester bidder;
+
     ERC20 mkr;
     ERC20 dai;
 
     function setUp() {
-        manager = new SplittableAuctionManager();
+        manager = new Manager();
+
         mkr = new ERC20Base(1000000);
         dai = new ERC20Base(1000000);
+
+        bidder = new AuctionTester();
+        bidder._target(manager);
+
+        dai.transfer(bidder, 1000);
     }
     function testNewAuction() {
         var id = manager.newAuction(this,  // beneficiary
@@ -44,5 +57,9 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(last_bidder, 0);
         assertEq(last_bid, 0);
         assertEq(quantity, 100);
+    }
+    function testFailBidTooLittle() {
+        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+        Manager(bidder).bid(1, 9);
     }
 }

@@ -78,7 +78,9 @@ contract SplittableAuctionManager is Assertive {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
         assert(bid_how_much >= A.min_bid);
-        assert(bid_how_much > (a.last_bid + A.min_increase));
+        assert(bid_how_much >= (a.last_bid + A.min_increase));
+
+        a.last_bidder = msg.sender;
     }
     // bid on a specific quantity of an auctionlet
     function split(uint auctionlet_id, uint quantity, uint bid_how_much) {}

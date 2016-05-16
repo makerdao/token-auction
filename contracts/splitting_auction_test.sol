@@ -66,4 +66,13 @@ contract SplittingAuctionManagerTest is Test {
         var id = manager.newAuction(this, dai, mkr, 100, 0, 1);
         Manager(bidder).bid(1, 0);
     }
+    function testBid() {
+        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+        Manager(bidder).bid(1, 11);
+
+        var (auction_id, last_bidder,
+             last_bid, quantity) = manager.getAuctionlet(1);
+
+        assertEq(last_bidder, bidder);
+    }
 }

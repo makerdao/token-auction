@@ -25,6 +25,12 @@ contract SplittableAuctionManager {
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
 
+    mapping(uint => Auctionlet) _auctionlets;
+    uint _last_auctionlet_id;
+
+    // Create a new auction, with specific parameters.
+    // Bidding is done through the auctions associated auctionlets,
+    // of which there is one initially.
     function newAuction( address beneficiary
                         , ERC20 selling
                         , ERC20 buying
@@ -43,6 +49,13 @@ contract SplittableAuctionManager {
         a.min_increase = min_increase;
 
         _auctions[++_last_auction_id] = a;
+
+        Auctionlet memory base_auctionlet;
+        base_auctionlet.auction_id = _last_auction_id;
+        base_auctionlet.quantity = sell_amount;
+
+        _auctionlets[++_last_auctionlet_id] = base_auctionlet;
+
         return _last_auction_id;
     }
     function getAuction(uint id) constant
@@ -51,6 +64,12 @@ contract SplittableAuctionManager {
         Auction a = _auctions[id];
         return (a.beneficiary, a.selling, a.buying,
                 a.sell_amount, a.min_bid, a.min_increase);
+    }
+    function getAuctionlet(uint id) constant
+        returns (uint, address, uint, uint)
+    {
+        Auctionlet a = _auctionlets[id];
+        return (a.auction_id, a.last_bidder, a.last_bid, a.quantity);
     }
     // bid on a specifc auctionlet
     function bid(uint auctionlet_id, uint bid_how_much) {}

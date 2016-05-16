@@ -31,4 +31,18 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(min_bid, 0);
         assertEq(min_increase, 1);
     }
+    function testNewAuctionlet() {
+        var id = manager.newAuction(this, dai, mkr, 100, 0, 1);
+
+        // can't always know what the auctionlet id is as it is
+        // only an internal type. But for the case of a single auction
+        // there should be a single auctionlet created with id 1.
+        var (auction_id, last_bidder,
+             last_bid, quantity) = manager.getAuctionlet(1);
+
+        assertEq(auction_id, id);
+        assertEq(last_bidder, 0);
+        assertEq(last_bid, 0);
+        assertEq(quantity, 100);
+    }
 }

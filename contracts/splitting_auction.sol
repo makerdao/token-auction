@@ -50,6 +50,9 @@ contract SplittableAuctionManager is Assertive {
         a.min_bid = min_bid;
         a.min_increase = min_increase;
 
+        var received_lot = selling.transferFrom(beneficiary, this, sell_amount);
+        assert(received_lot);
+
         _auctions[++_last_auction_id] = a;
 
         Auctionlet memory base_auctionlet;

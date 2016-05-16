@@ -14,6 +14,7 @@ contract Manager is SplittableAuctionManager {}
 
 contract SplittingAuctionManagerTest is Test {
     Manager manager;
+    AuctionTester seller;
     AuctionTester bidder1;
     AuctionTester bidder2;
 
@@ -25,6 +26,12 @@ contract SplittingAuctionManagerTest is Test {
 
         mkr = new ERC20Base(1000000);
         dai = new ERC20Base(1000000);
+
+        seller = new AuctionTester();
+        seller._target(manager);
+
+        dai.transfer(seller, 200);
+        seller.doApprove(manager, 200, dai);
 
         bidder1 = new AuctionTester();
         bidder1._target(manager);
@@ -43,26 +50,31 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(mkr.allowance(bidder1, manager), 1000);
     }
     function testNewAuction() {
-        var id = manager.newAuction(this,  // beneficiary
+        var balance_before = dai.balanceOf(seller);
+        var id = manager.newAuction(seller,// beneficiary
                                     dai,   // selling
                                     mkr,   // buying
                                     100,   // sell amount (dai)
                                     0,     // minimum bid (mkr)
                                     1);    // minimum increase
         assertEq(id, 1);
+        var balance_after = dai.balanceOf(seller);
 
         var (beneficiary, selling, buying,
              sell_amount, min_bid, min_increase) = manager.getAuction(id);
 
-        assertEq(beneficiary, this);
+        assertEq(beneficiary, seller);
         assertTrue(selling == dai);
         assertTrue(buying == mkr);
         assertEq(sell_amount, 100);
         assertEq(min_bid, 0);
         assertEq(min_increase, 1);
+
+        var balance_diff = balance_before - balance_after;
+        assertEq(balance_diff, 100);
     }
     function testNewAuctionlet() {
-        var id = manager.newAuction(this, dai, mkr, 100, 0, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 0, 1);
 
         // can't always know what the auctionlet id is as it is
         // only an internal type. But for the case of a single auction
@@ -76,15 +88,15 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(quantity, 100);
     }
     function testFailBidTooLittle() {
-        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
         Manager(bidder1).bid(1, 9);
     }
     function testFailBidOverLast() {
-        var id = manager.newAuction(this, dai, mkr, 100, 0, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 0, 1);
         Manager(bidder1).bid(1, 0);
     }
     function testBid() {
-        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
         Manager(bidder1).bid(1, 11);
 
         var (auction_id, last_bidder1,
@@ -94,13 +106,13 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(last_bid, 11);
     }
     function testFailBidTransfer() {
-        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
 
         // this should throw as bidder1 only has 1000 mkr
         Manager(bidder1).bid(1, 1001);
     }
     function testBidTransfer() {
-        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
 
         var bidder1_mkr_balance_before = mkr.balanceOf(bidder1);
         Manager(bidder1).bid(1, 11);
@@ -110,7 +122,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(balance_diff, 11);
     }
     function testBidReturnsToPrevBidder() {
-        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
 
         var bidder1_mkr_balance_before = mkr.balanceOf(bidder1);
         var manager_mkr_balance_before = mkr.balanceOf(manager);

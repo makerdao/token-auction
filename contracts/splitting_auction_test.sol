@@ -136,4 +136,21 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(bidder_balance_diff, 0);
         assertEq(manager_balance_diff, 12);
     }
+    function testClaimTransfersBenefactor() {
+        var seller_mkr_balance_before = mkr.balanceOf(seller);
+        var seller_dai_balance_before = dai.balanceOf(seller);
+
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        Manager(bidder1).bid(1, 11);
+        manager.claim(id);
+
+        var seller_mkr_balance_after = mkr.balanceOf(seller);
+        var seller_dai_balance_after = dai.balanceOf(seller);
+
+        var diff_dai = seller_dai_balance_before - seller_dai_balance_after;
+        var diff_mkr = seller_mkr_balance_after - seller_mkr_balance_before;
+
+        assertEq(diff_mkr, 11);
+        assertEq(diff_dai, 100);
+    }
 }

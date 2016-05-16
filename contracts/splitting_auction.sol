@@ -80,6 +80,9 @@ contract SplittableAuctionManager is Assertive {
         assert(bid_how_much >= A.min_bid);
         assert(bid_how_much >= (a.last_bid + A.min_increase));
 
+        var received_bid = A.buying.transferFrom(msg.sender, this, bid_how_much);
+        assert(received_bid);
+
         a.last_bidder = msg.sender;
         a.last_bid = bid_how_much;
     }

@@ -62,4 +62,8 @@ contract SplittingAuctionManagerTest is Test {
         var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
         Manager(bidder).bid(1, 9);
     }
+    function testFailBidOverLast() {
+        var id = manager.newAuction(this, dai, mkr, 100, 0, 1);
+        Manager(bidder).bid(1, 0);
+    }
 }

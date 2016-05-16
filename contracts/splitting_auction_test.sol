@@ -92,4 +92,14 @@ contract SplittingAuctionManagerTest is Test {
         // this should throw as bidder only has 1000 mkr
         Manager(bidder).bid(1, 1001);
     }
+    function testBidTransfer() {
+        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+
+        var bidder_mkr_balance_before = mkr.balanceOf(bidder);
+        Manager(bidder).bid(1, 11);
+        var bidder_mkr_balance_after = mkr.balanceOf(bidder);
+
+        var balance_diff = bidder_mkr_balance_before - bidder_mkr_balance_after;
+        assertEq(balance_diff, 11);
+    }
 }

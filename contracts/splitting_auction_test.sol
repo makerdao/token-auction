@@ -74,5 +74,6 @@ contract SplittingAuctionManagerTest is Test {
              last_bid, quantity) = manager.getAuctionlet(1);
 
         assertEq(last_bidder, bidder);
+        assertEq(last_bid, 11);
     }
 }

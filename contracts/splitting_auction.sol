@@ -83,6 +83,9 @@ contract SplittableAuctionManager is Assertive {
         var received_bid = A.buying.transferFrom(msg.sender, this, bid_how_much);
         assert(received_bid);
 
+        var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
+        assert(returned_bid);
+
         a.last_bidder = msg.sender;
         a.last_bid = bid_how_much;
     }

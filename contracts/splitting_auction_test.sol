@@ -14,7 +14,8 @@ contract Manager is SplittableAuctionManager {}
 
 contract SplittingAuctionManagerTest is Test {
     Manager manager;
-    AuctionTester bidder;
+    AuctionTester bidder1;
+    AuctionTester bidder2;
 
     ERC20 mkr;
     ERC20 dai;
@@ -25,15 +26,21 @@ contract SplittingAuctionManagerTest is Test {
         mkr = new ERC20Base(1000000);
         dai = new ERC20Base(1000000);
 
-        bidder = new AuctionTester();
-        bidder._target(manager);
+        bidder1 = new AuctionTester();
+        bidder1._target(manager);
 
-        mkr.transfer(bidder, 1000);
-        bidder.doApprove(manager, 1000, mkr);
+        mkr.transfer(bidder1, 1000);
+        bidder1.doApprove(manager, 1000, mkr);
+
+        bidder2 = new AuctionTester();
+        bidder2._target(manager);
+
+        mkr.transfer(bidder2, 1000);
+        bidder2.doApprove(manager, 1000, mkr);
     }
     function testSetUp() {
-        assertEq(mkr.balanceOf(bidder), 1000);
-        assertEq(mkr.allowance(bidder, manager), 1000);
+        assertEq(mkr.balanceOf(bidder1), 1000);
+        assertEq(mkr.allowance(bidder1, manager), 1000);
     }
     function testNewAuction() {
         var id = manager.newAuction(this,  // beneficiary
@@ -60,46 +67,61 @@ contract SplittingAuctionManagerTest is Test {
         // can't always know what the auctionlet id is as it is
         // only an internal type. But for the case of a single auction
         // there should be a single auctionlet created with id 1.
-        var (auction_id, last_bidder,
+        var (auction_id, last_bidder1,
              last_bid, quantity) = manager.getAuctionlet(1);
 
         assertEq(auction_id, id);
-        assertEq(last_bidder, 0);
+        assertEq(last_bidder1, 0);
         assertEq(last_bid, 0);
         assertEq(quantity, 100);
     }
     function testFailBidTooLittle() {
         var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
-        Manager(bidder).bid(1, 9);
+        Manager(bidder1).bid(1, 9);
     }
     function testFailBidOverLast() {
         var id = manager.newAuction(this, dai, mkr, 100, 0, 1);
-        Manager(bidder).bid(1, 0);
+        Manager(bidder1).bid(1, 0);
     }
     function testBid() {
         var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
-        Manager(bidder).bid(1, 11);
+        Manager(bidder1).bid(1, 11);
 
-        var (auction_id, last_bidder,
+        var (auction_id, last_bidder1,
              last_bid, quantity) = manager.getAuctionlet(1);
 
-        assertEq(last_bidder, bidder);
+        assertEq(last_bidder1, bidder1);
         assertEq(last_bid, 11);
     }
     function testFailBidTransfer() {
         var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
 
-        // this should throw as bidder only has 1000 mkr
-        Manager(bidder).bid(1, 1001);
+        // this should throw as bidder1 only has 1000 mkr
+        Manager(bidder1).bid(1, 1001);
     }
     function testBidTransfer() {
         var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
 
-        var bidder_mkr_balance_before = mkr.balanceOf(bidder);
-        Manager(bidder).bid(1, 11);
-        var bidder_mkr_balance_after = mkr.balanceOf(bidder);
+        var bidder1_mkr_balance_before = mkr.balanceOf(bidder1);
+        Manager(bidder1).bid(1, 11);
+        var bidder1_mkr_balance_after = mkr.balanceOf(bidder1);
 
-        var balance_diff = bidder_mkr_balance_before - bidder_mkr_balance_after;
+        var balance_diff = bidder1_mkr_balance_before - bidder1_mkr_balance_after;
         assertEq(balance_diff, 11);
+    }
+    function testBidReturnsToPrevBidder() {
+        var id = manager.newAuction(this, dai, mkr, 100, 10, 1);
+
+        var bidder1_mkr_balance_before = mkr.balanceOf(bidder1);
+        var manager_mkr_balance_before = mkr.balanceOf(manager);
+        Manager(bidder1).bid(1, 11);
+        Manager(bidder2).bid(1, 12);
+        var bidder1_mkr_balance_after = mkr.balanceOf(bidder1);
+        var manager_mkr_balance_after = mkr.balanceOf(manager);
+
+        var bidder_balance_diff = bidder1_mkr_balance_before - bidder1_mkr_balance_after;
+        var manager_balance_diff = manager_mkr_balance_after - manager_mkr_balance_before;
+        assertEq(bidder_balance_diff, 0);
+        assertEq(manager_balance_diff, 12);
     }
 }

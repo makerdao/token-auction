@@ -3,6 +3,7 @@ tags: []
 layout:
   sol_sources: contracts
   build_dir: build
-dependencies: {}
+dependencies:
+  erc20: 1.0.0
 ignore: []
 name: auctions

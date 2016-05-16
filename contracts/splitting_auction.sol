@@ -97,10 +97,14 @@ contract SplittableAuctionManager is Assertive {
     function split(uint auctionlet_id, uint quantity, uint bid_how_much) {}
     // claim the existing bids from all auctionlets connected to a
     // specific auction
-    function claim(uint auction_id) {
+    function claim(uint id) {
+        if (msg.sender == _auctions[id].beneficiary) {
+            _claim_winnings(id);
+        }
+    }
+    function _claim_winnings(uint auction_id) internal {
         var A = _auctions[auction_id];
-        var settle_beneficiary = A.buying.transfer(A.beneficiary,
-                                                   A.claimable - A.claimed);
-        assert(settle_beneficiary);
+        var settled = A.buying.transfer(A.beneficiary, A.claimable - A.claimed);
+        assert(settled);
     }
 }

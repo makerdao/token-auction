@@ -142,7 +142,7 @@ contract SplittingAuctionManagerTest is Test {
 
         var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
         Manager(bidder1).bid(1, 11);
-        manager.claim(id);
+        Manager(seller).claim(id);
 
         var seller_mkr_balance_after = mkr.balanceOf(seller);
         var seller_dai_balance_after = dai.balanceOf(seller);

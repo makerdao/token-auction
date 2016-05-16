@@ -125,6 +125,9 @@ contract SplittableAuctionManager is Assertive {
 
         assert(claimer == a.last_bidder);
 
+        var expired = A.expiration <= block.timestamp;
+        assert(expired);
+
         var settled = A.selling.transfer(a.last_bidder, a.quantity);
         assert(settled);
     }

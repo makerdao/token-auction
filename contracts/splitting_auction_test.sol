@@ -181,7 +181,8 @@ contract SplittingAuctionManagerTest is Test {
         var bidder_mkr_balance_before = mkr.balanceOf(bidder1);
         var bidder_dai_balance_before = dai.balanceOf(bidder1);
 
-        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
+        // create an auction that expires immediately
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 0);
         Manager(bidder1).bid(1, 11);
         Manager(bidder1).claim(1);
 
@@ -200,5 +201,12 @@ contract SplittingAuctionManagerTest is Test {
         // bidder2 is not party to the auction and should not be able to
         // initiate a claim
         Manager(bidder2).claim(1);
+    }
+    function testFailClaimProceedingsPreExpiration() {
+        // bidders cannot claim their auctionlet until the auction has
+        // expired.
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1, 1 years);
+        Manager(bidder1).bid(1, 11);
+        Manager(bidder1).claim(1);
     }
 }

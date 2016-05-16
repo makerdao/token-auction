@@ -109,8 +109,11 @@ contract SplittableAuctionManager is Assertive {
     // specific auction
     function _claim_winnings(uint auction_id) internal {
         var A = _auctions[auction_id];
-        var settled = A.buying.transfer(A.beneficiary, A.claimable - A.claimed);
+        var settled = A.buying.transfer(A.beneficiary, A.claimable);
         assert(settled);
+
+        A.claimed = A.claimable;
+        A.claimable = 0;
     }
     // claim the proceedings from an auction for the highest bidder
     function _claim_proceedings(uint auctionlet_id, address claimer) internal {

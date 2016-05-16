@@ -153,6 +153,27 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(diff_mkr, 11);
         assertEq(diff_dai, 100);
     }
+    function testBenefactorClaimLogged() {
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        Manager(bidder1).bid(1, 11);
+        Manager(seller).claim(id);
+
+        var seller_mkr_balance_before = mkr.balanceOf(seller);
+        var seller_dai_balance_before = dai.balanceOf(seller);
+
+        // calling claim again should not do anything as there
+        // have been no new bids
+        Manager(seller).claim(id);
+
+        var seller_mkr_balance_after = mkr.balanceOf(seller);
+        var seller_dai_balance_after = dai.balanceOf(seller);
+
+        var diff_dai = seller_dai_balance_before - seller_dai_balance_after;
+        var diff_mkr = seller_mkr_balance_after - seller_mkr_balance_before;
+
+        assertEq(diff_mkr, 0);
+        assertEq(diff_dai, 0);
+    }
     function testClaimTransfersBidder() {
         var bidder_mkr_balance_before = mkr.balanceOf(bidder1);
         var bidder_dai_balance_before = dai.balanceOf(bidder1);

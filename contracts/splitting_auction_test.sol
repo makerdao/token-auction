@@ -153,4 +153,28 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(diff_mkr, 11);
         assertEq(diff_dai, 100);
     }
+    function testClaimTransfersBidder() {
+        var bidder_mkr_balance_before = mkr.balanceOf(bidder1);
+        var bidder_dai_balance_before = dai.balanceOf(bidder1);
+
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        Manager(bidder1).bid(1, 11);
+        Manager(bidder1).claim(1);
+
+        var bidder_mkr_balance_after = mkr.balanceOf(bidder1);
+        var bidder_dai_balance_after = dai.balanceOf(bidder1);
+
+        var diff_dai = bidder_dai_balance_after - bidder_dai_balance_before;
+        var diff_mkr = bidder_mkr_balance_before - bidder_mkr_balance_after;
+
+        assertEq(diff_mkr, 11);
+        assertEq(diff_dai, 100);
+    }
+    function testFailClaimNonParty() {
+        var id = manager.newAuction(seller, dai, mkr, 100, 10, 1);
+        Manager(bidder1).bid(1, 11);
+        // bidder2 is not party to the auction and should not be able to
+        // initiate a claim
+        Manager(bidder2).claim(1);
+    }
 }

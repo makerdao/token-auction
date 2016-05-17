@@ -2,15 +2,20 @@ import 'dapple/test.sol';
 import 'erc20/base.sol';
 import 'splitting_auction.sol';
 
+
+// shorthand
+contract Manager is SplittableAuctionManager {}
+
 contract AuctionTester is Tester {
     function doApprove(address spender, uint value, ERC20 token) {
         token.approve(spender, value);
     }
-
+    function doSplit(Manager manager, uint auctionlet_id, uint quantity, uint bid_how_much)
+        returns (uint)
+    {
+        return manager.split(auctionlet_id, quantity, bid_how_much);
+    }
 }
-
-// shorthand
-contract Manager is SplittableAuctionManager {}
 
 contract SplittingAuctionManagerTest is Test {
     Manager manager;
@@ -283,5 +288,112 @@ contract SplittingAuctionManagerTest is Test {
         // auctionlet twice
         Manager(bidder1).claim(1);
         Manager(bidder1).claim(1);
+    }
+    function testSplitBase() {
+        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var (auction_id0, last_bidder0,
+             last_bid0, quantity0) = manager.getAuctionlet(1);
+
+        bidder1.doSplit(manager, 1, 60 * T1, 7 * T2);
+
+        var (auction_id1, last_bidder1,
+             last_bid1, quantity1) = manager.getAuctionlet(1);
+
+        var expected_new_bid = 0;
+        var expected_new_quantity = 40 * T1;
+
+        assertEq(auction_id0, auction_id1);
+        assertEq(last_bidder0, last_bidder1);
+
+        assertEq(last_bid0, 0 * T2);
+        assertEq(quantity0, 100 * T1);
+
+        assertEq(last_bid1, expected_new_bid);
+        assertEq(quantity1, expected_new_quantity);
+    }
+    function testFailSplitTooMuch() {
+        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        Manager(bidder1).split(1, 101 * T1, 7 * T2);
+    }
+    function testSplitTransfer() {
+        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var bidder1_t2_balance_before = t2.balanceOf(bidder1);
+        Manager(bidder1).split(1, 60 * T1, 7 * T2);
+        var bidder1_t2_balance_after = t2.balanceOf(bidder1);
+
+        var balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
+        assertEq(balance_diff, 7 * T2);
+    }
+    function testSplitBaseResult() {
+        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var sid = bidder1.doSplit(manager, 1, 60 * T1, 7 * T2);
+
+        var (auction_id1, last_bidder1,
+             last_bid1, quantity1) = manager.getAuctionlet(1);
+        var (auction_id2, last_bidder2,
+             last_bid2, quantity2) = manager.getAuctionlet(sid);
+
+        assertEq(auction_id1, auction_id2);
+        assertEq(last_bidder1, 0x00);
+        assertEq(last_bidder2, bidder1);
+
+        var expected_new_quantity1 = 40 * T1;
+        var expected_new_quantity2 = 60 * T1;
+
+        assertEq(quantity1, expected_new_quantity1);
+        assertEq(quantity2, expected_new_quantity2);
+
+        // we expect the bid on the existing auctionlet to remain as
+        // zero as it is a base auctionlet
+        var expected_new_bid1 = 0;
+        var expected_new_bid2 = 7 * T2;
+
+        assertEq(last_bid1, expected_new_bid1);
+        assertEq(last_bid2, expected_new_bid2);
+    }
+    function testSplitAfterBid() {
+        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        Manager(bidder1).bid(1, 11 * T2);
+
+        // make split bid that has equivalent price of 20 T2 for full lot
+        var sid = bidder2.doSplit(manager, 1, 60 * T1, 12 * T2);
+
+        var (auction_id1, last_bidder1,
+             last_bid1, quantity1) = manager.getAuctionlet(1);
+        var (auction_id2, last_bidder2,
+             last_bid2, quantity2) = manager.getAuctionlet(sid);
+
+        assertEq(auction_id1, auction_id2);
+        assertEq(last_bidder1, bidder1);
+        assertEq(last_bidder2, bidder2);
+
+        // Splitting a bid produces two new bids - the 'splitting' bid
+        // and a 'modified' bid.
+        // The original bid has quantity q0 and bid amount b0.
+        // The modified bid has quantity q1 and bid amount b1.
+        // The splitting bid has quantity q2 and bid amount b2.
+        // The splitting bid must satisfy (q2 * b2) > (q0 * b0)
+        // and q2 < q0, i.e. it must be an increase in order value, but
+        // a decrease in quantity.
+        // The modified bid conserves *valuation*: (q1 / b1) = (q0 / b0)
+        // and has reduced quantity: q1 = q0 - q2.
+        // The unknown modified bid b1 is determined by b1 = b0 (q1 / q0),
+        // i.e. the originial bid scaled by the quantity change.
+
+        var expected_new_quantity2 = 60 * T1;
+        var expected_new_bid2 = 12 * T2;
+
+        var expected_new_quantity1 = 100 * T1 - expected_new_quantity2;
+        var expected_new_bid1 = (11 * T2 * expected_new_quantity1) / (100 * T1);
+
+        assertEq(quantity1, expected_new_quantity1);
+        assertEq(quantity2, expected_new_quantity2);
+
+        assertEq(last_bid1, expected_new_bid1);
+        assertEq(last_bid2, expected_new_bid2);
     }
 }

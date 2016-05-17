@@ -98,7 +98,40 @@ contract SplittableAuctionManager is Assertive {
         A.claimable += bid_how_much;
     }
     // bid on a specific quantity of an auctionlet
-    function split(uint auctionlet_id, uint quantity, uint bid_how_much) {}
+    function split(uint auctionlet_id, uint quantity, uint bid_how_much)
+        returns (uint)
+    {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        assert(quantity < a.quantity);
+
+        var received_bid = A.buying.transferFrom(msg.sender, this, bid_how_much);
+        assert(received_bid);
+
+        var new_quantity = a.quantity - quantity;
+        //@log old quantity: `uint a.quantity`
+        //@log new_quantity: `uint new_quantity`
+
+        // n.b. associativity important because of truncating division
+        var new_bid = (a.last_bid * new_quantity) / a.quantity;
+        //@log last_bid: `uint a.last_bid`
+        //@log new_bid: `uint new_bid`
+
+        a.quantity = new_quantity;
+        a.last_bid = new_bid;
+
+        Auctionlet memory sa;
+
+        sa.auction_id = a.auction_id;
+        sa.last_bidder = msg.sender;
+        sa.quantity = quantity;
+        sa.last_bid = bid_how_much;
+
+        _auctionlets[++_last_auctionlet_id] = sa;
+
+        return _last_auctionlet_id;
+    }
     // Parties to an auction can claim their take. The auction creator
     // (the beneficiary) can claim across an entire auction. Individual
     // auctionlet high bidders must claim per auctionlet.

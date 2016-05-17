@@ -172,7 +172,7 @@ contract SplittingAuctionManagerTest is Test {
         var seller_t1_balance_before = t1.balanceOf(seller);
 
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
-        Manager(bidder1).bid(1, 11 * T2);
+        Manager(bidder1).bid(1, 40 * T2);
         Manager(seller).claim(id);
 
         var seller_t2_balance_after = t2.balanceOf(seller);
@@ -181,7 +181,7 @@ contract SplittingAuctionManagerTest is Test {
         var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
         var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
 
-        assertEq(diff_t2, 11 * T2);
+        assertEq(diff_t2, 40 * T2);
         assertEq(diff_t1, 100 * T1);
     }
     function testBenefactorClaimLogged() {
@@ -445,5 +445,27 @@ contract SplittingAuctionManagerTest is Test {
 
         var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
         assertEq(bidder_balance_diff, 10 * T2);
+    }
+    function testClaimTransfersBenefactorAfterSplit() {
+        var seller_t2_balance_before = t2.balanceOf(seller);
+        var seller_t1_balance_before = t1.balanceOf(seller);
+
+        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        Manager(bidder1).bid(1, 40 * T2);
+        bidder2.doSplit(manager, 1, 25 * T1, 20 * T2);
+
+        var manager_t2_balance_before_claim = t2.balanceOf(manager);
+        assertEq(manager_t2_balance_before_claim, 50 * T2);
+
+        Manager(seller).claim(id);
+
+        var seller_t2_balance_after = t2.balanceOf(seller);
+        var seller_t1_balance_after = t1.balanceOf(seller);
+
+        var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
+        var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
+
+        assertEq(diff_t2, 50 * T2);
+        assertEq(diff_t1, 100 * T1);
     }
 }

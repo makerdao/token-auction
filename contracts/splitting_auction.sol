@@ -116,21 +116,29 @@ contract SplittableAuctionManager is Assertive {
 
         var received_bid = A.buying.transferFrom(msg.sender, this, bid_how_much);
         assert(received_bid);
+        //@log received bid: `uint bid_how_much` for quantity: `uint quantity`
 
         var new_quantity = a.quantity - quantity;
-        //@log old quantity: `uint a.quantity`
-        //@log new_quantity: `uint new_quantity`
+        //@log previous quantity: `uint a.quantity`
+        //@log modified quantity: `uint new_quantity`
 
         // n.b. associativity important because of truncating division
         var new_bid = (a.last_bid * new_quantity) / a.quantity;
-        //@log last_bid: `uint a.last_bid`
-        //@log new_bid: `uint new_bid`
+        //@log previous bid: `uint a.last_bid`
+        //@log modified bid: `uint new_bid`
 
-        var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid - new_bid);
+        var return_to_bidder = a.last_bid - new_bid;
+        var returned_bid = A.buying.transfer(a.last_bidder, return_to_bidder);
         assert(returned_bid);
+        //@log returned bid: `uint return_to_bidder`
 
         a.quantity = new_quantity;
         a.last_bid = new_bid;
+
+        //@log claimable before split: `uint A.claimable`
+        A.claimable += bid_how_much;
+        A.claimable -= return_to_bidder;
+        //@log claimable after split: `uint A.claimable`
 
         Auctionlet memory sa;
 

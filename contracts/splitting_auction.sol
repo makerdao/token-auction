@@ -106,6 +106,11 @@ contract SplittableAuctionManager is Assertive {
 
         assert(quantity < a.quantity);
 
+        // check that there is a relative increase in value
+        // n.b avoid dividing by a.last_bid as it could be zero
+        var valuation = (bid_how_much * a.quantity) / quantity;
+        assert(valuation > a.last_bid);
+
         var received_bid = A.buying.transferFrom(msg.sender, this, bid_how_much);
         assert(received_bid);
 

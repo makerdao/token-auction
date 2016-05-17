@@ -312,10 +312,6 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(last_bid1, expected_new_bid);
         assertEq(quantity1, expected_new_quantity);
     }
-    function testFailSplitTooMuch() {
-        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
-        Manager(bidder1).split(1, 101 * T1, 7 * T2);
-    }
     function testSplitTransfer() {
         manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
@@ -376,9 +372,9 @@ contract SplittingAuctionManagerTest is Test {
         // The original bid has quantity q0 and bid amount b0.
         // The modified bid has quantity q1 and bid amount b1.
         // The splitting bid has quantity q2 and bid amount b2.
-        // The splitting bid must satisfy (q2 * b2) > (q0 * b0)
-        // and q2 < q0, i.e. it must be an increase in order value, but
-        // a decrease in quantity.
+        // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
+        // and q2 < q0, i.e. it must be an increase in order valuation,
+        // but a decrease in quantity.
         // The modified bid conserves *valuation*: (q1 / b1) = (q0 / b0)
         // and has reduced quantity: q1 = q0 - q2.
         // The unknown modified bid b1 is determined by b1 = b0 (q1 / q0),
@@ -395,5 +391,18 @@ contract SplittingAuctionManagerTest is Test {
 
         assertEq(last_bid1, expected_new_bid1);
         assertEq(last_bid2, expected_new_bid2);
+    }
+    function testFailSplitExcessQuantity() {
+        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        Manager(bidder1).split(1, 101 * T1, 7 * T2);
+    }
+    function testFailSplitLowerValue() {
+        // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
+        // and q2 < q0, i.e. it must be an increase in order valuation,
+        // but a decrease in quantity.
+        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        Manager(bidder1).bid(1, 11 * T2);
+
+        bidder2.doSplit(manager, 1, 50 * T1, 5 * T2);
     }
 }

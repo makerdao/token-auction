@@ -52,7 +52,7 @@ contract SplittableAuctionManager is Assertive {
         a.sell_amount = sell_amount;
         a.min_bid = min_bid;
         a.min_increase = min_increase;
-        a.expiration = block.timestamp + duration;
+        a.expiration = getTime() + duration;
 
         var received_lot = selling.transferFrom(beneficiary, this, sell_amount);
         assert(received_lot);
@@ -164,7 +164,7 @@ contract SplittableAuctionManager is Assertive {
 
         assert(claimer == a.last_bidder);
 
-        var expired = A.expiration <= block.timestamp;
+        var expired = A.expiration <= getTime();
         assert(expired);
 
         assert(!a.claimed);
@@ -173,5 +173,8 @@ contract SplittableAuctionManager is Assertive {
         assert(settled);
 
         a.claimed = true;
+    }
+    function getTime() internal constant returns (uint) {
+        return block.timestamp;
     }
 }

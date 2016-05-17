@@ -1,4 +1,4 @@
-# Auctions for Maker
+# Auctions for Maker [![Build Status](https://api.travis-ci.org/rainbeam/token-auction.svg?branch=master)](https://travis-ci.org/rainbeam/token-auction)
 
 ## Motivation
 

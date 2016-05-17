@@ -158,6 +158,15 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(bidder_balance_diff, 0 * T2);
         assertEq(manager_balance_diff, 12 * T2);
     }
+    function testFailBidExpired() {
+        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        Manager(bidder1).bid(1, 11 * T2);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        Manager(bidder2).bid(1, 12 * T2);
+    }
     function testClaimTransfersBenefactor() {
         var seller_t2_balance_before = t2.balanceOf(seller);
         var seller_t1_balance_before = t1.balanceOf(seller);
@@ -200,9 +209,12 @@ contract SplittingAuctionManagerTest is Test {
         var bidder_t2_balance_before = t2.balanceOf(bidder1);
         var bidder_t1_balance_before = t1.balanceOf(bidder1);
 
-        // create an auction that expires immediately
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 0 years);
+        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         Manager(bidder1).bid(1, 11 * T2);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
         Manager(bidder1).claim(1);
 
         var bidder_t2_balance_after = t2.balanceOf(bidder1);

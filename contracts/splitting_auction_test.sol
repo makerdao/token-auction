@@ -214,4 +214,38 @@ contract SplittingAuctionManagerTest is Test {
         Manager(bidder1).bid(1, 11 * T2);
         Manager(bidder1).claim(1);
     }
+    function testMultipleNewAuctions() {
+        // auction manager should be able to manage multiple auctions
+        t2.transfer(seller, 200 * T2);
+        seller.doApprove(manager, 200 * T2, t2);
+
+        var t1_balance_before = t1.balanceOf(seller);
+        var t2_balance_before = t2.balanceOf(seller);
+
+        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var id2 = manager.newAuction(seller, t2, t1, 100 * T2, 10 * T1, 1 * T1, 1 years);
+
+        var t1_balance_after = t1.balanceOf(seller);
+        var t2_balance_after = t2.balanceOf(seller);
+
+        assertEq(id1, 1);
+        assertEq(id2, 2);
+
+        var t1_balance_diff = t1_balance_before - t1_balance_after;
+        var t2_balance_diff = t2_balance_before - t2_balance_after;
+
+        assertEq(t1_balance_diff, 100 * T1);
+        assertEq(t2_balance_diff, 100 * T2);
+
+        var (beneficiary, selling, buying,
+             sell_amount, min_bid, min_increase, expiration) = manager.getAuction(id2);
+
+        assertEq(beneficiary, seller);
+        assertTrue(selling == t2);
+        assertTrue(buying == t1);
+        assertEq(sell_amount, 100 * T2);
+        assertEq(min_bid, 10 * T1);
+        assertEq(min_increase, 1 * T1);
+        assertEq(expiration, block.timestamp + 1 years);
+    }
 }

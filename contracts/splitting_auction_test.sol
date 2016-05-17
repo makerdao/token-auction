@@ -3,8 +3,16 @@ import 'erc20/base.sol';
 import 'splitting_auction.sol';
 
 
-// shorthand
-contract Manager is SplittableAuctionManager {}
+contract Manager is SplittableAuctionManager {
+    uint public debug_timestamp;
+
+    function getTime() public constant returns (uint) {
+        return debug_timestamp;
+    }
+    function setTime(uint timestamp) {
+        debug_timestamp = timestamp;
+    }
+}
 
 contract AuctionTester is Tester {
     function doApprove(address spender, uint value, ERC20 token) {
@@ -31,6 +39,7 @@ contract SplittingAuctionManagerTest is Test {
 
     function setUp() {
         manager = new Manager();
+        manager.setTime(block.timestamp);
 
         var million = 10 ** 6;
 
@@ -81,7 +90,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(sell_amount, 100 * T1);
         assertEq(min_bid, 0 * T2);
         assertEq(min_increase, 1 * T2);
-        assertEq(expiration, block.timestamp + 1 years);
+        assertEq(expiration, manager.getTime() + 1 years);
 
         var balance_diff = balance_before - balance_after;
         assertEq(balance_diff, 100 * T1);
@@ -251,7 +260,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(sell_amount, 100 * T2);
         assertEq(min_bid, 10 * T1);
         assertEq(min_increase, 1 * T1);
-        assertEq(expiration, block.timestamp + 1 years);
+        assertEq(expiration, manager.getTime() + 1 years);
     }
     function testMultipleAuctionClaims() {
         manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);

@@ -174,7 +174,7 @@ contract SplittableAuctionManager is Assertive {
 
         a.claimed = true;
     }
-    function getTime() internal constant returns (uint) {
+    function getTime() public constant returns (uint) {
         return block.timestamp;
     }
 }

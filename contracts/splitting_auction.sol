@@ -23,6 +23,7 @@ contract SplittableAuctionManager is Assertive {
         address  last_bidder;
         uint     last_bid;
         uint     quantity;
+        bool     claimed;
     }
 
     mapping(uint => Auction) _auctions;
@@ -128,7 +129,11 @@ contract SplittableAuctionManager is Assertive {
         var expired = A.expiration <= block.timestamp;
         assert(expired);
 
+        assert(!a.claimed);
+
         var settled = A.selling.transfer(a.last_bidder, a.quantity);
         assert(settled);
+
+        a.claimed = true;
     }
 }

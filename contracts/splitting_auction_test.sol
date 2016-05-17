@@ -267,4 +267,21 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(diff_t2, 11 * T2);
         assertEq(diff_t1, 100 * T1);
     }
+    function testFailBidderClaimAgain() {
+        // bidders should not be able to claim their auctionlet more than once
+
+        // create an auction that expires immediately
+        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 0 years);
+        var id2 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 0 years);
+
+        // create bids on two different auctions so that the manager has
+        // enough funds for us to attempt to withdraw all at once
+        Manager(bidder1).bid(1, 11 * T2);
+        Manager(bidder2).bid(2, 11 * T2);
+
+        // now attempt to claim the proceedings from the first
+        // auctionlet twice
+        Manager(bidder1).claim(1);
+        Manager(bidder1).claim(1);
+    }
 }

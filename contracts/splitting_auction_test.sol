@@ -436,5 +436,14 @@ contract SplittingAuctionManagerTest is Test {
         bidder2.doSplit(manager, 1, 50 * T1, 5 * T2);
     }
     function testSplitReturnsToPrevBidder() {
+        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var bidder1_t2_balance_before = t2.balanceOf(bidder1);
+        Manager(bidder1).bid(1, 20 * T2);
+        bidder2.doSplit(manager, 1, 50 * T1, 20 * T2);
+        var bidder1_t2_balance_after = t2.balanceOf(bidder1);
+
+        var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
+        assertEq(bidder_balance_diff, 10 * T2);
     }
 }

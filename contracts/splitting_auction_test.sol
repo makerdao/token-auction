@@ -487,4 +487,11 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(diff_t2, 50 * T2);
         assertEq(diff_t1, 100 * T1);
     }
+    function testFailBidAfterSplit () {
+        // splitting deletes the old auctionlet_id
+        // bidding on this id should error
+        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (nid, sid) = bidder2.doSplit(manager, 1, 60 * T1, 12 * T2);
+        Manager(bidder1).bid(1, 11 * T2);
+    }
 }

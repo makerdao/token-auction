@@ -14,6 +14,9 @@ contract Manager is SplittableAuctionManager {
     function getCollectMax(uint auction_id) returns (uint) {
         return _auctions[auction_id].COLLECT_MAX;
     }
+    function isReversed(uint auction_id) returns (bool) {
+        return _auctions[auction_id].reversed;
+    }
 }
 
 contract AuctionTester is Tester {
@@ -90,5 +93,94 @@ contract TwoWayTest is Test {
                                          );
 
         assertEq(manager.getCollectMax(id), 100 * T2);
+    }
+    function testBidEqualTargetReversal() {
+        // bids at or over the target should cause the auction to reverse
+        var id = manager.newTwoWayAuction(seller, t1, t2,
+                                          100 * T1, 0 * T2, 1 * T2,
+                                          1 years, 100 * T2);
+        bidder1.doBid(1, 100 * T2);
+        assertEq(manager.isReversed(id), true);
+    }
+    function testBidOverTargetReversal() {
+        // bids at or over the target should cause the auction to reverse
+        var id = manager.newTwoWayAuction(seller, t1, t2,
+                                          100 * T1, 0 * T2, 1 * T2,
+                                          1 years, 100 * T2);
+        bidder1.doBid(1, 101 * T2);
+        assertEq(manager.isReversed(id), true);
+    }
+    function testBidOverTargetRefundsDifference() {
+        var id = manager.newTwoWayAuction(seller, t1, t2,
+                                          100 * T1, 0 * T2, 1 * T2,
+                                          1 years, 100 * T2);
+        var t2_balance_before = t2.balanceOf(bidder1);
+        bidder1.doBid(1, 110 * T2);
+        var t2_balance_after = t2.balanceOf(bidder1);
+
+        var balance_diff = t2_balance_before - t2_balance_after;
+        assertEq(balance_diff, 100 * T2);
+    }
+    function testBidsDecreasingPostReversal() {
+        // after a reversal, bids are strictly decreasing, with a
+        // maximum set by the sell amount
+        var id = manager.newTwoWayAuction(seller, t1, t2,
+                                          100 * T1, 0 * T2, 1 * T2,
+                                          1 years, 100 * T2);
+        bidder1.doBid(1, 110 * T2);
+        var (auction_id1, last_bidder1,
+             last_bid1, quantity1) = manager.getAuctionlet(1);
+        bidder2.doBid(1, 90 * T1);
+        bidder1.doBid(1, 85 * T1);
+        var (auction_id2, last_bidder2,
+             last_bid2, quantity2) = manager.getAuctionlet(1);
+
+        assertEq(last_bid1, 100 * T1);
+        assertEq(last_bid2, 85 * T1);
+
+        assertEq(quantity1, 100 * T1);
+        assertEq(quantity2, 100 * T1);
+    }
+    function testClaimSellerAfterReversal() {
+        // after reversal, the seller should receive the available
+        // buying token, plus any excess sell token
+        var id = manager.newTwoWayAuction(seller, t1, t2,
+                                          100 * T1, 0 * T2, 1 * T2,
+                                          1 years, 100 * T2);
+        bidder1.doBid(1, 100 * T2);
+        bidder1.doBid(1, 85 * T1);
+
+        var t1_balance_before = t1.balanceOf(seller);
+        var t2_balance_before = t2.balanceOf(seller);
+
+        seller.doClaim(1);
+
+        var t1_balance_after = t1.balanceOf(seller);
+        var t2_balance_after = t2.balanceOf(seller);
+
+        var t1_balance_diff = t1_balance_after - t1_balance_before;
+        var t2_balance_diff = t2_balance_after - t2_balance_before;
+
+        //@log claim max buying token?
+        assertEq(t2_balance_diff, 100 * T2);
+        //@log claim excess selling token?
+        assertEq(t1_balance_diff, 15 * T1);
+    }
+    function testClaimBidderAfterReversal() {
+        var id = manager.newTwoWayAuction(seller, t1, t2,
+                                          100 * T1, 0 * T2, 1 * T2,
+                                          1 years, 100 * T2);
+        bidder1.doBid(1, 100 * T2);
+        bidder1.doBid(1, 85 * T1);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        var t1_balance_before = t1.balanceOf(bidder1);
+        bidder1.doClaim(1);
+        var t1_balance_after = t1.balanceOf(bidder1);
+        var t1_balance_diff = t1_balance_after - t1_balance_before;
+
+        assertEq(t1_balance_diff, 85 * T1);
     }
 }

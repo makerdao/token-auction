@@ -18,6 +18,8 @@ contract SplittableAuctionManager is Assertive {
         uint COLLECT_MAX;
         uint claimed;
         uint expiration;
+        bool reversed;
+        uint excess_claimable;
     }
     struct Auctionlet {
         uint     auction_id;
@@ -26,7 +28,7 @@ contract SplittableAuctionManager is Assertive {
         uint     quantity;
         bool     claimed;
     }
-
+    bool TRANSITION;
     uint constant INFINITY = 2 ** 256 - 1;
 
     mapping(uint => Auction) _auctions;
@@ -96,8 +98,20 @@ contract SplittableAuctionManager is Assertive {
     }
     // bid on a specifc auctionlet
     function bid(uint auctionlet_id, uint bid_how_much) {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        if (!A.reversed && (bid_how_much >= A.COLLECT_MAX)) {  // transition
+            A.reversed = true;
+            bid_how_much = a.quantity;
+            A.collected = A.COLLECT_MAX;
+            a.last_bid = a.quantity;
+            TRANSITION = true;
+        }
         _assertBiddable(auctionlet_id, bid_how_much);
         _doBid(auctionlet_id, msg.sender, bid_how_much);
+
+        TRANSITION = false;
     }
     // bid on a specific quantity of an auctionlet
     function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
@@ -123,10 +137,43 @@ contract SplittableAuctionManager is Assertive {
 
         assert(a.auction_id > 0);  // test for deleted auctionlet
 
-        if (a.last_bidder == 0) {  // check for base auctionlet
-            assert(bid_how_much >= A.min_bid);
+        if (A.reversed) {
+            //@log bid how much: `uint bid_how_much`
+            //@log sell amount:  `uint A.sell_amount`
+            //@log last bid:     `uint a.last_bid`
+            assert(bid_how_much <= a.last_bid);
         } else {
-            assert(bid_how_much >= (a.last_bid + A.min_increase));
+            if (a.last_bidder == 0) {  // check for base auctionlet
+                assert(bid_how_much >= A.min_bid);
+            } else {
+                assert(bid_how_much >= (a.last_bid + A.min_increase));
+            }
+        }
+
+        var expired = A.expiration <= getTime();
+        assert(!expired);
+    }
+    function _assertReverseBiddable(uint auctionlet_id, uint bid_how_much) internal {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        assert(a.auction_id > 0);  // test for deleted auctionlet
+
+        if (A.reversed) {
+            //@log bid how much: `uint bid_how_much`
+            //@log sell amount:  `uint A.sell_amount`
+            //@log last bid:     `uint a.last_bid`
+            if (a.last_bidder == 0) {  // check for base auctionlet
+                assert(bid_how_much <= A.sell_amount);
+            } else {
+                assert(bid_how_much <= a.last_bid);
+            }
+        } else {
+            if (a.last_bidder == 0) {  // check for base auctionlet
+                assert(bid_how_much >= A.min_bid);
+            } else {
+                assert(bid_how_much >= (a.last_bid + A.min_increase));
+            }
         }
 
         var expired = A.expiration <= getTime();
@@ -155,14 +202,28 @@ contract SplittableAuctionManager is Assertive {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        var received_bid = A.buying.transferFrom(bidder, this, bid_how_much);
+        bool received_bid;
+        bool returned_bid;
+        if (A.reversed && TRANSITION) {
+        //@log balance:   `uint A.buying.balanceOf(this)`
+            received_bid = A.buying.transferFrom(bidder, this, A.COLLECT_MAX);
+            returned_bid = true;
+        //@log balance:   `uint A.buying.balanceOf(this)`
+        } else if (A.reversed) {
+        //@log balance:   `uint A.buying.balanceOf(this)`
+            received_bid = A.buying.transferFrom(bidder, this, A.COLLECT_MAX);
+        //@log balance:   `uint A.buying.balanceOf(this)`
+            returned_bid = A.buying.transfer(a.last_bidder, A.COLLECT_MAX);
+        //@log balance:   `uint A.buying.balanceOf(this)`
+            A.excess_claimable = A.sell_amount - bid_how_much;
+        } else {
+            received_bid = A.buying.transferFrom(bidder, this, bid_how_much);
+            returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
+            A.collected += bid_how_much;
+            A.collected -= a.last_bid;
+        }
         assert(received_bid);
-
-        var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
         assert(returned_bid);
-
-        A.collected += bid_how_much;
-        A.collected -= a.last_bid;
 
         a.last_bidder = bidder;
         a.last_bid = bid_how_much;
@@ -204,8 +265,20 @@ contract SplittableAuctionManager is Assertive {
     // specific auction
     function _doClaimSeller(uint auction_id) internal {
         var A = _auctions[auction_id];
+
+        //@log collected: `uint A.collected`
+        //@log claimed:   `uint A.claimed`
+        //@log balance:   `uint A.buying.balanceOf(this)`
         var settled = A.buying.transfer(A.beneficiary, A.collected - A.claimed);
         assert(settled);
+
+        // transfer excess sell token
+        if (A.reversed) {
+            var settled_excess = A.selling.transfer(A.beneficiary,
+                                                    A.excess_claimable);
+            assert(settled_excess);
+            A.excess_claimable = 0;
+        }
 
         A.claimed = A.collected;
     }
@@ -221,7 +294,13 @@ contract SplittableAuctionManager is Assertive {
 
         assert(!a.claimed);
 
-        var settled = A.selling.transfer(a.last_bidder, a.quantity);
+        // TODO: can we just decrease a.quantity with each bid?
+        bool settled;
+        if (A.reversed) {
+            settled = A.selling.transfer(a.last_bidder, a.last_bid);
+        } else {
+            settled = A.selling.transfer(a.last_bidder, a.quantity);
+        }
         assert(settled);
 
         a.claimed = true;

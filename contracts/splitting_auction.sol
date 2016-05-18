@@ -106,7 +106,19 @@ contract SplittableAuctionManager is Assertive {
 
         return _doSplit(auctionlet_id, quantity, bid_how_much);
     }
-    function _doBid(uint auctionlet_id, address bidder, uint bid_how_much) internal {
+    // Parties to an auction can claim their take. The auction creator
+    // (the beneficiary) can claim across an entire auction. Individual
+    // auctionlet high bidders must claim per auctionlet.
+    function claim(uint id) {
+        if (msg.sender == _auctions[id].beneficiary) {
+            _doClaimSeller(id);
+        } else {
+            _doClaimBidder(id, msg.sender);
+        }
+    }
+    function _doBid(uint auctionlet_id, address bidder, uint bid_how_much)
+        internal
+    {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
@@ -155,19 +167,9 @@ contract SplittableAuctionManager is Assertive {
 
         return (new_id, split_id);
     }
-    // Parties to an auction can claim their take. The auction creator
-    // (the beneficiary) can claim across an entire auction. Individual
-    // auctionlet high bidders must claim per auctionlet.
-    function claim(uint id) {
-        if (msg.sender == _auctions[id].beneficiary) {
-            _claim_winnings(id);
-        } else {
-            _claim_proceedings(id, msg.sender);
-        }
-    }
     // claim the existing bids from all auctionlets connected to a
     // specific auction
-    function _claim_winnings(uint auction_id) internal {
+    function _doClaimSeller(uint auction_id) internal {
         var A = _auctions[auction_id];
         var settled = A.buying.transfer(A.beneficiary, A.claimable);
         assert(settled);
@@ -176,7 +178,7 @@ contract SplittableAuctionManager is Assertive {
         A.claimable = 0;
     }
     // claim the proceedings from an auction for the highest bidder
-    function _claim_proceedings(uint auctionlet_id, address claimer) internal {
+    function _doClaimBidder(uint auctionlet_id, address claimer) internal {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 

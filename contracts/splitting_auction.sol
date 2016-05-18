@@ -89,6 +89,23 @@ contract SplittableAuctionManager is Assertive {
 
         _doBid(auctionlet_id, msg.sender, bid_how_much);
     }
+    // bid on a specific quantity of an auctionlet
+    function split(uint auctionlet_id, uint quantity, uint bid_how_much)
+        returns (uint, uint)
+    {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        assert(quantity < a.quantity);
+
+        // check that there is a relative increase in value
+        // n.b avoid dividing by a.last_bid as it could be zero
+        var valuation = (bid_how_much * a.quantity) / quantity;
+        //@log valuation: `uint valuation`
+        assert(valuation > a.last_bid);
+
+        return _doSplit(auctionlet_id, quantity, bid_how_much);
+    }
     function _doBid(uint auctionlet_id, address bidder, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
@@ -105,20 +122,12 @@ contract SplittableAuctionManager is Assertive {
         a.last_bidder = bidder;
         a.last_bid = bid_how_much;
     }
-    // bid on a specific quantity of an auctionlet
-    function split(uint auctionlet_id, uint quantity, uint bid_how_much)
+    function _doSplit(uint auctionlet_id, uint quantity, uint bid_how_much)
+        internal
         returns (uint, uint)
     {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
-
-        assert(quantity < a.quantity);
-
-        // check that there is a relative increase in value
-        // n.b avoid dividing by a.last_bid as it could be zero
-        var valuation = (bid_how_much * a.quantity) / quantity;
-        //@log valuation: `uint valuation`
-        assert(valuation > a.last_bid);
 
         var new_quantity = a.quantity - quantity;
         //@log previous quantity: `uint a.quantity`

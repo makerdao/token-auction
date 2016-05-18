@@ -452,7 +452,7 @@ contract SplittingAuctionManagerTest is Test {
         // force expiry
         manager.setTime(manager.getTime() + 2 years);
 
-        bidder2.doSplit(manager, 1, 50 * T1, 5 * T2);
+        bidder2.doSplit(manager, 1, 50 * T1, 10 * T2);
     }
     function testSplitReturnsToPrevBidder() {
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
@@ -487,7 +487,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(diff_t2, 50 * T2);
         assertEq(diff_t1, 100 * T1);
     }
-    function testFailBidAfterSplit () {
+    function testFailBidAfterSplit() {
         // splitting deletes the old auctionlet_id
         // bidding on this id should error
         var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);

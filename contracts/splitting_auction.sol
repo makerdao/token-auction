@@ -96,6 +96,9 @@ contract SplittableAuctionManager is Assertive {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
+        var expired = A.expiration <= getTime();
+        assert(!expired);
+
         assert(quantity < a.quantity);
 
         // check that there is a relative increase in value

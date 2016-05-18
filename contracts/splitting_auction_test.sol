@@ -109,13 +109,14 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(last_bid, 0 * T2);
         assertEq(quantity, 100 * T1);
     }
-    function testFailBidTooLittle() {
+    function testFailBidUnderMinBid() {
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         Manager(bidder1).bid(1, 9 * T2);
     }
-    function testFailBidOverLast() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
-        Manager(bidder1).bid(1, 0);
+    function testFailBidUnderMinIncrease() {
+        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 2 * T2, 1 years);
+        Manager(bidder1).bid(1, 10 * T2);
+        Manager(bidder2).bid(1, 11 * T2);
     }
     function testBid() {
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);

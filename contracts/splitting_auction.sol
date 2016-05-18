@@ -43,7 +43,7 @@ contract SplittableAuctionManager is Assertive {
                         , uint min_increase
                         , uint duration
                         )
-        returns (uint auction_id)
+        returns (uint)
     {
         Auction memory a;
         a.beneficiary = beneficiary;

@@ -14,7 +14,7 @@ contract SplittableAuctionManager is Assertive {
         uint min_bid;
         uint min_increase;
         uint sell_amount;
-        uint claimable;
+        uint collected;
         uint claimed;
         uint expiration;
     }
@@ -143,8 +143,8 @@ contract SplittableAuctionManager is Assertive {
         var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
         assert(returned_bid);
 
-        A.claimable += bid_how_much;
-        A.claimable -= a.last_bid;
+        A.collected += bid_how_much;
+        A.collected -= a.last_bid;
 
         a.last_bidder = bidder;
         a.last_bid = bid_how_much;
@@ -169,7 +169,7 @@ contract SplittableAuctionManager is Assertive {
 
         var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
         assert(returned_bid);
-        A.claimable -= a.last_bid;
+        A.collected -= a.last_bid;
 
         // create two new auctionlets and bid on them
         var new_id = newAuctionlet(a.auction_id, new_quantity);
@@ -186,11 +186,10 @@ contract SplittableAuctionManager is Assertive {
     // specific auction
     function _doClaimSeller(uint auction_id) internal {
         var A = _auctions[auction_id];
-        var settled = A.buying.transfer(A.beneficiary, A.claimable);
+        var settled = A.buying.transfer(A.beneficiary, A.collected - A.claimed);
         assert(settled);
 
-        A.claimed = A.claimable;
-        A.claimable = 0;
+        A.claimed = A.collected;
     }
     // claim the proceedings from an auction for the highest bidder
     function _doClaimBidder(uint auctionlet_id, address claimer) internal {

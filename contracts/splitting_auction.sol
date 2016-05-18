@@ -85,8 +85,8 @@ contract SplittableAuctionManager is Assertive {
     function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
         returns (uint, uint)
     {
-        _assertSplittable(auctionlet_id, quantity, bid_how_much);
-        return _doSplit(auctionlet_id, quantity, bid_how_much);
+        _assertSplittable(auctionlet_id, bid_how_much, quantity);
+        return _doSplit(auctionlet_id, bid_how_much, quantity);
     }
     // Parties to an auction can claim their take. The auction creator
     // (the beneficiary) can claim across an entire auction. Individual
@@ -115,7 +115,7 @@ contract SplittableAuctionManager is Assertive {
         assert(!expired);
     }
     // Check whether an auctionlet is eligible for splitting
-    function _assertSplittable(uint auctionlet_id, uint quantity, uint bid_how_much)
+    function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
         internal
     {
         var a = _auctionlets[auctionlet_id];
@@ -149,7 +149,7 @@ contract SplittableAuctionManager is Assertive {
         a.last_bidder = bidder;
         a.last_bid = bid_how_much;
     }
-    function _doSplit(uint auctionlet_id, uint quantity, uint bid_how_much)
+    function _doSplit(uint auctionlet_id, uint bid_how_much, uint quantity)
         internal
         returns (uint, uint)
     {

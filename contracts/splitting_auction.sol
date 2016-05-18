@@ -82,7 +82,7 @@ contract SplittableAuctionManager is Assertive {
         _doBid(auctionlet_id, msg.sender, bid_how_much);
     }
     // bid on a specific quantity of an auctionlet
-    function split(uint auctionlet_id, uint quantity, uint bid_how_much)
+    function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
         returns (uint, uint)
     {
         _assertSplittable(auctionlet_id, quantity, bid_how_much);

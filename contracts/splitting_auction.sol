@@ -92,9 +92,11 @@ contract SplittableAuctionManager is Assertive {
         var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
         assert(returned_bid);
 
+        A.claimable += bid_how_much;
+        A.claimable -= a.last_bid;
+
         a.last_bidder = msg.sender;
         a.last_bid = bid_how_much;
-        A.claimable += bid_how_much;
     }
     // bid on a specific quantity of an auctionlet
     function split(uint auctionlet_id, uint quantity, uint bid_how_much)

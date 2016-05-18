@@ -86,7 +86,13 @@ contract SplittableAuctionManager is Assertive {
         var expired = A.expiration <= getTime();
         assert(!expired);
 
-        var received_bid = A.buying.transferFrom(msg.sender, this, bid_how_much);
+        _doBid(auctionlet_id, msg.sender, bid_how_much);
+    }
+    function _doBid(uint auctionlet_id, address bidder, uint bid_how_much) internal {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        var received_bid = A.buying.transferFrom(bidder, this, bid_how_much);
         assert(received_bid);
 
         var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
@@ -95,12 +101,12 @@ contract SplittableAuctionManager is Assertive {
         A.claimable += bid_how_much;
         A.claimable -= a.last_bid;
 
-        a.last_bidder = msg.sender;
+        a.last_bidder = bidder;
         a.last_bid = bid_how_much;
     }
     // bid on a specific quantity of an auctionlet
     function split(uint auctionlet_id, uint quantity, uint bid_how_much)
-        returns (uint)
+        returns (uint, uint)
     {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
@@ -110,41 +116,34 @@ contract SplittableAuctionManager is Assertive {
         // check that there is a relative increase in value
         // n.b avoid dividing by a.last_bid as it could be zero
         var valuation = (bid_how_much * a.quantity) / quantity;
+        //@log valuation: `uint valuation`
         assert(valuation > a.last_bid);
-
-        var received_bid = A.buying.transferFrom(msg.sender, this, bid_how_much);
-        assert(received_bid);
-        //@log received bid: `uint bid_how_much` for quantity: `uint quantity`
 
         var new_quantity = a.quantity - quantity;
         //@log previous quantity: `uint a.quantity`
         //@log modified quantity: `uint new_quantity`
+        //@log split quantity:    `uint quantity`
 
         // n.b. associativity important because of truncating division
         var new_bid = (a.last_bid * new_quantity) / a.quantity;
         //@log previous bid: `uint a.last_bid`
         //@log modified bid: `uint new_bid`
+        //@log split bid:    `uint bid_how_much`
 
-        var return_to_bidder = a.last_bid - new_bid;
-        var returned_bid = A.buying.transfer(a.last_bidder, return_to_bidder);
+        var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
         assert(returned_bid);
-        //@log returned bid: `uint return_to_bidder`
+        A.claimable -= a.last_bid;
 
-        a.quantity = new_quantity;
-        a.last_bid = new_bid;
-
-        //@log claimable before split: `uint A.claimable`
-        A.claimable += bid_how_much;
-        A.claimable -= return_to_bidder;
-        //@log claimable after split: `uint A.claimable`
-
+        // create two new auctionlets and bid on them
+        var new_id = newAuctionlet(a.auction_id, new_quantity);
         var split_id = newAuctionlet(a.auction_id, quantity);
-        var sa = _auctionlets[split_id];
 
-        sa.last_bidder = msg.sender;
-        sa.last_bid = bid_how_much;
+        _doBid(new_id, a.last_bidder, new_bid);
+        _doBid(split_id, msg.sender, bid_how_much);
 
-        return split_id;
+        delete _auctionlets[auctionlet_id];
+
+        return (new_id, split_id);
     }
     // Parties to an auction can claim their take. The auction creator
     // (the beneficiary) can claim across an entire auction. Individual

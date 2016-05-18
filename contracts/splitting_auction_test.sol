@@ -19,7 +19,7 @@ contract AuctionTester is Tester {
         token.approve(spender, value);
     }
     function doSplit(Manager manager, uint auctionlet_id, uint quantity, uint bid_how_much)
-        returns (uint)
+        returns (uint, uint)
     {
         return manager.split(auctionlet_id, quantity, bid_how_much);
     }
@@ -334,16 +334,17 @@ contract SplittingAuctionManagerTest is Test {
         var (auction_id0, last_bidder0,
              last_bid0, quantity0) = manager.getAuctionlet(1);
 
-        bidder1.doSplit(manager, 1, 60 * T1, 7 * T2);
+        var (nid, sid) = bidder1.doSplit(manager, 1, 60 * T1, 7 * T2);
 
         var (auction_id1, last_bidder1,
-             last_bid1, quantity1) = manager.getAuctionlet(1);
+             last_bid1, quantity1) = manager.getAuctionlet(nid);
 
         var expected_new_bid = 0;
         var expected_new_quantity = 40 * T1;
 
         assertEq(auction_id0, auction_id1);
-        assertEq(last_bidder0, last_bidder1);
+        assertEq(last_bidder0, 0x00);
+        assertEq(last_bidder1, 0x00);
 
         assertEq(last_bid0, 0 * T2);
         assertEq(quantity0, 100 * T1);
@@ -364,10 +365,10 @@ contract SplittingAuctionManagerTest is Test {
     function testSplitBaseResult() {
         var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
-        var sid = bidder1.doSplit(manager, 1, 60 * T1, 7 * T2);
+        var (nid, sid) = bidder1.doSplit(manager, 1, 60 * T1, 7 * T2);
 
         var (auction_id1, last_bidder1,
-             last_bid1, quantity1) = manager.getAuctionlet(1);
+             last_bid1, quantity1) = manager.getAuctionlet(nid);
         var (auction_id2, last_bidder2,
              last_bid2, quantity2) = manager.getAuctionlet(sid);
 
@@ -395,10 +396,10 @@ contract SplittingAuctionManagerTest is Test {
         Manager(bidder1).bid(1, 11 * T2);
 
         // make split bid that has equivalent price of 20 T2 for full lot
-        var sid = bidder2.doSplit(manager, 1, 60 * T1, 12 * T2);
+        var (nid, sid) = bidder2.doSplit(manager, 1, 60 * T1, 12 * T2);
 
         var (auction_id1, last_bidder1,
-             last_bid1, quantity1) = manager.getAuctionlet(1);
+             last_bid1, quantity1) = manager.getAuctionlet(nid);
         var (auction_id2, last_bidder2,
              last_bid2, quantity2) = manager.getAuctionlet(sid);
 

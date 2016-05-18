@@ -78,47 +78,14 @@ contract SplittableAuctionManager is Assertive {
     }
     // bid on a specifc auctionlet
     function bid(uint auctionlet_id, uint bid_how_much) {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
-        assert(a.auction_id > 0);  // test for deleted auctionlet
-
-        if (a.last_bidder == 0) {  // check for base auctionlet
-            assert(bid_how_much >= A.min_bid);
-        } else {
-            assert(bid_how_much >= (a.last_bid + A.min_increase));
-        }
-
-        var expired = A.expiration <= getTime();
-        assert(!expired);
-
+        _assertBiddable(auctionlet_id, bid_how_much);
         _doBid(auctionlet_id, msg.sender, bid_how_much);
     }
     // bid on a specific quantity of an auctionlet
     function split(uint auctionlet_id, uint quantity, uint bid_how_much)
         returns (uint, uint)
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
-
-        assert(a.auction_id > 0);  // test for deleted auctionlet
-
-        var expired = A.expiration <= getTime();
-        assert(!expired);
-
-        assert(quantity < a.quantity);
-
-        // check that there is a relative increase in value
-        // ('valuation' is the bid scaled up to the full lot)
-        // n.b avoid dividing by a.last_bid as it could be zero
-        var valuation = (bid_how_much * a.quantity) / quantity;
-        //@log valuation: `uint valuation`
-        if (a.last_bidder == 0) {  // check for base auctionlet
-            assert(valuation >= A.min_bid);
-        } else {
-            assert(valuation >= (a.last_bid + A.min_increase));
-        }
-        // TODO: what about min_increase?
-
+        _assertSplittable(auctionlet_id, quantity, bid_how_much);
         return _doSplit(auctionlet_id, quantity, bid_how_much);
     }
     // Parties to an auction can claim their take. The auction creator
@@ -130,6 +97,39 @@ contract SplittableAuctionManager is Assertive {
         } else {
             _doClaimBidder(id, msg.sender);
         }
+    }
+    // Check whether an auctionlet is eligible for bidding on
+    function _assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        assert(a.auction_id > 0);  // test for deleted auctionlet
+
+        if (a.last_bidder == 0) {  // check for base auctionlet
+            assert(bid_how_much >= A.min_bid);
+        } else {
+            assert(bid_how_much >= (a.last_bid + A.min_increase));
+        }
+
+        var expired = A.expiration <= getTime();
+        assert(!expired);
+    }
+    // Check whether an auctionlet is eligible for splitting
+    function _assertSplittable(uint auctionlet_id, uint quantity, uint bid_how_much)
+        internal
+    {
+        var a = _auctionlets[auctionlet_id];
+
+        // check that the split actually splits the auctionlet
+        // with lower quantity
+        assert(quantity < a.quantity);
+
+        // check that there is a relative increase in value
+        // ('valuation' is the bid scaled up to the full lot)
+        // n.b avoid dividing by a.last_bid as it could be zero
+        var valuation = (bid_how_much * a.quantity) / quantity;
+
+        _assertBiddable(auctionlet_id, valuation);
     }
     function _doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal

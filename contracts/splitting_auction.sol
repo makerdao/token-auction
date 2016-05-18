@@ -96,6 +96,8 @@ contract SplittableAuctionManager is Assertive {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
+        assert(a.auction_id > 0);  // test for deleted auctionlet
+
         var expired = A.expiration <= getTime();
         assert(!expired);
 

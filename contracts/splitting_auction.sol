@@ -59,13 +59,22 @@ contract SplittableAuctionManager is Assertive {
 
         _auctions[++_last_auction_id] = a;
 
-        Auctionlet memory base_auctionlet;
-        base_auctionlet.auction_id = _last_auction_id;
-        base_auctionlet.quantity = sell_amount;
-
-        _auctionlets[++_last_auctionlet_id] = base_auctionlet;
+        // create the base auctionlet
+        newAuctionlet({auction_id: _last_auction_id,
+                       quantity:    sell_amount});
 
         return _last_auction_id;
+    }
+    function newAuctionlet(uint auction_id, uint quantity)
+        internal returns (uint)
+    {
+        Auctionlet memory auctionlet;
+        auctionlet.auction_id = auction_id;
+        auctionlet.quantity = quantity;
+
+        _auctionlets[++_last_auctionlet_id] = auctionlet;
+
+        return _last_auctionlet_id;
     }
     // bid on a specifc auctionlet
     function bid(uint auctionlet_id, uint bid_how_much) {

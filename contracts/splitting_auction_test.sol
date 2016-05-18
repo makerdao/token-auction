@@ -27,6 +27,9 @@ contract AuctionTester is Tester {
     {
         return manager.bid(auctionlet_id, bid_how_much, quantity);
     }
+    function doClaim(Manager manager, uint id) {
+        return manager.claim(id);
+    }
 }
 
 contract SplittingAuctionManagerTest is Test {
@@ -178,7 +181,7 @@ contract SplittingAuctionManagerTest is Test {
 
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(manager, 1, 40 * T2);
-        Manager(seller).claim(id);
+        seller.doClaim(manager, id);
 
         var seller_t2_balance_after = t2.balanceOf(seller);
         var seller_t1_balance_after = t1.balanceOf(seller);
@@ -196,7 +199,7 @@ contract SplittingAuctionManagerTest is Test {
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(manager, 1, 40 * T2);
         bidder2.doBid(manager, 1, 60 * T2);
-        Manager(seller).claim(id);
+        seller.doClaim(manager, id);
 
         var seller_t2_balance_after = t2.balanceOf(seller);
         var seller_t1_balance_after = t1.balanceOf(seller);
@@ -210,14 +213,14 @@ contract SplittingAuctionManagerTest is Test {
     function testBenefactorClaimLogged() {
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(manager, 1, 11 * T2);
-        Manager(seller).claim(id);
+        seller.doClaim(manager, id);
 
         var seller_t1_balance_before = t1.balanceOf(seller);
         var seller_t2_balance_before = t2.balanceOf(seller);
 
         // calling claim again should not do anything as there
         // have been no new bids
-        Manager(seller).claim(id);
+        seller.doClaim(manager, id);
 
         var seller_t1_balance_after = t1.balanceOf(seller);
         var seller_t2_balance_after = t2.balanceOf(seller);
@@ -238,7 +241,7 @@ contract SplittingAuctionManagerTest is Test {
         // force expiry
         manager.setTime(manager.getTime() + 2 years);
 
-        Manager(bidder1).claim(1);
+        bidder1.doClaim(manager, 1);
 
         var bidder_t2_balance_after = t2.balanceOf(bidder1);
         var bidder_t1_balance_after = t1.balanceOf(bidder1);
@@ -254,14 +257,14 @@ contract SplittingAuctionManagerTest is Test {
         bidder1.doBid(manager, 1, 11 * T2);
         // bidder2 is not party to the auction and should not be able to
         // initiate a claim
-        Manager(bidder2).claim(1);
+        bidder2.doClaim(manager, 1);
     }
     function testFailClaimProceedingsPreExpiration() {
         // bidders cannot claim their auctionlet until the auction has
         // expired.
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(manager, 1, 11 * T2);
-        Manager(bidder1).claim(1);
+        bidder1.doClaim(manager, 1);
     }
     function testMultipleNewAuctions() {
         // auction manager should be able to manage multiple auctions
@@ -305,7 +308,7 @@ contract SplittingAuctionManagerTest is Test {
 
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(manager, 2, 11 * T2);
-        Manager(seller).claim(id);
+        seller.doClaim(manager, id);
 
         var seller_t2_balance_after = t2.balanceOf(seller);
         var seller_t1_balance_after = t1.balanceOf(seller);
@@ -330,8 +333,8 @@ contract SplittingAuctionManagerTest is Test {
 
         // now attempt to claim the proceedings from the first
         // auctionlet twice
-        Manager(bidder1).claim(1);
-        Manager(bidder1).claim(1);
+        bidder1.doClaim(manager, 1);
+        bidder1.doClaim(manager, 1);
     }
     function testSplitBase() {
         var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
@@ -494,7 +497,7 @@ contract SplittingAuctionManagerTest is Test {
         var manager_t2_balance_before_claim = t2.balanceOf(manager);
         assertEq(manager_t2_balance_before_claim, 50 * T2);
 
-        Manager(seller).claim(id);
+        seller.doClaim(manager, id);
 
         var seller_t2_balance_after = t2.balanceOf(seller);
         var seller_t1_balance_after = t1.balanceOf(seller);

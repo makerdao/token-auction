@@ -138,16 +138,13 @@ contract SplittableAuctionManager is Assertive {
         A.claimable -= return_to_bidder;
         //@log claimable after split: `uint A.claimable`
 
-        Auctionlet memory sa;
+        var split_id = newAuctionlet(a.auction_id, quantity);
+        var sa = _auctionlets[split_id];
 
-        sa.auction_id = a.auction_id;
         sa.last_bidder = msg.sender;
-        sa.quantity = quantity;
         sa.last_bid = bid_how_much;
 
-        _auctionlets[++_last_auctionlet_id] = sa;
-
-        return _last_auctionlet_id;
+        return split_id;
     }
     // Parties to an auction can claim their take. The auction creator
     // (the beneficiary) can claim across an entire auction. Individual

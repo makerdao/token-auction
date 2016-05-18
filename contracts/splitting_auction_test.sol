@@ -445,6 +445,10 @@ contract SplittingAuctionManagerTest is Test {
 
         bidder2.doSplit(manager, 1, 50 * T1, 5 * T2);
     }
+    function testFailSplitLowerThanMin() {
+        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        bidder1.doSplit(manager, 1, 50 * T1, 4 * T2);
+    }
     function testFailSplitExpired() {
         manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         Manager(bidder1).bid(1, 11 * T2);

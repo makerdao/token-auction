@@ -15,6 +15,7 @@ contract SplittableAuctionManager is Assertive {
         uint min_increase;
         uint sell_amount;
         uint collected;
+        uint COLLECT_MAX;
         uint claimed;
         uint expiration;
     }
@@ -25,6 +26,8 @@ contract SplittableAuctionManager is Assertive {
         uint     quantity;
         bool     claimed;
     }
+
+    uint constant INFINITY = 2 ** 256 - 1;
 
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
@@ -45,6 +48,20 @@ contract SplittableAuctionManager is Assertive {
                         )
         returns (uint)
     {
+        return newTwoWayAuction(beneficiary, selling, buying, sell_amount,
+                                min_bid, min_increase, duration, INFINITY);
+    }
+    function newTwoWayAuction( address beneficiary
+                             , ERC20 selling
+                             , ERC20 buying
+                             , uint sell_amount
+                             , uint min_bid
+                             , uint min_increase
+                             , uint duration
+                             , uint COLLECT_MAX
+                             )
+        returns (uint)
+    {
         Auction memory a;
         a.beneficiary = beneficiary;
         a.selling = selling;
@@ -53,6 +70,7 @@ contract SplittableAuctionManager is Assertive {
         a.min_bid = min_bid;
         a.min_increase = min_increase;
         a.expiration = getTime() + duration;
+        a.COLLECT_MAX = COLLECT_MAX;
 
         var received_lot = selling.transferFrom(beneficiary, this, sell_amount);
         assert(received_lot);

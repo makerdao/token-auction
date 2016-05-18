@@ -108,11 +108,15 @@ contract SplittableAuctionManager is Assertive {
         assert(quantity < a.quantity);
 
         // check that there is a relative increase in value
+        // ('valuation' is the bid scaled up to the full lot)
         // n.b avoid dividing by a.last_bid as it could be zero
         var valuation = (bid_how_much * a.quantity) / quantity;
         //@log valuation: `uint valuation`
-        assert(valuation >= A.min_bid);
-        assert(valuation > a.last_bid);
+        if (a.last_bidder == 0) {  // check for base auctionlet
+            assert(valuation >= A.min_bid);
+        } else {
+            assert(valuation >= (a.last_bid + A.min_increase));
+        }
         // TODO: what about min_increase?
 
         return _doSplit(auctionlet_id, quantity, bid_how_much);

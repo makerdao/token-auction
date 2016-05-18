@@ -446,9 +446,18 @@ contract SplittingAuctionManagerTest is Test {
 
         bidder2.doSplit(manager, 1, 50 * T1, 5 * T2);
     }
-    function testFailSplitLowerThanMin() {
+    function testFailSplitUnderMinBid() {
+        // Splitting bids have to be over the scaled minimum bid
         manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doSplit(manager, 1, 50 * T1, 4 * T2);
+    }
+    function testFailSplitUnderMinIncrease() {
+        // Splitting bids have to increase more than the scaled minimum
+        // increase
+        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 10 * T2, 1 years);
+        Manager(bidder1).bid(1, 10 * T2);
+
+        bidder2.doSplit(manager, 1, 50 * T1, 6 * T2);
     }
     function testFailSplitExpired() {
         manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);

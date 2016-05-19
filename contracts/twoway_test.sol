@@ -186,4 +186,37 @@ contract TwoWayTest is Test {
 
         assertEq(t1_balance_diff, 85 * T1);
     }
+    function testSplitAfterReversal() {
+        var id = manager.newTwoWayAuction(seller, t1, t2,
+                                          100 * T1, 0 * T2, 1 * T2,
+                                          1 years, 100 * T2);
+
+        bidder1.doBid(1, 110 * T2);  // force the reversal
+
+        bidder1.doBid(1, 90 * T1);
+
+        var (nid, sid) = bidder2.doBid(1, 40 * T1, 50 * T2);
+        // this should succeed and create two new auctionlets
+
+        var (auction_id1, last_bidder1,
+             last_bid1, quantity1) = manager.getAuctionlet(nid);
+
+        var (auction_id2, last_bidder2,
+             last_bid2, quantity2) = manager.getAuctionlet(sid);
+
+        assertEq(auction_id1, auction_id2);
+
+        assertEq(last_bidder1, bidder1);
+        assertEq(last_bidder2, bidder2);
+
+        assertEq(last_bid1, 50 * T2);
+        assertEq(last_bid2, 50 * T2);
+
+        assertEq(quantity1, 45 * T1);
+        assertEq(quantity2, 40 * T1);
+
+        // a split bid can be made in a reverse market.
+        // bidders can offer to buy less of the token for a lesser price
+        // *provided that they increase the valuation*
+    }
 }

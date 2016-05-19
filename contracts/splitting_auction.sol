@@ -88,9 +88,16 @@ contract SplittableAuctionManager is Assertive {
     function newAuctionlet(uint auction_id, uint quantity)
         internal returns (uint)
     {
+        var A = _auctions[auction_id];
+
         Auctionlet memory auctionlet;
         auctionlet.auction_id = auction_id;
-        auctionlet.quantity = quantity;
+
+        if (A.reversed) {
+            auctionlet.last_bid = quantity;
+        } else {
+            auctionlet.quantity = quantity;
+        }
 
         _auctionlets[++_last_auctionlet_id] = auctionlet;
 
@@ -137,7 +144,6 @@ contract SplittableAuctionManager is Assertive {
             _assertForwardBiddable(auctionlet_id, bid_how_much);
         }
     }
-
     function _assertForwardBiddable(uint auctionlet_id, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
@@ -155,8 +161,18 @@ contract SplittableAuctionManager is Assertive {
         //@log last bid:     `uint a.last_bid`
         assert(bid_how_much <= a.quantity); // TODO: - min_decrease
     }
+    function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity) internal {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        if (A.reversed) {
+            _assertReverseSplittable(auctionlet_id, bid_how_much, quantity);
+        } else {
+            _assertForwardSplittable(auctionlet_id, bid_how_much, quantity);
+        }
+    }
     // Check whether an auctionlet is eligible for splitting
-    function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
+    function _assertForwardSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
         internal
     {
         var a = _auctionlets[auctionlet_id];
@@ -170,6 +186,16 @@ contract SplittableAuctionManager is Assertive {
         // n.b avoid dividing by a.last_bid as it could be zero
         var valuation = (bid_how_much * a.quantity) / quantity;
 
+        _assertBiddable(auctionlet_id, valuation);
+    }
+    function _assertReverseSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
+        internal
+    {
+        var a = _auctionlets[auctionlet_id];
+
+        assert(quantity < a.last_bid);
+
+        var valuation = (bid_how_much * a.last_bid) / quantity;
         _assertBiddable(auctionlet_id, valuation);
     }
     function _doBid(uint auctionlet_id, address bidder, uint bid_how_much)
@@ -222,14 +248,24 @@ contract SplittableAuctionManager is Assertive {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        var new_quantity = a.quantity - quantity;
-        //@log previous quantity: `uint a.quantity`
+        uint prev_quantity;
+        uint prev_bid;
+        if (A.reversed) {
+            prev_quantity = a.last_bid;
+            prev_bid = a.quantity;
+        } else {
+            prev_quantity = a.quantity;
+            prev_bid = a.last_bid;
+        }
+
+        var new_quantity = prev_quantity - quantity;
+        //@log previous quantity: `uint prev_quantity`
         //@log modified quantity: `uint new_quantity`
         //@log split quantity:    `uint quantity`
 
         // n.b. associativity important because of truncating division
-        var new_bid = (a.last_bid * new_quantity) / a.quantity;
-        //@log previous bid: `uint a.last_bid`
+        var new_bid = (prev_bid * new_quantity) / prev_quantity;
+        //@log previous bid: `uint prev_bid`
         //@log modified bid: `uint new_bid`
         //@log split bid:    `uint bid_how_much`
 

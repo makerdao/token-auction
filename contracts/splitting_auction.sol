@@ -233,12 +233,19 @@ contract SplittableAuctionManager is Assertive {
             // return excess to bidder
             var excess = A.collected - A.COLLECT_MAX;
             var returned_excess = A.buying.transfer(bidder, excess);
-            assert(returned_bid);
+            assert(returned_excess);
 
             A.collected = A.COLLECT_MAX;
             A.reversed = true;
 
             a.last_bid = bid_how_much - excess;
+
+            var effective_target_bid = (a.quantity * A.COLLECT_MAX) / A.sell_amount;
+            var reduced_quantity = (a.quantity * effective_target_bid) / bid_how_much;
+            //@log effective target bid: `uint effective_target_bid`
+            //@log previous quantity:    `uint a.quantity`
+            //@log reduced quantity:     `uint reduced_quantity`
+            a.quantity = reduced_quantity;
         }
     }
     function _doSplit(uint auctionlet_id, uint bid_how_much, uint quantity)

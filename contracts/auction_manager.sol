@@ -48,6 +48,23 @@ contract AuctionManager is Assertive {
         (auction_id, base_id) =  newTwoWayAuction(beneficiary, selling, buying, sell_amount,
                                                   min_bid, min_increase, duration, INFINITY);
     }
+    function newReverseAuction( address beneficiary
+                              , ERC20 selling
+                              , ERC20 buying
+                              , uint sell_amount
+                              , uint min_bid
+                              , uint min_increase
+                              , uint duration
+                              )
+        returns (uint auction_id, uint base_id)
+    {
+        // the Reverse Auction is the limit of the two way auction
+        // where the maximum collected buying token is zero.
+        (auction_id, base_id) = newTwoWayAuction(beneficiary, selling, buying, sell_amount,
+                                                 min_bid, min_increase, duration, 0);
+        // make an empty bid to trigger the reversal
+        _doBid(base_id, address(0x00), 0);
+    }
     function newTwoWayAuction( address beneficiary
                              , ERC20 selling
                              , ERC20 buying

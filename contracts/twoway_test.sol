@@ -128,18 +128,21 @@ contract TwoWayTest is Test {
                                           100 * T1, 0 * T2, 1 * T2,
                                           1 years, 100 * T2);
         bidder1.doBid(1, 110 * T2);
+
         var (auction_id1, last_bidder1,
              last_bid1, quantity1) = manager.getAuctionlet(1);
+
         bidder2.doBid(1, 90 * T1);
         bidder1.doBid(1, 85 * T1);
+
         var (auction_id2, last_bidder2,
              last_bid2, quantity2) = manager.getAuctionlet(1);
 
-        assertEq(last_bid1, 100 * T1);
-        assertEq(last_bid2, 85 * T1);
-
         assertEq(quantity1, 100 * T1);
-        assertEq(quantity2, 100 * T1);
+        assertEq(quantity2, 85 * T1);
+
+        assertEq(last_bid1, 100 * T2);
+        assertEq(last_bid2, 100 * T2);
     }
     function testClaimSellerAfterReversal() {
         // after reversal, the seller should receive the available

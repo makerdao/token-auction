@@ -26,7 +26,7 @@ contract SplittableAuctionManager is Assertive {
         address  last_bidder;
         uint     last_bid;
         uint     quantity;
-        bool     claimed;
+        bool     unclaimed;
     }
 
     uint constant INFINITY = 2 ** 256 - 1;
@@ -92,6 +92,7 @@ contract SplittableAuctionManager is Assertive {
 
         Auctionlet memory auctionlet;
         auctionlet.auction_id = auction_id;
+        auctionlet.unclaimed = true;
 
         if (A.reversed) {
             auctionlet.last_bid = quantity;
@@ -322,12 +323,13 @@ contract SplittableAuctionManager is Assertive {
         var expired = A.expiration <= getTime();
         assert(expired);
 
-        assert(!a.claimed);
+        assert(a.unclaimed);
 
         var settled = A.selling.transfer(a.last_bidder, a.quantity);
         assert(settled);
 
-        a.claimed = true;
+        a.unclaimed = false;
+        delete _auctionlets[auctionlet_id];
     }
     function getAuction(uint id) constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)

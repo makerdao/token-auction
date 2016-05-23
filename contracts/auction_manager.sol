@@ -53,7 +53,7 @@ contract AuctionManager is Assertive {
                               , ERC20 buying
                               , uint sell_amount
                               , uint min_bid
-                              , uint min_increase
+                              , uint min_delta
                               , uint duration
                               )
         returns (uint auction_id, uint base_id)
@@ -61,7 +61,7 @@ contract AuctionManager is Assertive {
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
         (auction_id, base_id) = newTwoWayAuction(beneficiary, selling, buying, sell_amount,
-                                                 min_bid, min_increase, duration, 0);
+                                                 min_bid, min_delta, duration, 0);
         // make an empty bid to trigger the reversal
         _doBid(base_id, address(0x00), 0);
         Auctionlet a = _auctionlets[base_id];
@@ -163,10 +163,11 @@ contract AuctionManager is Assertive {
     }
     function _assertReverseBiddable(uint auctionlet_id, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
         //@log bid how much: `uint bid_how_much`
         //@log quantity:     `uint a.quantity`
         //@log last bid:     `uint a.last_bid`
-        assert(bid_how_much <= a.quantity); // TODO: - min_decrease
+        assert(bid_how_much <= a.quantity - A.min_increase);
     }
     function _doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal

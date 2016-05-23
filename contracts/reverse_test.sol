@@ -82,7 +82,7 @@ contract ReverseTest is Test {
                                          t2,      // buying
                                          100 * T1,// sell amount (t1)
                                          5 * T2,  // minimum bid (t2)
-                                         1 * T2,  // minimum increase
+                                         2 * T1,  // minimum increase
                                          1 years  // duration
                                          );
     }
@@ -126,5 +126,14 @@ contract ReverseTest is Test {
 
         // auction should have increased funds
         assertEq(auction_t2_balance_after - auction_t2_balance_before, 5 * T2);
+    }
+    function testFailBidOverStartBid() {
+        var (id, base) = newReverseAuction();
+        bidder1.doBid(base, 105 * T1);
+    }
+    function testFailBidUnderMinimum() {
+        var (id, base) = newReverseAuction();
+        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 89 * T1);
     }
 }

@@ -43,10 +43,10 @@ contract AuctionManager is Assertive {
                         , uint min_increase
                         , uint duration
                         )
-        returns (uint)
+        returns (uint auction_id, uint base_id)
     {
-        return newTwoWayAuction(beneficiary, selling, buying, sell_amount,
-                                min_bid, min_increase, duration, INFINITY);
+        (auction_id, base_id) =  newTwoWayAuction(beneficiary, selling, buying, sell_amount,
+                                                  min_bid, min_increase, duration, INFINITY);
     }
     function newTwoWayAuction( address beneficiary
                              , ERC20 selling
@@ -57,7 +57,7 @@ contract AuctionManager is Assertive {
                              , uint duration
                              , uint COLLECT_MAX
                              )
-        returns (uint)
+        returns (uint, uint)
     {
         Auction memory a;
         a.beneficiary = beneficiary;
@@ -75,10 +75,10 @@ contract AuctionManager is Assertive {
         _auctions[++_last_auction_id] = a;
 
         // create the base auctionlet
-        newAuctionlet({auction_id: _last_auction_id,
-                       quantity:    sell_amount});
+        var base_id = newAuctionlet({auction_id: _last_auction_id,
+                                     quantity:    sell_amount});
 
-        return _last_auction_id;
+        return (_last_auction_id, base_id);
     }
     function newAuctionlet(uint auction_id, uint quantity)
         internal returns (uint)

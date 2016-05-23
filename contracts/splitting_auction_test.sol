@@ -81,10 +81,10 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(t2.allowance(bidder1, manager), 1000 * T2);
     }
     function testSplitBase() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var (auction_id0, last_bidder0,
-             last_bid0, quantity0) = manager.getAuctionlet(1);
+             last_bid0, quantity0) = manager.getAuctionlet(base);
 
         var (nid, sid) = bidder1.doBid(1, 7 * T2, 60 * T1);
 
@@ -115,7 +115,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(balance_diff, 7 * T2);
     }
     function testSplitBaseResult() {
-        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var (nid, sid) = bidder1.doBid(1, 7 * T2, 60 * T1);
 
@@ -143,7 +143,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(last_bid2, expected_new_bid2);
     }
     function testSplitAfterBid() {
-        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         bidder1.doBid(1, 11 * T2);
 
@@ -227,7 +227,7 @@ contract SplittingAuctionManagerTest is Test {
         bidder2.doBid(1, 10 * T2, 50 * T1);
     }
     function testSplitReturnsToPrevBidder() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(1, 20 * T2);
@@ -241,7 +241,7 @@ contract SplittingAuctionManagerTest is Test {
         var seller_t2_balance_before = t2.balanceOf(seller);
         var seller_t1_balance_before = t1.balanceOf(seller);
 
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 40 * T2);
         bidder2.doBid(1, 20 * T2, 25 * T1);
 
@@ -262,14 +262,14 @@ contract SplittingAuctionManagerTest is Test {
     function testFailBidAfterSplit() {
         // splitting deletes the old auctionlet_id
         // bidding on this id should error
-        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         var (nid, sid) = bidder2.doBid(1, 12 * T2, 60 * T1);
         bidder1.doBid(1, 11 * T2);
     }
     function testFailSplitAfterSplit() {
         // splitting deletes the old auctionlet_id
         // splitting on this id should error
-        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         var (nid, sid) = bidder2.doBid(1, 12 * T2, 60 * T1);
         bidder1.doBid(1, 20 * T2, 60 * T1);
     }

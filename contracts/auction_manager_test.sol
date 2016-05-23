@@ -77,14 +77,14 @@ contract AuctionManagerTest is Test {
     }
     function testNewAuction() {
         var balance_before = t1.balanceOf(seller);
-        var id = manager.newAuction(seller,  // beneficiary
-                                    t1,      // selling
-                                    t2,      // buying
-                                    100 * T1,// sell amount (t1)
-                                    0 * T2,  // minimum bid (t2)
-                                    1 * T2,  // minimum increase
-                                    1 years  // duration
-                                   );
+        var (id, base) = manager.newAuction(seller,  // beneficiary
+                                            t1,      // selling
+                                            t2,      // buying
+                                            100 * T1,// sell amount (t1)
+                                            0 * T2,  // minimum bid (t2)
+                                            1 * T2,  // minimum increase
+                                            1 years  // duration
+                                           );
         assertEq(id, 1);
         var balance_after = t1.balanceOf(seller);
 
@@ -103,13 +103,13 @@ contract AuctionManagerTest is Test {
         assertEq(balance_diff, 100 * T1);
     }
     function testNewAuctionlet() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
 
         // can't always know what the auctionlet id is as it is
         // only an internal type. But for the case of a single auction
         // there should be a single auctionlet created with id 1.
         var (auction_id, last_bidder1,
-             last_bid, quantity) = manager.getAuctionlet(1);
+             last_bid, quantity) = manager.getAuctionlet(base);
 
         assertEq(auction_id, id);
         assertEq(last_bidder1, 0);
@@ -117,32 +117,32 @@ contract AuctionManagerTest is Test {
         assertEq(quantity, 100 * T1);
     }
     function testFailBidUnderMinBid() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 9 * T2);
     }
     function testFailBidUnderMinIncrease() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 2 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 2 * T2, 1 years);
         bidder1.doBid(1, 10 * T2);
         bidder2.doBid(1, 11 * T2);
     }
     function testBid() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 11 * T2);
 
         var (auction_id, last_bidder1,
-             last_bid, quantity) = manager.getAuctionlet(1);
+             last_bid, quantity) = manager.getAuctionlet(base);
 
         assertEq(last_bidder1, bidder1);
         assertEq(last_bid, 11 * T2);
     }
     function testFailBidTransfer() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         // this should throw as bidder1 only has 1000 t2
         bidder1.doBid(1, 1001 * T2);
     }
     function testBidTransfer() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(1, 11 * T2);
@@ -152,7 +152,7 @@ contract AuctionManagerTest is Test {
         assertEq(balance_diff, 11 * T2);
     }
     function testBidReturnsToPrevBidder() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
         var manager_t2_balance_before = t2.balanceOf(manager);
@@ -179,7 +179,7 @@ contract AuctionManagerTest is Test {
         var seller_t2_balance_before = t2.balanceOf(seller);
         var seller_t1_balance_before = t1.balanceOf(seller);
 
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 40 * T2);
         seller.doClaim(id);
 
@@ -196,7 +196,7 @@ contract AuctionManagerTest is Test {
         var seller_t2_balance_before = t2.balanceOf(seller);
         var seller_t1_balance_before = t1.balanceOf(seller);
 
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 40 * T2);
         bidder2.doBid(1, 60 * T2);
         seller.doClaim(id);
@@ -211,7 +211,7 @@ contract AuctionManagerTest is Test {
         assertEq(diff_t1, 100 * T1);
     }
     function testBenefactorClaimLogged() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 11 * T2);
         seller.doClaim(id);
 
@@ -235,7 +235,7 @@ contract AuctionManagerTest is Test {
         var bidder_t2_balance_before = t2.balanceOf(bidder1);
         var bidder_t1_balance_before = t1.balanceOf(bidder1);
 
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 11 * T2);
 
         // force expiry
@@ -253,7 +253,7 @@ contract AuctionManagerTest is Test {
         assertEq(diff_t1, 100 * T1);
     }
     function testFailClaimNonParty() {
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 11 * T2);
         // bidder2 is not party to the auction and should not be able to
         // initiate a claim
@@ -262,7 +262,7 @@ contract AuctionManagerTest is Test {
     function testFailClaimProceedingsPreExpiration() {
         // bidders cannot claim their auctionlet until the auction has
         // expired.
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 11 * T2);
         bidder1.doClaim(1);
     }
@@ -274,20 +274,14 @@ contract AuctionManagerTest is Test {
         var t1_balance_before = t1.balanceOf(seller);
         var t2_balance_before = t2.balanceOf(seller);
 
-        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
-        var id2 = manager.newAuction(seller, t2, t1, 100 * T2, 10 * T1, 1 * T1, 1 years);
-
-        var t1_balance_after = t1.balanceOf(seller);
-        var t2_balance_after = t2.balanceOf(seller);
+        var (id1, base1) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(seller, t2, t1, 100 * T2, 10 * T1, 1 * T1, 1 years);
 
         assertEq(id1, 1);
         assertEq(id2, 2);
 
-        var t1_balance_diff = t1_balance_before - t1_balance_after;
-        var t2_balance_diff = t2_balance_before - t2_balance_after;
-
-        assertEq(t1_balance_diff, 100 * T1);
-        assertEq(t2_balance_diff, 100 * T2);
+        assertEq(t1_balance_before - t1.balanceOf(seller), 100 * T1);
+        assertEq(t2_balance_before - t2.balanceOf(seller), 100 * T2);
 
         var (beneficiary, selling, buying,
              sell_amount, min_bid, min_increase, expiration) = manager.getAuction(id2);
@@ -306,7 +300,7 @@ contract AuctionManagerTest is Test {
         var seller_t2_balance_before = t2.balanceOf(seller);
         var seller_t1_balance_before = t1.balanceOf(seller);
 
-        var id = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(2, 11 * T2);
         seller.doClaim(id);
 
@@ -323,8 +317,8 @@ contract AuctionManagerTest is Test {
         // bidders should not be able to claim their auctionlet more than once
 
         // create an auction that expires immediately
-        var id1 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 0 years);
-        var id2 = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 0 years);
+        var (id1, base1) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 0 years);
+        var (id2, base2) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 0 years);
 
         // create bids on two different auctions so that the manager has
         // enough funds for us to attempt to withdraw all at once

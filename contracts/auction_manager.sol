@@ -8,6 +8,7 @@ contract AuctionManager is Assertive {
         ERC20 buying;
         uint min_bid;
         uint min_increase;
+        uint min_decrease;
         uint sell_amount;
         uint collected;
         uint COLLECT_MAX;
@@ -45,23 +46,39 @@ contract AuctionManager is Assertive {
                         )
         returns (uint auction_id, uint base_id)
     {
-        (auction_id, base_id) =  newTwoWayAuction(beneficiary, selling, buying, sell_amount,
-                                                  min_bid, min_increase, duration, INFINITY);
+        (auction_id, base_id) = newTwoWayAuction({beneficiary: beneficiary,
+                                                  selling: selling,
+                                                  buying: buying,
+                                                  sell_amount: sell_amount,
+                                                  min_bid: min_bid,
+                                                  min_increase: min_increase,
+                                                  min_decrease: 0,
+                                                  duration: duration,
+                                                  COLLECT_MAX: INFINITY
+                                                });
     }
     function newReverseAuction( address beneficiary
                               , ERC20 selling
                               , ERC20 buying
                               , uint sell_amount
                               , uint min_bid
-                              , uint min_delta
+                              , uint min_decrease
                               , uint duration
                               )
         returns (uint auction_id, uint base_id)
     {
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
-        (auction_id, base_id) = newTwoWayAuction(beneficiary, selling, buying, sell_amount,
-                                                 min_bid, min_delta, duration, 0);
+        (auction_id, base_id) = newTwoWayAuction({beneficiary: beneficiary,
+                                                  selling: selling,
+                                                  buying: buying,
+                                                  sell_amount: sell_amount,
+                                                  min_bid: min_bid,
+                                                  min_increase: 0,
+                                                  min_decrease: min_decrease,
+                                                  duration: duration,
+                                                  COLLECT_MAX: 0
+                                                });
         // make an empty bid to trigger the reversal
         _doBid(base_id, address(0x00), 0);
         Auctionlet a = _auctionlets[base_id];
@@ -75,6 +92,7 @@ contract AuctionManager is Assertive {
                              , uint sell_amount
                              , uint min_bid
                              , uint min_increase
+                             , uint min_decrease
                              , uint duration
                              , uint COLLECT_MAX
                              )
@@ -87,6 +105,7 @@ contract AuctionManager is Assertive {
         a.sell_amount = sell_amount;
         a.min_bid = min_bid;
         a.min_increase = min_increase;
+        a.min_decrease = min_decrease;
         a.expiration = getTime() + duration;
         a.COLLECT_MAX = COLLECT_MAX;
 
@@ -167,7 +186,8 @@ contract AuctionManager is Assertive {
         //@log bid how much: `uint bid_how_much`
         //@log quantity:     `uint a.quantity`
         //@log last bid:     `uint a.last_bid`
-        assert(bid_how_much <= a.quantity - A.min_increase);
+        //@log min decrease: `uint A.min_decrease`
+        assert(bid_how_much <= a.quantity - A.min_decrease);
     }
     function _doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal

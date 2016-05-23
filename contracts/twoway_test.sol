@@ -82,39 +82,36 @@ contract TwoWayTest is Test {
         t2.transfer(bidder2, 1000 * T2);
         bidder2.doApprove(manager, 1000 * T2, t2);
     }
+    function newTwoWayAuction() returns (uint, uint) {
+        return manager.newTwoWayAuction({beneficiary: seller,
+                                         selling: t1,
+                                         buying: t2,
+                                         sell_amount: 100 * T1,
+                                         min_bid: 0 * T2,
+                                         min_increase: 1 * T2,
+                                         min_decrease: 1 * T1,
+                                         duration: 1 years,
+                                         COLLECT_MAX: 100 * T2,
+                                        });
+    }
     function testNewTwoWayAuction() {
-        var (base, id) = manager.newTwoWayAuction(seller,  // beneficiary
-                                          t1,      // selling
-                                          t2,      // buying
-                                          100 * T1,// sell amount (t1)
-                                          0 * T2,  // minimum bid (t2)
-                                          1 * T2,  // minimum increase
-                                          1 years, // duration
-                                          100 * T2 // COLLECT_MAX
-                                         );
-
+        var (base, id) = newTwoWayAuction();
         assertEq(manager.getCollectMax(id), 100 * T2);
     }
     function testBidEqualTargetReversal() {
         // bids at or over the target should cause the auction to reverse
-        var (base, id) = manager.newTwoWayAuction(seller, t1, t2,
-                                          100 * T1, 0 * T2, 1 * T2,
-                                          1 years, 100 * T2);
+        var (base, id) = newTwoWayAuction();
         bidder1.doBid(1, 100 * T2);
         assertEq(manager.isReversed(id), true);
     }
     function testBidOverTargetReversal() {
         // bids at or over the target should cause the auction to reverse
-        var (base, id) = manager.newTwoWayAuction(seller, t1, t2,
-                                          100 * T1, 0 * T2, 1 * T2,
-                                          1 years, 100 * T2);
+        var (base, id) = newTwoWayAuction();
         bidder1.doBid(1, 101 * T2);
         assertEq(manager.isReversed(id), true);
     }
     function testBidOverTargetRefundsDifference() {
-        var (base, id) = manager.newTwoWayAuction(seller, t1, t2,
-                                          100 * T1, 0 * T2, 1 * T2,
-                                          1 years, 100 * T2);
+        var (base, id) = newTwoWayAuction();
         var t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(1, 110 * T2);
         var t2_balance_after = t2.balanceOf(bidder1);
@@ -123,11 +120,7 @@ contract TwoWayTest is Test {
         assertEq(balance_diff, 100 * T2);
     }
     function testBidOverTargetSetsReverseBid() {
-        var sell_amount = 100 * T1;
-
-        var (base, id) = manager.newTwoWayAuction(seller, t1, t2,
-                                          sell_amount, 0 * T2, 1 * T2,
-                                          1 years, 100 * T2);
+        var (base, id) = newTwoWayAuction();
         bidder1.doBid(1, 110 * T2);
 
         var (auction_id, last_bidder,
@@ -143,16 +136,14 @@ contract TwoWayTest is Test {
         // the auctionlet quantity, Q is the total auction quantity,
         // B is the target and b is the given bid. In an auction with no
         // splitting, q = Q and this simplifies to Q * B / b
-        var expected_quantity = (sell_amount * 100 * T2) / (110 * T2);
+        var expected_quantity = (100 * T1 * 100 * T2) / (110 * T2);
         assertEq(quantity, expected_quantity);
     }
     function testBidsDecreasingPostReversal() {
         // after a reversal, bids are strictly decreasing, with a
         // maximum set by the sell amount
-        var (base, id) = manager.newTwoWayAuction(seller, t1, t2,
-                                          100 * T1, 0 * T2, 1 * T2,
-                                          1 years, 100 * T2);
-        bidder1.doBid(1, 110 * T2);
+        var (base, id) = newTwoWayAuction();
+        bidder1.doBid(1, 100 * T2);  // force reversal
 
         bidder2.doBid(1, 90 * T1);
 
@@ -173,10 +164,8 @@ contract TwoWayTest is Test {
     function testClaimSellerAfterReversal() {
         // after reversal, the seller should receive the available
         // buying token, plus any excess sell token
-        var (base, id) = manager.newTwoWayAuction(seller, t1, t2,
-                                          100 * T1, 0 * T2, 1 * T2,
-                                          1 years, 100 * T2);
-        bidder1.doBid(1, 100 * T2);
+        var (base, id) = newTwoWayAuction();
+        bidder1.doBid(1, 100 * T2);  // force reversal
         bidder1.doBid(1, 85 * T1);
 
         var t1_balance_before = t1.balanceOf(seller);
@@ -196,10 +185,8 @@ contract TwoWayTest is Test {
         assertEq(t1_balance_diff, 15 * T1);
     }
     function testClaimBidderAfterReversal() {
-        var (base, id) = manager.newTwoWayAuction(seller, t1, t2,
-                                          100 * T1, 0 * T2, 1 * T2,
-                                          1 years, 100 * T2);
-        bidder1.doBid(1, 100 * T2);
+        var (base, id) = newTwoWayAuction();
+        bidder1.doBid(1, 100 * T2);  // force the reversal
         bidder1.doBid(1, 85 * T1);
 
         // force expiry
@@ -213,11 +200,9 @@ contract TwoWayTest is Test {
         assertEq(t1_balance_diff, 85 * T1);
     }
     function testSplitAfterReversal() {
-        var (base, id) = manager.newTwoWayAuction(seller, t1, t2,
-                                          100 * T1, 0 * T2, 1 * T2,
-                                          1 years, 100 * T2);
+        var (base, id) = newTwoWayAuction();
 
-        bidder1.doBid(1, 110 * T2);  // force the reversal
+        bidder1.doBid(1, 100 * T2);  // force the reversal
 
         bidder1.doBid(1, 90 * T1);
 

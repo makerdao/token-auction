@@ -64,6 +64,10 @@ contract AuctionManager is Assertive {
                                                  min_bid, min_increase, duration, 0);
         // make an empty bid to trigger the reversal
         _doBid(base_id, address(0x00), 0);
+        Auctionlet a = _auctionlets[base_id];
+        a.quantity = sell_amount;
+        a.last_bid = min_bid;
+        a.last_bidder = this;
     }
     function newTwoWayAuction( address beneficiary
                              , ERC20 selling
@@ -142,8 +146,10 @@ contract AuctionManager is Assertive {
         assert(!expired);
 
         if (A.reversed) {
+            //@log check if reverse biddable
             _assertReverseBiddable(auctionlet_id, bid_how_much);
         } else {
+            //@log check if forward biddable
             _assertForwardBiddable(auctionlet_id, bid_how_much);
         }
     }

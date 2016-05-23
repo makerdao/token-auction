@@ -76,15 +76,18 @@ contract ReverseTest is Test {
         t2.transfer(bidder2, 1000 * T2);
         bidder2.doApprove(manager, 1000 * T2, t2);
     }
+    function newReverseAuction() returns (uint, uint) {
+        return manager.newReverseAuction(seller,  // beneficiary
+                                         t1,      // selling
+                                         t2,      // buying
+                                         100 * T1,// sell amount (t1)
+                                         5 * T2,  // minimum bid (t2)
+                                         1 * T2,  // minimum increase
+                                         1 years  // duration
+                                         );
+    }
     function testNewReverseAuction() {
-        var (id, base) = manager.newReverseAuction(seller,  // beneficiary
-                                                   t1,      // selling
-                                                   t2,      // buying
-                                                   100 * T1,// sell amount (t1)
-                                                   5 * T2,  // minimum bid (t2)
-                                                   1 * T2,  // minimum increase
-                                                   1 years  // duration
-                                                  );
+        var (id, base) = newReverseAuction();
 
         assertEq(manager.getCollectMax(id), 0);
         assertEq(manager.isReversed(id), true);
@@ -99,14 +102,7 @@ contract ReverseTest is Test {
     }
     function testNewReverseAuctionTransfersFromSeller() {
         var seller_t1_balance_before = t1.balanceOf(seller);
-        var (id, base) = manager.newReverseAuction(seller,  // beneficiary
-                                                   t1,      // selling
-                                                   t2,      // buying
-                                                   100 * T1,// sell amount (t1)
-                                                   5 * T2,  // minimum bid (t2)
-                                                   1 * T2,  // minimum increase
-                                                   1 years  // duration
-                                                  );
+        var (id, base) = newReverseAuction();
         var seller_t1_balance_after = t1.balanceOf(seller);
 
         assertEq(seller_t1_balance_before - seller_t1_balance_after, 100 * T1);

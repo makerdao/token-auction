@@ -151,11 +151,8 @@ contract AuctionManager is Assertive {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        if (a.last_bidder == 0) {  // check for base auctionlet
-            assert(bid_how_much >= A.min_bid);
-        } else {
-            assert(bid_how_much >= (a.last_bid + A.min_increase));
-        }
+        assert(bid_how_much >= A.min_bid);
+        assert(bid_how_much >= (a.last_bid + A.min_increase));
     }
     function _assertReverseBiddable(uint auctionlet_id, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];

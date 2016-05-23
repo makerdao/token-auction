@@ -60,8 +60,8 @@ contract AuctionManager is Assertive {
     function newReverseAuction( address beneficiary
                               , ERC20 selling
                               , ERC20 buying
-                              , uint sell_amount
-                              , uint min_bid
+                              , uint max_sell_amount
+                              , uint buy_amount
                               , uint min_decrease
                               , uint duration
                               )
@@ -72,19 +72,20 @@ contract AuctionManager is Assertive {
         (auction_id, base_id) = newTwoWayAuction({beneficiary: beneficiary,
                                                   selling: selling,
                                                   buying: buying,
-                                                  sell_amount: sell_amount,
-                                                  min_bid: min_bid,
+                                                  sell_amount: max_sell_amount,
+                                                  min_bid: buy_amount,
                                                   min_increase: 0,
                                                   min_decrease: min_decrease,
                                                   duration: duration,
                                                   COLLECT_MAX: 0
                                                 });
         // make an empty bid to trigger the reversal
+        // TODO: split out the reversal logic into a function
         _doBid(base_id, address(0x00), 0);
         Auctionlet a = _auctionlets[base_id];
-        a.quantity = sell_amount;
-        a.last_bid = min_bid;
-        a.last_bidder = this;
+        a.quantity = max_sell_amount;
+        a.last_bid = buy_amount;
+        a.last_bidder = beneficiary;
     }
     function newTwoWayAuction( address beneficiary
                              , ERC20 selling
@@ -202,9 +203,11 @@ contract AuctionManager is Assertive {
             receive_amount = bid_how_much;
         }
 
+        //@log receive `uint receive_amount` from `address bidder`
         var received_bid = A.buying.transferFrom(bidder, this, receive_amount);
         assert(received_bid);
 
+        //@log return  `uint a.last_bid` to   `address a.last_bidder`
         var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
         assert(returned_bid);
 

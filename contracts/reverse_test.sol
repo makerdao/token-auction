@@ -77,14 +77,14 @@ contract ReverseTest is Test {
         bidder2.doApprove(manager, 1000 * T2, t2);
     }
     function newReverseAuction() returns (uint, uint) {
-        return manager.newReverseAuction(seller,  // beneficiary
-                                         t1,      // selling
-                                         t2,      // buying
-                                         100 * T1,// sell amount (t1)
-                                         5 * T2,  // minimum bid (t2)
-                                         2 * T1,  // minimum increase
-                                         1 years  // duration
-                                         );
+        return manager.newReverseAuction({beneficiary: seller,
+                                          selling: t1,
+                                          buying: t2,
+                                          max_sell_amount: 100 * T1,
+                                          buy_amount: 5 * T2,
+                                          min_decrease: 2 * T1,
+                                          duration: 1 years
+                                        });
     }
     function testNewReverseAuction() {
         var (id, base) = newReverseAuction();
@@ -96,7 +96,7 @@ contract ReverseTest is Test {
              last_bid, quantity) = manager.getAuctionlet(base);
 
         assertEq(auction_id, 1);
-        assertEq(last_bidder, manager);
+        assertEq(last_bidder, seller);
         assertEq(last_bid, 5 * T2);
         assertEq(quantity, 100 * T1);
     }
@@ -107,7 +107,7 @@ contract ReverseTest is Test {
 
         assertEq(seller_t1_balance_before - seller_t1_balance_after, 100 * T1);
     }
-    function testBidTransfersFromBidder() {
+    function testFirstBidTransfersFromBidder() {
         var (id, base) = newReverseAuction();
 
         var bidder_t2_balance_before = t2.balanceOf(bidder1);
@@ -117,12 +117,12 @@ contract ReverseTest is Test {
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 5 * T2);
     }
-    function testBidTransfersToManager() {
+    function testFirstBidTransfersToSeller() {
         var (id, base) = newReverseAuction();
 
-        var auction_t2_balance_before = t2.balanceOf(manager);
+        var auction_t2_balance_before = t2.balanceOf(seller);
         bidder1.doBid(base, 90 * T1);
-        var auction_t2_balance_after = t2.balanceOf(manager);
+        var auction_t2_balance_after = t2.balanceOf(seller);
 
         // auction should have increased funds
         assertEq(auction_t2_balance_after - auction_t2_balance_before, 5 * T2);
@@ -151,5 +151,33 @@ contract ReverseTest is Test {
 
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 0);
+    }
+    function testClaimSeller() {
+        var (base, id) = newReverseAuction();
+
+        bidder1.doBid(1, 85 * T1);
+
+        var t1_balance_before = t1.balanceOf(seller);
+        seller.doClaim(base);
+        var t1_balance_after = t1.balanceOf(seller);
+
+        var t1_balance_diff = t1_balance_after - t1_balance_before;
+
+        //@log claim excess selling token?
+        assertEq(t1_balance_diff, 15 * T1);
+    }
+    function testClaimBidder() {
+        var (base, id) = newReverseAuction();
+        bidder1.doBid(1, 85 * T1);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        var t1_balance_before = t1.balanceOf(bidder1);
+        bidder1.doClaim(1);
+        var t1_balance_after = t1.balanceOf(bidder1);
+        var t1_balance_diff = t1_balance_after - t1_balance_before;
+
+        assertEq(t1_balance_diff, 85 * T1);
     }
 }

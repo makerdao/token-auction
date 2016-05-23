@@ -450,6 +450,13 @@ contract SplittingAuctionManagerTest is Test {
         manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(1, 7 * T2, 101 * T1);
     }
+    function testPassSplitLowerValue() {
+        // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
+        // and q2 < q0, i.e. it must be an increase in order valuation,
+        // but a decrease in quantity.
+        manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        bidder1.doBid(1, 6 * T2, 50 * T1);
+    }
     function testFailSplitLowerValue() {
         // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
         // and q2 < q0, i.e. it must be an increase in order valuation,

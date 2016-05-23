@@ -108,11 +108,11 @@ contract AuctionManagerTest is Test {
         // can't always know what the auctionlet id is as it is
         // only an internal type. But for the case of a single auction
         // there should be a single auctionlet created with id 1.
-        var (auction_id, last_bidder1,
+        var (auction_id, last_bidder,
              last_bid, quantity) = manager.getAuctionlet(base);
 
         assertEq(auction_id, id);
-        assertEq(last_bidder1, 0);
+        assertEq(last_bidder, manager);
         assertEq(last_bid, 0 * T2);
         assertEq(quantity, 100 * T1);
     }

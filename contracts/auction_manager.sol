@@ -109,6 +109,7 @@ contract AuctionManager is Assertive {
         Auctionlet memory auctionlet;
         auctionlet.auction_id = auction_id;
         auctionlet.unclaimed = true;
+        auctionlet.last_bidder = this;
 
         if (A.reversed) {
             auctionlet.last_bid = quantity;

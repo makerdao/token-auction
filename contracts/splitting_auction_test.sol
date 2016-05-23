@@ -95,8 +95,8 @@ contract SplittingAuctionManagerTest is Test {
         var expected_new_quantity = 40 * T1;
 
         assertEq(auction_id0, auction_id1);
-        assertEq(last_bidder0, 0x00);
-        assertEq(last_bidder1, 0x00);
+        assertEq(last_bidder0, manager);
+        assertEq(last_bidder1, manager);
 
         assertEq(last_bid0, 0 * T2);
         assertEq(quantity0, 100 * T1);
@@ -125,7 +125,7 @@ contract SplittingAuctionManagerTest is Test {
              last_bid2, quantity2) = manager.getAuctionlet(sid);
 
         assertEq(auction_id1, auction_id2);
-        assertEq(last_bidder1, 0x00);
+        assertEq(last_bidder1, manager);
         assertEq(last_bidder2, bidder1);
     }
     function testSplitBaseResult() {

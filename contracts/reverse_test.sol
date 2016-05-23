@@ -127,13 +127,18 @@ contract ReverseTest is Test {
         // auction should have increased funds
         assertEq(auction_t2_balance_after - auction_t2_balance_before, 5 * T2);
     }
-    function testFailBidOverStartBid() {
+    function testFailFirstBidOverStartBid() {
         var (id, base) = newReverseAuction();
         bidder1.doBid(base, 105 * T1);
     }
-    function testFailBidUnderMinimum() {
+    function testFailNextBidUnderMinimum() {
         var (id, base) = newReverseAuction();
         bidder1.doBid(base, 90 * T1);
         bidder1.doBid(base, 89 * T1);
+    }
+    function testFailNextBidUnderLast() {
+        var (id, base) = newReverseAuction();
+        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 91 * T1);
     }
 }

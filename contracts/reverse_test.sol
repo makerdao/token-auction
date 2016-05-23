@@ -141,4 +141,15 @@ contract ReverseTest is Test {
         bidder1.doBid(base, 90 * T1);
         bidder1.doBid(base, 91 * T1);
     }
+    function testNextBidRefundsPreviousBidder() {
+        var (id, base) = newReverseAuction();
+
+        var bidder_t2_balance_before = t2.balanceOf(bidder1);
+        bidder1.doBid(base, 90 * T1);
+        bidder2.doBid(base, 85 * T1);
+        var bidder_t2_balance_after = t2.balanceOf(bidder1);
+
+        // bidder should have reduced funds
+        assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 0);
+    }
 }

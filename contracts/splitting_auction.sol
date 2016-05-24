@@ -78,13 +78,15 @@ contract SplittableAuctionManager is AuctionManager {
         //@log modified bid: `uint new_bid`
         //@log split bid:    `uint bid_how_much`
 
-        var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
-        assert(returned_bid);
-        A.collected -= a.buy_amount;
+        if (a.last_bidder != address(this)) {
+            var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
+            assert(returned_bid);
+            A.collected -= a.buy_amount;
+        }
 
         // create two new auctionlets and bid on them
-        var new_id = newAuctionlet(a.auction_id, new_quantity);
-        var split_id = newAuctionlet(a.auction_id, quantity);
+        var new_id = newAuctionlet(a.auction_id, 0, new_quantity);
+        var split_id = newAuctionlet(a.auction_id, 0, quantity);
 
         _doBid(new_id, a.last_bidder, new_bid);
         _doBid(split_id, msg.sender, bid_how_much);

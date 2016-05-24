@@ -99,29 +99,31 @@ contract AuctionManager is Assertive {
                              )
         returns (uint, uint)
     {
-        Auction memory a;
-        a.beneficiary = beneficiary;
-        a.selling = selling;
-        a.buying = buying;
-        a.sell_amount = sell_amount;
-        a.start_bid = start_bid;
-        a.min_increase = min_increase;
-        a.min_decrease = min_decrease;
-        a.expiration = getTime() + duration;
-        a.COLLECT_MAX = COLLECT_MAX;
+        Auction memory A;
+        A.beneficiary = beneficiary;
+        A.selling = selling;
+        A.buying = buying;
+        A.sell_amount = sell_amount;
+        A.start_bid = start_bid;
+        A.min_increase = min_increase;
+        A.min_decrease = min_decrease;
+        A.expiration = getTime() + duration;
+        A.COLLECT_MAX = COLLECT_MAX;
 
         var received_lot = selling.transferFrom(beneficiary, this, sell_amount);
         assert(received_lot);
 
-        _auctions[++_last_auction_id] = a;
+        _auctions[++_last_auction_id] = A;
 
         // create the base auctionlet
         var base_id = newAuctionlet({auction_id: _last_auction_id,
-                                     quantity:    sell_amount});
+                                     bid:         start_bid,
+                                     quantity:    sell_amount
+                                   });
 
         return (_last_auction_id, base_id);
     }
-    function newAuctionlet(uint auction_id, uint quantity)
+    function newAuctionlet(uint auction_id, uint bid, uint quantity)
         internal returns (uint)
     {
         var A = _auctions[auction_id];
@@ -135,6 +137,7 @@ contract AuctionManager is Assertive {
             auctionlet.buy_amount = quantity;
         } else {
             auctionlet.sell_amount = quantity;
+            auctionlet.buy_amount = bid;
         }
 
         _auctionlets[++_last_auctionlet_id] = auctionlet;
@@ -178,7 +181,6 @@ contract AuctionManager is Assertive {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        assert(bid_how_much >= A.start_bid);
         assert(bid_how_much >= (a.buy_amount + A.min_increase));
     }
     function _assertReverseBiddable(uint auctionlet_id, uint bid_how_much) internal {
@@ -203,16 +205,19 @@ contract AuctionManager is Assertive {
             receive_amount = bid_how_much;
         }
 
-        //@log receive `uint receive_amount` from `address bidder`
-        var received_bid = A.buying.transferFrom(bidder, this, receive_amount);
-        assert(received_bid);
+        if (bidder != address(this)) {
+            //@log receive `uint receive_amount` from `address bidder`
+            var received_bid = A.buying.transferFrom(bidder, this, receive_amount);
+            assert(received_bid);
+            A.collected += receive_amount;
+        }
 
-        //@log return  `uint a.buy_amount` to   `address a.last_bidder`
-        var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
-        assert(returned_bid);
-
-        A.collected += receive_amount;
-        A.collected -= a.buy_amount;
+        if (a.last_bidder != address(this)) {
+            //@log return  `uint a.buy_amount` to   `address a.last_bidder`
+            var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
+            assert(returned_bid);
+            A.collected -= a.buy_amount;
+        }
 
         a.last_bidder = bidder;
 

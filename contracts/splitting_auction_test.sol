@@ -86,19 +86,19 @@ contract SplittingAuctionManagerTest is Test {
         var (auction_id0, last_bidder0,
              buy_amount0, sell_amount0) = manager.getAuctionlet(base);
 
-        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
+        var (nid, sid) = bidder1.doBid(base, 5 * T2, 40 * T1);
 
         var (auction_id1, last_bidder1,
              buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
 
-        var expected_new_bid = 0;
-        var expected_new_sell_amount = 40 * T1;
+        var expected_new_bid = 6 * T2;
+        var expected_new_sell_amount = 60 * T1;
 
         assertEq(auction_id0, auction_id1);
         assertEq(last_bidder0, manager);
         assertEq(last_bidder1, manager);
 
-        assertEq(buy_amount0, 0 * T2);
+        assertEq(buy_amount0, 10 * T2);
         assertEq(sell_amount0, 100 * T1);
 
         assertEq(buy_amount1, expected_new_bid);
@@ -131,7 +131,7 @@ contract SplittingAuctionManagerTest is Test {
     function testSplitBaseResult() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
-        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
+        var (nid, sid) = bidder1.doBid(base, 5 * T2, 40 * T1);
 
         uint sell_amount1;
         uint sell_amount2;
@@ -145,16 +145,16 @@ contract SplittingAuctionManagerTest is Test {
         (_, __, buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
         (_, __, buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
 
-        var expected_new_sell_amount1 = 40 * T1;
-        var expected_new_sell_amount2 = 60 * T1;
+        var expected_new_sell_amount1 = 60 * T1;
+        var expected_new_sell_amount2 = 40 * T1;
 
         assertEq(sell_amount1, expected_new_sell_amount1);
         assertEq(sell_amount2, expected_new_sell_amount2);
 
-        // we expect the bid on the existing auctionlet to remain as
-        // zero as it is a base auctionlet
-        var expected_new_bid1 = 0;
-        var expected_new_bid2 = 7 * T2;
+        // we expect the bid on the existing auctionlet to remain at the
+        // start bid scaled down proportionally as it is a base auctionlet
+        var expected_new_bid1 = 6 * T2;
+        var expected_new_bid2 = 5 * T2;
 
         assertEq(buy_amount1, expected_new_bid1);
         assertEq(buy_amount2, expected_new_bid2);

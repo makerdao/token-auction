@@ -136,7 +136,7 @@ contract ReverseTest is Test {
         bidder1.doBid(base, 90 * T1);
         bidder1.doBid(base, 89 * T1);
     }
-    function testFailNextBidUnderLast() {
+    function testFailNextBidOverLast() {
         var (id, base) = newReverseAuction();
         bidder1.doBid(base, 90 * T1);
         bidder1.doBid(base, 91 * T1);

@@ -207,7 +207,7 @@ contract SplittingAuctionManagerTest is Test {
         // The modified bid conserves *valuation*: (q1 / b1) = (q0 / b0)
         // and has reduced sell_amount: q1 = q0 - q2.
         // The unknown modified bid b1 is determined by b1 = b0 (q1 / q0),
-        // i.e. the originial bid scaled by the sell_amount change.
+        // i.e. the original bid scaled by the sell_amount change.
 
         var expected_new_sell_amount2 = 60 * T1;
         var expected_new_bid2 = 12 * T2;

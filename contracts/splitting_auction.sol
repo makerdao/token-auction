@@ -6,7 +6,7 @@ import 'auction_manager.sol';
 // which has all of the Auctions properties but allows for bidding on a
 // subset of the full Auction lot.
 contract SplittableAuctionManager is AuctionManager {
-    // bid on a specific sell_amount of an auctionlet
+    // bid on a specific quantity of an auctionlet
     function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
         returns (uint, uint)
     {

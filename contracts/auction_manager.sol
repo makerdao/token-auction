@@ -6,7 +6,7 @@ contract AuctionManager is Assertive {
         address beneficiary;
         ERC20 selling;
         ERC20 buying;
-        uint min_bid;
+        uint start_bid;
         uint min_increase;
         uint min_decrease;
         uint sell_amount;
@@ -40,7 +40,7 @@ contract AuctionManager is Assertive {
                         , ERC20 selling
                         , ERC20 buying
                         , uint sell_amount
-                        , uint min_bid
+                        , uint start_bid
                         , uint min_increase
                         , uint duration
                         )
@@ -50,7 +50,7 @@ contract AuctionManager is Assertive {
                                                   selling: selling,
                                                   buying: buying,
                                                   sell_amount: sell_amount,
-                                                  min_bid: min_bid,
+                                                  start_bid: start_bid,
                                                   min_increase: min_increase,
                                                   min_decrease: 0,
                                                   duration: duration,
@@ -73,7 +73,7 @@ contract AuctionManager is Assertive {
                                                   selling: selling,
                                                   buying: buying,
                                                   sell_amount: max_sell_amount,
-                                                  min_bid: buy_amount,
+                                                  start_bid: buy_amount,
                                                   min_increase: 0,
                                                   min_decrease: min_decrease,
                                                   duration: duration,
@@ -91,7 +91,7 @@ contract AuctionManager is Assertive {
                              , ERC20 selling
                              , ERC20 buying
                              , uint sell_amount
-                             , uint min_bid
+                             , uint start_bid
                              , uint min_increase
                              , uint min_decrease
                              , uint duration
@@ -104,7 +104,7 @@ contract AuctionManager is Assertive {
         a.selling = selling;
         a.buying = buying;
         a.sell_amount = sell_amount;
-        a.min_bid = min_bid;
+        a.start_bid = start_bid;
         a.min_increase = min_increase;
         a.min_decrease = min_decrease;
         a.expiration = getTime() + duration;
@@ -178,7 +178,7 @@ contract AuctionManager is Assertive {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        assert(bid_how_much >= A.min_bid);
+        assert(bid_how_much >= A.start_bid);
         assert(bid_how_much >= (a.last_bid + A.min_increase));
     }
     function _assertReverseBiddable(uint auctionlet_id, uint bid_how_much) internal {
@@ -286,7 +286,7 @@ contract AuctionManager is Assertive {
     {
         Auction a = _auctions[id];
         return (a.beneficiary, a.selling, a.buying,
-                a.sell_amount, a.min_bid, a.min_increase, a.expiration);
+                a.sell_amount, a.start_bid, a.min_increase, a.expiration);
     }
     function getAuctionlet(uint id) constant
         returns (uint, address, uint, uint)

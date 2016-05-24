@@ -87,7 +87,7 @@ contract TwoWayTest is Test {
                                          selling: t1,
                                          buying: t2,
                                          sell_amount: 100 * T1,
-                                         min_bid: 0 * T2,
+                                         start_bid: 0 * T2,
                                          min_increase: 1 * T2,
                                          min_decrease: 1 * T1,
                                          duration: 1 years,

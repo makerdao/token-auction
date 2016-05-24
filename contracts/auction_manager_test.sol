@@ -89,13 +89,13 @@ contract AuctionManagerTest is Test {
         var balance_after = t1.balanceOf(seller);
 
         var (beneficiary, selling, buying,
-             sell_amount, min_bid, min_increase, expiration) = manager.getAuction(id);
+             sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == t1);
         assertTrue(buying == t2);
         assertEq(sell_amount, 100 * T1);
-        assertEq(min_bid, 0 * T2);
+        assertEq(start_bid, 0 * T2);
         assertEq(min_increase, 1 * T2);
         assertEq(expiration, manager.getTime() + 1 years);
 
@@ -284,13 +284,13 @@ contract AuctionManagerTest is Test {
         assertEq(t2_balance_before - t2.balanceOf(seller), 100 * T2);
 
         var (beneficiary, selling, buying,
-             sell_amount, min_bid, min_increase, expiration) = manager.getAuction(id2);
+             sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id2);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == t2);
         assertTrue(buying == t1);
         assertEq(sell_amount, 100 * T2);
-        assertEq(min_bid, 10 * T1);
+        assertEq(start_bid, 10 * T1);
         assertEq(min_increase, 1 * T1);
         assertEq(expiration, manager.getTime() + 1 years);
     }

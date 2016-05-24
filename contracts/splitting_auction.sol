@@ -6,7 +6,7 @@ import 'auction_manager.sol';
 // which has all of the Auctions properties but allows for bidding on a
 // subset of the full Auction lot.
 contract SplittableAuctionManager is AuctionManager {
-    // bid on a specific quantity of an auctionlet
+    // bid on a specific sell_amount of an auctionlet
     function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
         returns (uint, uint)
     {
@@ -30,13 +30,13 @@ contract SplittableAuctionManager is AuctionManager {
         var a = _auctionlets[auctionlet_id];
 
         // check that the split actually splits the auctionlet
-        // with lower quantity
-        assert(quantity < a.quantity);
+        // with lower sell_amount
+        assert(quantity < a.sell_amount);
 
         // check that there is a relative increase in value
         // ('valuation' is the bid scaled up to the full lot)
-        // n.b avoid dividing by a.last_bid as it could be zero
-        var valuation = (bid_how_much * a.quantity) / quantity;
+        // n.b avoid dividing by a.buy_amount as it could be zero
+        var valuation = (bid_how_much * a.sell_amount) / quantity;
 
         _assertBiddable(auctionlet_id, valuation);
     }
@@ -45,9 +45,9 @@ contract SplittableAuctionManager is AuctionManager {
     {
         var a = _auctionlets[auctionlet_id];
 
-        assert(quantity < a.last_bid);
+        assert(quantity < a.buy_amount);
 
-        var valuation = (bid_how_much * a.last_bid) / quantity;
+        var valuation = (bid_how_much * a.buy_amount) / quantity;
         _assertBiddable(auctionlet_id, valuation);
     }
     function _doSplit(uint auctionlet_id, uint bid_how_much, uint quantity)
@@ -60,11 +60,11 @@ contract SplittableAuctionManager is AuctionManager {
         uint prev_quantity;
         uint prev_bid;
         if (A.reversed) {
-            prev_quantity = a.last_bid;
-            prev_bid = a.quantity;
+            prev_quantity = a.buy_amount;
+            prev_bid = a.sell_amount;
         } else {
-            prev_quantity = a.quantity;
-            prev_bid = a.last_bid;
+            prev_quantity = a.sell_amount;
+            prev_bid = a.buy_amount;
         }
 
         var new_quantity = prev_quantity - quantity;
@@ -78,9 +78,9 @@ contract SplittableAuctionManager is AuctionManager {
         //@log modified bid: `uint new_bid`
         //@log split bid:    `uint bid_how_much`
 
-        var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
+        var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
         assert(returned_bid);
-        A.collected -= a.last_bid;
+        A.collected -= a.buy_amount;
 
         // create two new auctionlets and bid on them
         var new_id = newAuctionlet(a.auction_id, new_quantity);

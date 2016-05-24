@@ -26,10 +26,10 @@ contract SplitAuctionTester is Tester {
     {
         return manager.bid(auctionlet_id, bid_how_much);
     }
-    function doBid(uint auctionlet_id, uint bid_how_much, uint quantity)
+    function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
         returns (uint, uint)
     {
-        return manager.bid(auctionlet_id, bid_how_much, quantity);
+        return manager.bid(auctionlet_id, bid_how_much, sell_amount);
     }
     function doClaim(uint id) {
         return manager.claim(id);
@@ -84,25 +84,25 @@ contract SplittingAuctionManagerTest is Test {
         var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var (auction_id0, last_bidder0,
-             last_bid0, quantity0) = manager.getAuctionlet(base);
+             buy_amount0, sell_amount0) = manager.getAuctionlet(base);
 
         var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
 
         var (auction_id1, last_bidder1,
-             last_bid1, quantity1) = manager.getAuctionlet(nid);
+             buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
 
         var expected_new_bid = 0;
-        var expected_new_quantity = 40 * T1;
+        var expected_new_sell_amount = 40 * T1;
 
         assertEq(auction_id0, auction_id1);
         assertEq(last_bidder0, manager);
         assertEq(last_bidder1, manager);
 
-        assertEq(last_bid0, 0 * T2);
-        assertEq(quantity0, 100 * T1);
+        assertEq(buy_amount0, 0 * T2);
+        assertEq(sell_amount0, 100 * T1);
 
-        assertEq(last_bid1, expected_new_bid);
-        assertEq(quantity1, expected_new_quantity);
+        assertEq(buy_amount1, expected_new_bid);
+        assertEq(sell_amount1, expected_new_sell_amount);
     }
     function testSplitTransfer() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
@@ -120,9 +120,9 @@ contract SplittingAuctionManagerTest is Test {
         var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
 
         var (auction_id1, last_bidder1,
-             last_bid1, quantity1) = manager.getAuctionlet(nid);
+             buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
         var (auction_id2, last_bidder2,
-             last_bid2, quantity2) = manager.getAuctionlet(sid);
+             buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
 
         assertEq(auction_id1, auction_id2);
         assertEq(last_bidder1, manager);
@@ -133,31 +133,31 @@ contract SplittingAuctionManagerTest is Test {
 
         var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
 
-        uint quantity1;
-        uint quantity2;
+        uint sell_amount1;
+        uint sell_amount2;
 
-        uint last_bid1;
-        uint last_bid2;
+        uint buy_amount1;
+        uint buy_amount2;
 
         uint _;
         address __;
 
-        (_, __, last_bid1, quantity1) = manager.getAuctionlet(nid);
-        (_, __, last_bid2, quantity2) = manager.getAuctionlet(sid);
+        (_, __, buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
+        (_, __, buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
 
-        var expected_new_quantity1 = 40 * T1;
-        var expected_new_quantity2 = 60 * T1;
+        var expected_new_sell_amount1 = 40 * T1;
+        var expected_new_sell_amount2 = 60 * T1;
 
-        assertEq(quantity1, expected_new_quantity1);
-        assertEq(quantity2, expected_new_quantity2);
+        assertEq(sell_amount1, expected_new_sell_amount1);
+        assertEq(sell_amount2, expected_new_sell_amount2);
 
         // we expect the bid on the existing auctionlet to remain as
         // zero as it is a base auctionlet
         var expected_new_bid1 = 0;
         var expected_new_bid2 = 7 * T2;
 
-        assertEq(last_bid1, expected_new_bid1);
-        assertEq(last_bid2, expected_new_bid2);
+        assertEq(buy_amount1, expected_new_bid1);
+        assertEq(buy_amount2, expected_new_bid2);
     }
     function testSplitAfterBidAddresses() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
@@ -168,9 +168,9 @@ contract SplittingAuctionManagerTest is Test {
         var (nid, sid) = bidder2.doBid(base, 12 * T2, 60 * T1);
 
         var (auction_id1, last_bidder1,
-             last_bid1, quantity1) = manager.getAuctionlet(nid);
+             buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
         var (auction_id2, last_bidder2,
-             last_bid2, quantity2) = manager.getAuctionlet(sid);
+             buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
 
         assertEq(auction_id1, auction_id2);
         assertEq(last_bidder1, bidder1);
@@ -184,42 +184,42 @@ contract SplittingAuctionManagerTest is Test {
         // make split bid that has equivalent price of 20 T2 for full lot
         var (nid, sid) = bidder2.doBid(base, 12 * T2, 60 * T1);
 
-        uint quantity1;
-        uint quantity2;
+        uint sell_amount1;
+        uint sell_amount2;
 
-        uint last_bid1;
-        uint last_bid2;
+        uint buy_amount1;
+        uint buy_amount2;
 
         uint _;
         address __;
 
-        (_, __, last_bid1, quantity1) = manager.getAuctionlet(nid);
-        (_, __, last_bid2, quantity2) = manager.getAuctionlet(sid);
+        (_, __, buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
+        (_, __, buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
 
         // Splitting a bid produces two new bids - the 'splitting' bid
         // and a 'modified' bid.
-        // The original bid has quantity q0 and bid amount b0.
-        // The modified bid has quantity q1 and bid amount b1.
-        // The splitting bid has quantity q2 and bid amount b2.
+        // The original bid has sell_amount q0 and bid amount b0.
+        // The modified bid has sell_amount q1 and bid amount b1.
+        // The splitting bid has sell_amount q2 and bid amount b2.
         // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
         // and q2 < q0, i.e. it must be an increase in order valuation,
-        // but a decrease in quantity.
+        // but a decrease in sell_amount.
         // The modified bid conserves *valuation*: (q1 / b1) = (q0 / b0)
-        // and has reduced quantity: q1 = q0 - q2.
+        // and has reduced sell_amount: q1 = q0 - q2.
         // The unknown modified bid b1 is determined by b1 = b0 (q1 / q0),
-        // i.e. the originial bid scaled by the quantity change.
+        // i.e. the originial bid scaled by the sell_amount change.
 
-        var expected_new_quantity2 = 60 * T1;
+        var expected_new_sell_amount2 = 60 * T1;
         var expected_new_bid2 = 12 * T2;
 
-        var expected_new_quantity1 = 100 * T1 - expected_new_quantity2;
-        var expected_new_bid1 = (11 * T2 * expected_new_quantity1) / (100 * T1);
+        var expected_new_sell_amount1 = 100 * T1 - expected_new_sell_amount2;
+        var expected_new_bid1 = (11 * T2 * expected_new_sell_amount1) / (100 * T1);
 
-        assertEq(quantity1, expected_new_quantity1);
-        assertEq(quantity2, expected_new_quantity2);
+        assertEq(sell_amount1, expected_new_sell_amount1);
+        assertEq(sell_amount2, expected_new_sell_amount2);
 
-        assertEq(last_bid1, expected_new_bid1);
-        assertEq(last_bid2, expected_new_bid2);
+        assertEq(buy_amount1, expected_new_bid1);
+        assertEq(buy_amount2, expected_new_bid2);
     }
     function testFailSplitExcessQuantity() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
@@ -228,14 +228,14 @@ contract SplittingAuctionManagerTest is Test {
     function testPassSplitLowerValue() {
         // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
         // and q2 < q0, i.e. it must be an increase in order valuation,
-        // but a decrease in quantity.
+        // but a decrease in sell_amount.
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(base, 6 * T2, 50 * T1);
     }
     function testFailSplitLowerValue() {
         // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
         // and q2 < q0, i.e. it must be an increase in order valuation,
-        // but a decrease in quantity.
+        // but a decrease in sell_amount.
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(base, 11 * T2);
 

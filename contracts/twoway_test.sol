@@ -32,10 +32,10 @@ contract AuctionTester is Tester {
     {
         return manager.bid(auctionlet_id, bid_how_much);
     }
-    function doBid(uint auctionlet_id, uint bid_how_much, uint quantity)
+    function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
         returns (uint, uint)
     {
-        return manager.bid(auctionlet_id, bid_how_much, quantity);
+        return manager.bid(auctionlet_id, bid_how_much, sell_amount);
     }
     function doClaim(uint id) {
         return manager.claim(id);
@@ -124,20 +124,20 @@ contract TwoWayTest is Test {
         bidder1.doBid(1, 110 * T2);
 
         var (auction_id, last_bidder,
-             last_bid, quantity) = manager.getAuctionlet(base);
+             buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(last_bidder, bidder1);
-        assertEq(last_bid, 100 * T2);
+        assertEq(buy_amount, 100 * T2);
 
         // as the bidder has bid over the target, we use their surplus
-        // valuation to decrease the quantity that they will receive.
+        // valuation to decrease the sell_amount that they will receive.
         //
         // This amount is calculated as q^2 * B / (b * Q), where q is
-        // the auctionlet quantity, Q is the total auction quantity,
+        // the auctionlet sell_amount, Q is the total auction sell_amount,
         // B is the target and b is the given bid. In an auction with no
         // splitting, q = Q and this simplifies to Q * B / b
-        var expected_quantity = (100 * T1 * 100 * T2) / (110 * T2);
-        assertEq(quantity, expected_quantity);
+        var expected_sell_amount = (100 * T1 * 100 * T2) / (110 * T2);
+        assertEq(sell_amount, expected_sell_amount);
     }
     function testBidsDecreasingPostReversal() {
         // after a reversal, bids are strictly decreasing, with a
@@ -148,18 +148,18 @@ contract TwoWayTest is Test {
         bidder2.doBid(1, 90 * T1);
 
         var (auction_id1, last_bidder1,
-             last_bid1, quantity1) = manager.getAuctionlet(base);
+             buy_amount1, sell_amount1) = manager.getAuctionlet(base);
 
         bidder1.doBid(1, 85 * T1);
 
         var (auction_id2, last_bidder2,
-             last_bid2, quantity2) = manager.getAuctionlet(base);
+             buy_amount2, sell_amount2) = manager.getAuctionlet(base);
 
-        assertEq(quantity1, 90 * T1);
-        assertEq(quantity2, 85 * T1);
+        assertEq(sell_amount1, 90 * T1);
+        assertEq(sell_amount2, 85 * T1);
 
-        assertEq(last_bid1, 100 * T2);
-        assertEq(last_bid2, 100 * T2);
+        assertEq(buy_amount1, 100 * T2);
+        assertEq(buy_amount2, 100 * T2);
     }
     function testClaimSellerAfterReversal() {
         // after reversal, the seller should receive the available
@@ -210,21 +210,21 @@ contract TwoWayTest is Test {
         // this should succeed and create two new auctionlets
 
         var (auction_id1, last_bidder1,
-             last_bid1, quantity1) = manager.getAuctionlet(nid);
+             buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
 
         var (auction_id2, last_bidder2,
-             last_bid2, quantity2) = manager.getAuctionlet(sid);
+             buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
 
         assertEq(auction_id1, auction_id2);
 
         assertEq(last_bidder1, bidder1);
         assertEq(last_bidder2, bidder2);
 
-        assertEq(last_bid1, 50 * T2);
-        assertEq(last_bid2, 50 * T2);
+        assertEq(buy_amount1, 50 * T2);
+        assertEq(buy_amount2, 50 * T2);
 
-        assertEq(quantity1, 45 * T1);
-        assertEq(quantity2, 40 * T1);
+        assertEq(sell_amount1, 45 * T1);
+        assertEq(sell_amount2, 40 * T1);
 
         // a split bid can be made in a reverse market.
         // bidders can offer to buy less of the token for a lesser price

@@ -20,8 +20,8 @@ contract AuctionManager is Assertive {
     struct Auctionlet {
         uint     auction_id;
         address  last_bidder;
-        uint     last_bid;
-        uint     quantity;
+        uint     buy_amount;
+        uint     sell_amount;
         bool     unclaimed;
     }
 
@@ -83,8 +83,8 @@ contract AuctionManager is Assertive {
         // TODO: split out the reversal logic into a function
         _doBid(base_id, address(0x00), 0);
         Auctionlet a = _auctionlets[base_id];
-        a.quantity = max_sell_amount;
-        a.last_bid = buy_amount;
+        a.sell_amount = max_sell_amount;
+        a.buy_amount = buy_amount;
         a.last_bidder = beneficiary;
     }
     function newTwoWayAuction( address beneficiary
@@ -132,9 +132,9 @@ contract AuctionManager is Assertive {
         auctionlet.last_bidder = this;
 
         if (A.reversed) {
-            auctionlet.last_bid = quantity;
+            auctionlet.buy_amount = quantity;
         } else {
-            auctionlet.quantity = quantity;
+            auctionlet.sell_amount = quantity;
         }
 
         _auctionlets[++_last_auctionlet_id] = auctionlet;
@@ -179,16 +179,16 @@ contract AuctionManager is Assertive {
         var A = _auctions[a.auction_id];
 
         assert(bid_how_much >= A.start_bid);
-        assert(bid_how_much >= (a.last_bid + A.min_increase));
+        assert(bid_how_much >= (a.buy_amount + A.min_increase));
     }
     function _assertReverseBiddable(uint auctionlet_id, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
         //@log bid how much: `uint bid_how_much`
-        //@log quantity:     `uint a.quantity`
-        //@log last bid:     `uint a.last_bid`
+        //@log sell_amount:     `uint a.sell_amount`
+        //@log last bid:     `uint a.buy_amount`
         //@log min decrease: `uint A.min_decrease`
-        assert(bid_how_much <= a.quantity - A.min_decrease);
+        assert(bid_how_much <= a.sell_amount - A.min_decrease);
     }
     function _doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal
@@ -198,7 +198,7 @@ contract AuctionManager is Assertive {
 
         uint receive_amount;
         if (A.reversed) {
-            receive_amount = a.last_bid;
+            receive_amount = a.buy_amount;
         } else {
             receive_amount = bid_how_much;
         }
@@ -207,20 +207,20 @@ contract AuctionManager is Assertive {
         var received_bid = A.buying.transferFrom(bidder, this, receive_amount);
         assert(received_bid);
 
-        //@log return  `uint a.last_bid` to   `address a.last_bidder`
-        var returned_bid = A.buying.transfer(a.last_bidder, a.last_bid);
+        //@log return  `uint a.buy_amount` to   `address a.last_bidder`
+        var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
         assert(returned_bid);
 
         A.collected += receive_amount;
-        A.collected -= a.last_bid;
+        A.collected -= a.buy_amount;
 
         a.last_bidder = bidder;
 
         if (A.reversed) {
-            A.excess_claimable += a.quantity - bid_how_much;
-            a.quantity = bid_how_much;
+            A.excess_claimable += a.sell_amount - bid_how_much;
+            a.sell_amount = bid_how_much;
         } else {
-            a.last_bid = bid_how_much;
+            a.buy_amount = bid_how_much;
         }
 
         if (!A.reversed && (A.collected >= A.COLLECT_MAX)) {
@@ -232,14 +232,14 @@ contract AuctionManager is Assertive {
             A.collected = A.COLLECT_MAX;
             A.reversed = true;
 
-            a.last_bid = bid_how_much - excess;
+            a.buy_amount = bid_how_much - excess;
 
-            var effective_target_bid = (a.quantity * A.COLLECT_MAX) / A.sell_amount;
-            var reduced_quantity = (a.quantity * effective_target_bid) / bid_how_much;
+            var effective_target_bid = (a.sell_amount * A.COLLECT_MAX) / A.sell_amount;
+            var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
             //@log effective target bid: `uint effective_target_bid`
-            //@log previous quantity:    `uint a.quantity`
-            //@log reduced quantity:     `uint reduced_quantity`
-            a.quantity = reduced_quantity;
+            //@log previous sell_amount:    `uint a.sell_amount`
+            //@log reduced sell_amount:     `uint reduced_sell_amount`
+            a.sell_amount = reduced_sell_amount;
         }
     }
     // claim the existing bids from all auctionlets connected to a
@@ -275,7 +275,7 @@ contract AuctionManager is Assertive {
 
         assert(a.unclaimed);
 
-        var settled = A.selling.transfer(a.last_bidder, a.quantity);
+        var settled = A.selling.transfer(a.last_bidder, a.sell_amount);
         assert(settled);
 
         a.unclaimed = false;
@@ -292,7 +292,7 @@ contract AuctionManager is Assertive {
         returns (uint, address, uint, uint)
     {
         Auctionlet a = _auctionlets[id];
-        return (a.auction_id, a.last_bidder, a.last_bid, a.quantity);
+        return (a.auction_id, a.last_bidder, a.buy_amount, a.sell_amount);
     }
     function getTime() public constant returns (uint) {
         return block.timestamp;

@@ -93,12 +93,12 @@ contract ReverseTest is Test {
         assertEq(manager.isReversed(id), true);
 
         var (auction_id, last_bidder,
-             last_bid, quantity) = manager.getAuctionlet(base);
+             buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(auction_id, 1);
         assertEq(last_bidder, seller);
-        assertEq(last_bid, 5 * T2);
-        assertEq(quantity, 100 * T1);
+        assertEq(buy_amount, 5 * T2);
+        assertEq(sell_amount, 100 * T1);
     }
     function testNewReverseAuctionTransfersFromSeller() {
         var seller_t1_balance_before = t1.balanceOf(seller);

@@ -32,10 +32,10 @@ contract AuctionTester is Tester {
     {
         return manager.bid(auctionlet_id, bid_how_much);
     }
-    function doBid(uint auctionlet_id, uint bid_how_much, uint quantity)
+    function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
         returns (uint, uint)
     {
-        return manager.bid(auctionlet_id, bid_how_much, quantity);
+        return manager.bid(auctionlet_id, bid_how_much, sell_amount);
     }
     function doClaim(uint id) {
         return manager.claim(id);
@@ -98,11 +98,11 @@ contract ReverseSplittingTest is Test {
         assertEq(manager.isReversed(id), true);
 
         var (auction_id, last_bidder,
-             last_bid, quantity) = manager.getAuctionlet(base);
+             buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(auction_id, 1);
         assertEq(last_bidder, seller);
-        assertEq(last_bid, 5 * T2);
-        assertEq(quantity, 100 * T1);
+        assertEq(buy_amount, 5 * T2);
+        assertEq(sell_amount, 100 * T1);
     }
 }

@@ -109,12 +109,12 @@ contract AuctionManagerTest is Test {
         // only an internal type. But for the case of a single auction
         // there should be a single auctionlet created with id 1.
         var (auction_id, last_bidder,
-             last_bid, quantity) = manager.getAuctionlet(base);
+             buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(auction_id, id);
         assertEq(last_bidder, manager);
-        assertEq(last_bid, 0 * T2);
-        assertEq(quantity, 100 * T1);
+        assertEq(buy_amount, 0 * T2);
+        assertEq(sell_amount, 100 * T1);
     }
     function testFailBidUnderMinBid() {
         var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
@@ -130,10 +130,10 @@ contract AuctionManagerTest is Test {
         bidder1.doBid(base, 11 * T2);
 
         var (auction_id, last_bidder1,
-             last_bid, quantity) = manager.getAuctionlet(base);
+             buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(last_bidder1, bidder1);
-        assertEq(last_bid, 11 * T2);
+        assertEq(buy_amount, 11 * T2);
     }
     function testFailBidTransfer() {
         var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);

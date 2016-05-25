@@ -81,7 +81,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(t2.allowance(bidder1, manager), 1000 * T2);
     }
     function testSplitBase() {
-        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var (auction_id0, last_bidder0,
              buy_amount0, sell_amount0) = manager.getAuctionlet(base);
@@ -264,7 +264,7 @@ contract SplittingAuctionManagerTest is Test {
         bidder2.doBid(base, 10 * T2, 50 * T1);
     }
     function testSplitReturnsToPrevBidder() {
-        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(base, 20 * T2);
@@ -278,7 +278,7 @@ contract SplittingAuctionManagerTest is Test {
         var seller_t2_balance_before = t2.balanceOf(seller);
         var seller_t1_balance_before = t1.balanceOf(seller);
 
-        var (base, id) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(base, 40 * T2);
         bidder2.doBid(base, 20 * T2, 25 * T1);
 

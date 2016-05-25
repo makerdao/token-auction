@@ -95,23 +95,23 @@ contract TwoWayTest is Test {
                                         });
     }
     function testNewTwoWayAuction() {
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
         assertEq(manager.getCollectMax(id), 100 * T2);
     }
     function testBidEqualTargetReversal() {
         // bids at or over the target should cause the auction to reverse
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 100 * T2);
         assertEq(manager.isReversed(id), true);
     }
     function testBidOverTargetReversal() {
         // bids at or over the target should cause the auction to reverse
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 101 * T2);
         assertEq(manager.isReversed(id), true);
     }
     function testBidOverTargetRefundsDifference() {
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
         var t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(1, 110 * T2);
         var t2_balance_after = t2.balanceOf(bidder1);
@@ -120,7 +120,7 @@ contract TwoWayTest is Test {
         assertEq(balance_diff, 100 * T2);
     }
     function testBidOverTargetSetsReverseBid() {
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 110 * T2);
 
         var (auction_id, last_bidder,
@@ -142,7 +142,7 @@ contract TwoWayTest is Test {
     function testBidsDecreasingPostReversal() {
         // after a reversal, bids are strictly decreasing, with a
         // maximum set by the sell amount
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 100 * T2);  // force reversal
 
         bidder2.doBid(1, 90 * T1);
@@ -164,7 +164,7 @@ contract TwoWayTest is Test {
     function testClaimSellerAfterReversal() {
         // after reversal, the seller should receive the available
         // buying token, plus any excess sell token
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 100 * T2);  // force reversal
         bidder1.doBid(1, 85 * T1);
 
@@ -185,7 +185,7 @@ contract TwoWayTest is Test {
         assertEq(t1_balance_diff, 15 * T1);
     }
     function testClaimBidderAfterReversal() {
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 100 * T2);  // force the reversal
         bidder1.doBid(1, 85 * T1);
 
@@ -200,7 +200,7 @@ contract TwoWayTest is Test {
         assertEq(t1_balance_diff, 85 * T1);
     }
     function testSplitAfterReversal() {
-        var (base, id) = newTwoWayAuction();
+        var (id, base) = newTwoWayAuction();
 
         bidder1.doBid(1, 100 * T2);  // force the reversal
 

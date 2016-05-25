@@ -227,4 +227,35 @@ contract ReverseSplittingTest is Test {
         assertEq(buy_amount1, expected_new_buy_amount1);
         assertEq(buy_amount2, expected_new_buy_amount2);
     }
+    function testFailSplitExcessQuantity() {
+        var (id, base) = newReverseAuction();
+        bidder1.doBid(base, 90 * T2, 6 * T1);
+    }
+    function testPassSplitLowerValue() {
+        var (id, base) = newReverseAuction();
+        bidder1.doBid(base, 50 * T1, 3 * T2);
+    }
+    function testFailSplitLowerValue() {
+        var (id, base) = newReverseAuction();
+        bidder1.doBid(base, 80 * T1);
+        bidder2.doBid(base, 40 * T1, 2 * T2);
+    }
+    function testFailSplitUnderMinBid() {
+        var (id, base) = newReverseAuction();
+        bidder2.doBid(base, 50 * T1, 2 * T2);
+    }
+    function testFailSplitUnderMinDecrease() {
+        var (id, base) = newReverseAuction();
+        bidder1.doBid(base, 90 * T1);
+        bidder2.doBid(base, 89 * T1, 3 * T2);
+    }
+    function testFailSplitExpired() {
+        var (id, base) = newReverseAuction();
+        bidder1.doBid(base, 90 * T1);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        bidder2.doBid(base, 40 * T1, 4 * T2);
+    }
 }

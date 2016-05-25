@@ -104,7 +104,7 @@ contract SplittingAuctionManagerTest is Test {
         assertEq(buy_amount1, expected_new_bid);
         assertEq(sell_amount1, expected_new_sell_amount);
     }
-    function testSplitTransfer() {
+    function testSplitTransfersFromBidder() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);

@@ -79,12 +79,8 @@ contract AuctionManager is Assertive {
                                                   duration: duration,
                                                   COLLECT_MAX: 0
                                                 });
-        // make an empty bid to trigger the reversal
-        // TODO: split out the reversal logic into a function
-        _doBid(base_id, address(this), 0);
-        Auctionlet a = _auctionlets[base_id];
-        a.sell_amount = max_sell_amount;
-        a.buy_amount = buy_amount;
+        Auction A = _auctions[auction_id];
+        A.reversed = true;
     }
     function newTwoWayAuction( address beneficiary
                              , ERC20 selling

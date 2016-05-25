@@ -133,6 +133,7 @@ contract AuctionManager is Assertive {
         auctionlet.last_bidder = this;
 
         if (A.reversed) {
+            auctionlet.sell_amount = bid;
             auctionlet.buy_amount = quantity;
         } else {
             auctionlet.sell_amount = quantity;
@@ -221,7 +222,9 @@ contract AuctionManager is Assertive {
         a.last_bidder = bidder;
 
         if (A.reversed) {
+            //@log excess claimable: `uint A.excess_claimable`
             A.excess_claimable += a.sell_amount - bid_how_much;
+            //@log excess claimable: `uint A.excess_claimable`
             a.sell_amount = bid_how_much;
         } else {
             a.buy_amount = bid_how_much;
@@ -256,6 +259,7 @@ contract AuctionManager is Assertive {
         //@log balance:   `uint A.buying.balanceOf(this)`
         var settled = A.buying.transfer(A.beneficiary, A.collected - A.claimed);
         assert(settled);
+        A.claimed = A.collected;
 
         // transfer excess sell token
         if (A.reversed) {
@@ -264,8 +268,6 @@ contract AuctionManager is Assertive {
             assert(settled_excess);
             A.excess_claimable = 0;
         }
-
-        A.claimed = A.collected;
     }
     // claim the proceedings from an auction for the highest bidder
     function _doClaimBidder(uint auctionlet_id, address claimer) internal {

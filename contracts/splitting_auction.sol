@@ -57,36 +57,19 @@ contract SplittableAuctionManager is AuctionManager {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        uint prev_quantity;
-        uint prev_bid;
-        if (A.reversed) {
-            prev_quantity = a.buy_amount;
-            prev_bid = a.sell_amount;
-        } else {
-            prev_quantity = a.sell_amount;
-            prev_bid = a.buy_amount;
-        }
-
-        var new_quantity = prev_quantity - quantity;
-        //@log previous quantity: `uint prev_quantity`
-        //@log modified quantity: `uint new_quantity`
-        //@log split quantity:    `uint quantity`
-
-        // n.b. associativity important because of truncating division
-        var new_bid = (prev_bid * new_quantity) / prev_quantity;
-        //@log previous bid: `uint prev_bid`
-        //@log modified bid: `uint new_bid`
-        //@log split bid:    `uint bid_how_much`
-
         if (a.last_bidder != address(this)) {
             var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
             assert(returned_bid);
             A.collected -= a.buy_amount;
         }
 
+        var (new_quantity, new_bid, split_bid) = _calculate_split(a,
+                                                                  quantity,
+                                                                  A.reversed);
+
         // create two new auctionlets and bid on them
-        var new_id = newAuctionlet(a.auction_id, 0, new_quantity);
-        var split_id = newAuctionlet(a.auction_id, 0, quantity);
+        var new_id = newAuctionlet(a.auction_id, new_bid, new_quantity);
+        var split_id = newAuctionlet(a.auction_id, split_bid, quantity);
 
         _doBid(new_id, a.last_bidder, new_bid);
         _doBid(split_id, msg.sender, bid_how_much);
@@ -94,5 +77,32 @@ contract SplittableAuctionManager is AuctionManager {
         delete _auctionlets[auctionlet_id];
 
         return (new_id, split_id);
+    }
+    // work out how to split a bid into two parts
+    function _calculate_split(Auctionlet a, uint quantity, bool reversed)
+        internal
+        returns (uint new_quantity, uint new_bid, uint split_bid)
+    {
+        uint prev_quantity;
+        uint prev_bid;
+        if (reversed) {
+            prev_quantity = a.buy_amount;
+            prev_bid = a.sell_amount;
+        } else {
+            prev_quantity = a.sell_amount;
+            prev_bid = a.buy_amount;
+        }
+
+        new_quantity = prev_quantity - quantity;
+        //@log previous quantity: `uint prev_quantity`
+        //@log modified quantity: `uint new_quantity`
+        //@log split quantity:    `uint quantity`
+
+        // n.b. associativity important because of truncating division
+        new_bid = (prev_bid * new_quantity) / prev_quantity;
+        split_bid = (prev_bid * quantity) / prev_quantity;
+        //@log previous bid: `uint prev_bid`
+        //@log modified bid: `uint new_bid`
+        //@log split bid:    `uint split_bid`
     }
 }

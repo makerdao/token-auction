@@ -258,4 +258,39 @@ contract ReverseSplittingTest is Test {
 
         bidder2.doBid(base, 40 * T1, 4 * T2);
     }
+    function testSplitReturnsToPrevBidder() {
+        var (id, base) = newReverseAuction();
+
+        var bidder1_t2_balance_before = t2.balanceOf(bidder1);
+        bidder1.doBid(base, 90 * T1);
+        bidder2.doBid(base, 50 * T2, 3 * T2);
+        var bidder1_t2_balance_after = t2.balanceOf(bidder1);
+
+        var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
+        assertEq(bidder_balance_diff, 2 * T2);
+    }
+    function testClaimTransfersBenefactorAfterSplit() {
+        var seller_t2_balance_before = t2.balanceOf(seller);
+        var seller_t1_balance_before = t1.balanceOf(seller);
+
+        var (id, base) = newReverseAuction();
+
+        bidder1.doBid(base, 80 * T1);
+        bidder2.doBid(base, 40 * T1, 4 * T2);
+
+        var manager_t2_balance_before_claim = t2.balanceOf(manager);
+        assertEq(manager_t2_balance_before_claim, 5 * T2);
+
+        seller.doClaim(id);
+
+        var seller_t2_balance_after = t2.balanceOf(seller);
+        var seller_t1_balance_after = t1.balanceOf(seller);
+
+        var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
+        var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
+
+        assertEq(diff_t2, 5 * T2);
+        // 40 + 80 * (1 / 5) = 56
+        assertEq(diff_t1, 56 * T1);
+    }
 }

@@ -46,8 +46,8 @@ contract ReverseTest is Test {
     ERC20 t1;
     ERC20 t2;
 
-    uint constant T1 = 10 ** 12;
-    uint constant T2 = 10 ** 10;
+    uint constant T1 = 5 ** 12;
+    uint constant T2 = 7 ** 10;
 
     function setUp() {
         manager = new Manager();

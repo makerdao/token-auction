@@ -51,8 +51,8 @@ contract ReverseSplittingTest is Test {
     ERC20 t1;
     ERC20 t2;
 
-    uint constant T1 = 10 ** 12;
-    uint constant T2 = 10 ** 10;
+    uint constant T1 = 5 ** 12;
+    uint constant T2 = 7 ** 10;
 
     function setUp() {
         manager = new Manager();
@@ -263,7 +263,7 @@ contract ReverseSplittingTest is Test {
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(base, 90 * T1);
-        bidder2.doBid(base, 50 * T2, 3 * T2);
+        bidder2.doBid(base, 50 * T1, 3 * T2);
         var bidder1_t2_balance_after = t2.balanceOf(bidder1);
 
         var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;

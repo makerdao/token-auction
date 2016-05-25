@@ -96,7 +96,7 @@ contract ReverseTest is Test {
              buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(auction_id, 1);
-        assertEq(last_bidder, seller);
+        assertEq(last_bidder, manager);
         assertEq(buy_amount, 5 * T2);
         assertEq(sell_amount, 100 * T1);
     }
@@ -117,12 +117,12 @@ contract ReverseTest is Test {
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 5 * T2);
     }
-    function testFirstBidTransfersToSeller() {
+    function testFirstBidTransfersToManager() {
         var (id, base) = newReverseAuction();
 
-        var auction_t2_balance_before = t2.balanceOf(seller);
+        var auction_t2_balance_before = t2.balanceOf(manager);
         bidder1.doBid(base, 90 * T1);
-        var auction_t2_balance_after = t2.balanceOf(seller);
+        var auction_t2_balance_after = t2.balanceOf(manager);
 
         // auction should have increased funds
         assertEq(auction_t2_balance_after - auction_t2_balance_before, 5 * T2);

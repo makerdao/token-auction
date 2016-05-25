@@ -101,7 +101,7 @@ contract ReverseSplittingTest is Test {
              buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(auction_id, 1);
-        assertEq(last_bidder, seller);
+        assertEq(last_bidder, manager);
         assertEq(buy_amount, 5 * T2);
         assertEq(sell_amount, 100 * T1);
     }

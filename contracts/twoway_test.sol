@@ -119,7 +119,7 @@ contract TwoWayTest is Test {
         var balance_diff = t2_balance_before - t2_balance_after;
         assertEq(balance_diff, 100 * T2);
     }
-    function testBidOverTargetSetsReverseBid() {
+    function testBidOverTargetSetsReverseBidder() {
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 110 * T2);
 
@@ -127,7 +127,22 @@ contract TwoWayTest is Test {
              buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(last_bidder, bidder1);
+    }
+    function testBidOverTargetSetsReverseBuyAmount() {
+        var (id, base) = newTwoWayAuction();
+        bidder1.doBid(1, 110 * T2);
+
+        var (auction_id, last_bidder,
+             buy_amount, sell_amount) = manager.getAuctionlet(base);
+
         assertEq(buy_amount, 100 * T2);
+    }
+    function testBidOverTargetSetsReverseBid() {
+        var (id, base) = newTwoWayAuction();
+        bidder1.doBid(1, 110 * T2);
+
+        var (auction_id, last_bidder,
+             buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         // as the bidder has bid over the target, we use their surplus
         // valuation to decrease the sell_amount that they will receive.
@@ -139,12 +154,41 @@ contract TwoWayTest is Test {
         var expected_sell_amount = (100 * T1 * 100 * T2) / (110 * T2);
         assertEq(sell_amount, expected_sell_amount);
     }
-    function testSplitEqualTargetReversal() {
+    function testBaseSplitEqualTargetReversal() {
+        var (id, base) = newTwoWayAuction();
+        bidder1.doBid(1, 100 * T2, 60 * T1);
+        assertEq(manager.isReversed(id), true);
     }
-    function testSplitOverTargetReversal() {
+    function testBaseSplitOverTargetReversal() {
+        var (id, base) = newTwoWayAuction();
+        bidder1.doBid(1, 110 * T2, 60 * T1);
+        assertEq(manager.isReversed(id), true);
     }
-    function testSplitOverTargetRefundsDifference() {
+    function testBaseSplitOverTargetRefundsDifference() {
+        var (id, base) = newTwoWayAuction();
+        var t2_balance_before = t2.balanceOf(bidder1);
+        bidder1.doBid(1, 120 * T2, 60 * T1);
+        var t2_balance_after = t2.balanceOf(bidder1);
+
+        var balance_diff = t2_balance_before - t2_balance_after;
+        assertEq(balance_diff, 100 * T2);
     }
-    function testSplitOverTargetSetsReverseBid() {
+    function testBaseSplitOverTargetSetsReverseBidder() {
+        var (id, base) = newTwoWayAuction();
+        var (nid, sid) = bidder1.doBid(1, 120 * T2, 50 * T1);
+
+        var (auction_id, last_bidder,
+             buy_amount, sell_amount) = manager.getAuctionlet(sid);
+
+        assertEq(last_bidder, bidder1);
+    }
+    function testBaseSplitOverTargetSetsReverseBuyAmount() {
+        var (id, base) = newTwoWayAuction();
+        var (nid, sid) = bidder1.doBid(1, 120 * T2, 50 * T1);
+
+        var (auction_id, last_bidder,
+             buy_amount, sell_amount) = manager.getAuctionlet(sid);
+
+        assertEq(buy_amount, 100 * T2);
     }
 }

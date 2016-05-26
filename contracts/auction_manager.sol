@@ -88,20 +88,8 @@ contract AuctionUser is Assertive, TimeUser {
 
         // excess is sent to the beneficiary
         var bid_added = receive_amount - a.buy_amount;
-        A.collected += bid_added;
 
-        bool in_transition = (!A.reversed && (A.collected >= A.COLLECT_MAX));
-        uint transition_excess;
-        if (in_transition) {
-            // return excess to bidder
-            transition_excess = A.collected - A.COLLECT_MAX;
-            A.collected = A.COLLECT_MAX;
-        } else {
-            transition_excess = 0;
-        }
-
-        var benefit = A.buying.transferFrom(bidder, A.beneficiary,
-                                            bid_added - transition_excess);
+        var benefit = A.buying.transferFrom(bidder, A.beneficiary, bid_added);
         assert(benefit);
 
         // now update the bid
@@ -115,20 +103,6 @@ contract AuctionUser is Assertive, TimeUser {
             a.sell_amount = bid_how_much;
         } else {
             a.buy_amount = bid_how_much;
-        }
-
-        // reverse transition
-        if (in_transition) {
-            A.reversed = true;
-
-            a.buy_amount = bid_how_much - transition_excess;
-
-            var effective_target_bid = (a.sell_amount * A.COLLECT_MAX) / A.sell_amount;
-            var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
-            //@log effective target bid: `uint effective_target_bid`
-            //@log previous sell_amount:    `uint a.sell_amount`
-            //@log reduced sell_amount:     `uint reduced_sell_amount`
-            a.sell_amount = reduced_sell_amount;
         }
     }
     function _assertClaimable(uint auctionlet_id) internal {

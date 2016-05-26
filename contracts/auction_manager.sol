@@ -90,8 +90,9 @@ contract AuctionUser is Assertive, TimeUser {
         var bid_added = receive_amount - a.buy_amount;
         A.collected += bid_added;
 
+        bool in_transition = (!A.reversed && (A.collected >= A.COLLECT_MAX));
         uint transition_excess;
-        if (!A.reversed && (A.collected >= A.COLLECT_MAX)) {
+        if (in_transition) {
             // return excess to bidder
             transition_excess = A.collected - A.COLLECT_MAX;
             A.collected = A.COLLECT_MAX;
@@ -117,7 +118,7 @@ contract AuctionUser is Assertive, TimeUser {
         }
 
         // reverse transition
-        if (!A.reversed && (A.collected >= A.COLLECT_MAX)) {
+        if (in_transition) {
             A.reversed = true;
 
             a.buy_amount = bid_how_much - transition_excess;

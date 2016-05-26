@@ -29,6 +29,9 @@ contract AuctionTester is Tester {
     function doClaim(uint id) {
         return manager.claim(id);
     }
+    function doReclaim(uint id) {
+        return manager.reclaim(id);
+    }
 }
 
 contract AuctionManagerTest is Test {
@@ -294,5 +297,23 @@ contract AuctionManagerTest is Test {
         // auctionlet twice
         bidder1.doClaim(1);
         bidder1.doClaim(1);
+    }
+    function testSellerReclaimAfterExpiry() {
+        // the seller should be able to reclaim any unbid on
+        // sell token after the auction has expired.
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        var balance_before = t1.balanceOf(seller);
+        seller.doReclaim(id);
+        var balance_after = t1.balanceOf(seller);
+
+        assertEq(balance_after - balance_before, 100 * T1);
+    }
+    function testFailSellerReclaimBeforeExpiry() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        seller.doReclaim(id);
     }
 }

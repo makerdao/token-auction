@@ -35,6 +35,9 @@ contract AuctionTester is Tester {
     function doClaim(uint id) {
         return manager.claim(id);
     }
+    function doReclaim(uint id) {
+        return manager.reclaim(id);
+    }
 }
 
 contract ReverseTest is Test {
@@ -184,5 +187,19 @@ contract ReverseTest is Test {
         var t1_balance_diff = t1_balance_after - t1_balance_before;
 
         assertEq(t1_balance_diff, 85 * T1);
+    }
+    function testSellerReclaimAfterExpiry() {
+        // the seller should be able to reclaim any unbid on
+        // sell token after the auction has expired.
+        var (id, base) = newReverseAuction();
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        var balance_before = t1.balanceOf(seller);
+        seller.doReclaim(id);
+        var balance_after = t1.balanceOf(seller);
+
+        assertEq(balance_after - balance_before, 100 * T1);
     }
 }

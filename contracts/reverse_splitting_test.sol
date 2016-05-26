@@ -40,6 +40,9 @@ contract AuctionTester is Tester {
     function doClaim(uint id) {
         return manager.claim(id);
     }
+    function doReclaim(uint id) {
+        return manager.reclaim(id);
+    }
 }
 
 contract ReverseSplittingTest is Test {
@@ -289,5 +292,19 @@ contract ReverseSplittingTest is Test {
         //@log seller t1 balance change
         // 40 + 80 * (1 / 5) = 56
         assertEq(diff_t1, 56 * T1);
+    }
+    function testSellerReclaimAfterBaseSplit() {
+        var (id, base) = newReverseAuction();
+
+        bidder1.doBid(base, 50 * T1, 3 * T2);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        var balance_before = t1.balanceOf(seller);
+        seller.doReclaim(id);
+        var balance_after = t1.balanceOf(seller);
+
+        assertEq(balance_after - balance_before, 40 * T1);
     }
 }

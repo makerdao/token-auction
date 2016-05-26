@@ -21,6 +21,7 @@ contract AuctionUser is Assertive, TimeUser {
         uint COLLECT_MAX;
         uint expiration;
         bool reversed;
+        uint sold;
     }
     struct Auctionlet {
         uint     auction_id;
@@ -47,6 +48,13 @@ contract AuctionUser is Assertive, TimeUser {
     function claim(uint auctionlet_id) {
         _assertClaimable(auctionlet_id);
         _doClaim(auctionlet_id);
+    }
+    function reclaim(uint auction_id) {
+        var A = _auctions[auction_id];
+        var expired = A.expiration <= getTime();
+        assert(expired);
+
+        A.selling.transfer(A.beneficiary, A.sell_amount - A.sold);
     }
     // Check whether an auctionlet is eligible for bidding on
     function _assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
@@ -78,6 +86,7 @@ contract AuctionUser is Assertive, TimeUser {
         assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
         if (!a.bid) {
             A.collected += a.buy_amount;
+            A.sold += a.sell_amount;
             a.bid = true;
         }
 

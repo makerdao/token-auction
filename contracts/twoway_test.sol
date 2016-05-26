@@ -139,4 +139,12 @@ contract TwoWayTest is Test {
         var expected_sell_amount = (100 * T1 * 100 * T2) / (110 * T2);
         assertEq(sell_amount, expected_sell_amount);
     }
+    function testSplitEqualTargetReversal() {
+    }
+    function testSplitOverTargetReversal() {
+    }
+    function testSplitOverTargetRefundsDifference() {
+    }
+    function testSplitOverTargetSetsReverseBid() {
+    }
 }

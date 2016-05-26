@@ -191,4 +191,20 @@ contract TwoWayTest is Test {
 
         assertEq(buy_amount, 100 * T2);
     }
+    function testBaseSplitOverTargetSetsReverseBid() {
+        var (id, base) = newTwoWayAuction();
+        var (nid, sid) = bidder1.doBid(1, 120 * T2, 50 * T1);
+
+        var (auction_id, last_bidder,
+             buy_amount, sell_amount) = manager.getAuctionlet(sid);
+
+        // as the bidder has bid over the target, we use their surplus
+        // valuation to decrease the sell_amount that they will receive.
+        //
+        // This amount is calculated as q^2 * B / (b * Q), where q is
+        // the auctionlet sell_amount, Q is the total auction sell_amount,
+        // B is the target and b is the given bid.
+        var expected_sell_amount = (50 * T1 * 50 * T1 * 100 * T2) / (120 * T2 * 100 * T1);
+        assertEq(sell_amount, expected_sell_amount);
+    }
 }

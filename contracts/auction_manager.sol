@@ -150,7 +150,7 @@ contract AuctionManager is Assertive {
     // (the beneficiary) can claim across an entire auction. Individual
     // auctionlet high bidders must claim per auctionlet.
     function claim(uint auctionlet_id) {
-        _assertClaimable(auctionlet_id, msg.sender);
+        _assertClaimable(auctionlet_id);
         _doClaim(auctionlet_id);
     }
     // Check whether an auctionlet is eligible for bidding on
@@ -235,11 +235,9 @@ contract AuctionManager is Assertive {
             a.sell_amount = reduced_sell_amount;
         }
     }
-    function _assertClaimable(uint auctionlet_id, address claimer) internal {
+    function _assertClaimable(uint auctionlet_id) internal {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
-
-        assert(claimer == a.last_bidder);
 
         var expired = A.expiration <= getTime();
         assert(expired);

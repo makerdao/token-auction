@@ -122,6 +122,17 @@ contract ForwardSplittingTest is Test {
 
         assertEq(balance_after - balance_before, 7 * T2);
     }
+    function testSplitTransfersToPrevBidder() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        bidder1.doBid(base, 20 * T2);
+
+        var balance_before = t2.balanceOf(bidder1);
+        bidder2.doBid(base, 20 * T2, 50 * T1);
+        var balance_after = t2.balanceOf(bidder1);
+
+        assertEq(balance_after - balance_before, 10 * T2);
+    }
     function testSplitBaseAddresses() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 

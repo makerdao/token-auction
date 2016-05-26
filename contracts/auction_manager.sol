@@ -150,6 +150,30 @@ contract AuctionUser is Assertive, TimeUser {
         a.unclaimed = false;
         delete _auctionlets[auctionlet_id];
     }
+    function _getLastBid(Auctionlet a)
+        internal
+        returns (uint prev_bid, uint prev_quantity)
+    {
+        var A = _auctions[a.auction_id];
+        if (A.reversed) {
+            prev_quantity = a.buy_amount;
+            prev_bid = a.sell_amount;
+        } else {
+            prev_quantity = a.sell_amount;
+            prev_bid = a.buy_amount;
+        }
+    }
+    function _setLastBid(Auctionlet a, uint bid, uint quantity) internal {
+        var A = _auctions[a.auction_id];
+
+        if (A.reversed) {
+            a.sell_amount = bid;
+            a.buy_amount = quantity;
+        } else {
+            a.sell_amount = quantity;
+            a.buy_amount = bid;
+        }
+    }
 }
 
 contract AuctionManager is AuctionUser {
@@ -245,20 +269,12 @@ contract AuctionManager is AuctionUser {
                            uint quantity, address last_bidder)
         internal returns (uint)
     {
-        var A = _auctions[auction_id];
-
         Auctionlet memory auctionlet;
         auctionlet.auction_id = auction_id;
         auctionlet.unclaimed = true;
         auctionlet.last_bidder = last_bidder;
 
-        if (A.reversed) {
-            auctionlet.sell_amount = bid;
-            auctionlet.buy_amount = quantity;
-        } else {
-            auctionlet.sell_amount = quantity;
-            auctionlet.buy_amount = bid;
-        }
+        _setLastBid(auctionlet, bid, quantity);
 
         _auctionlets[++_last_auctionlet_id] = auctionlet;
 

@@ -66,17 +66,4 @@ contract SplittableAuctionManager is AuctionManager {
         //@log modified bid: `uint new_bid`
         //@log split bid:    `uint split_bid`
     }
-    function _getLastBid(Auctionlet a)
-        internal
-        returns (uint prev_bid, uint prev_quantity)
-    {
-        var A = _auctions[a.auction_id];
-        if (A.reversed) {
-            prev_quantity = a.buy_amount;
-            prev_bid = a.sell_amount;
-        } else {
-            prev_quantity = a.sell_amount;
-            prev_bid = a.buy_amount;
-        }
-    }
 }

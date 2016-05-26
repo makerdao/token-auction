@@ -17,37 +17,15 @@ contract SplittableAuctionManager is AuctionManager {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        if (A.reversed) {
-            _assertReverseSplittable(auctionlet_id, bid_how_much, quantity);
-        } else {
-            _assertForwardSplittable(auctionlet_id, bid_how_much, quantity);
-        }
-    }
-    // Check whether an auctionlet is eligible for splitting
-    function _assertForwardSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
-        internal
-    {
-        var a = _auctionlets[auctionlet_id];
+        var (_, prev_quantity) = _getLastBid(a);
 
-        // check that the split actually splits the auctionlet
-        // with lower sell_amount
-        assert(quantity < a.sell_amount);
+        // splits have to reduce the quantity being bid on
+        assert(quantity < prev_quantity);
 
-        // check that there is a relative increase in value
+        // splits must have a relative increase in value
         // ('valuation' is the bid scaled up to the full lot)
-        // n.b avoid dividing by a.buy_amount as it could be zero
-        var valuation = (bid_how_much * a.sell_amount) / quantity;
+        var valuation = (bid_how_much * prev_quantity) / quantity;
 
-        _assertBiddable(auctionlet_id, valuation);
-    }
-    function _assertReverseSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
-        internal
-    {
-        var a = _auctionlets[auctionlet_id];
-
-        assert(quantity < a.buy_amount);
-
-        var valuation = (bid_how_much * a.buy_amount) / quantity;
         _assertBiddable(auctionlet_id, valuation);
     }
     function _doSplit(uint auctionlet_id, uint bid_how_much, uint quantity)
@@ -57,9 +35,7 @@ contract SplittableAuctionManager is AuctionManager {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        var (new_quantity, new_bid, split_bid) = _calculate_split(a,
-                                                                  quantity,
-                                                                  A.reversed);
+        var (new_quantity, new_bid, split_bid) = _calculate_split(a, quantity);
 
         // create two new auctionlets and bid on them
         var new_id = newAuctionlet(a.auction_id, new_bid, new_quantity, a.last_bidder);
@@ -73,20 +49,11 @@ contract SplittableAuctionManager is AuctionManager {
         return (new_id, split_id);
     }
     // work out how to split a bid into two parts
-    function _calculate_split(Auctionlet a, uint quantity, bool reversed)
+    function _calculate_split(Auctionlet a, uint quantity)
         internal
         returns (uint new_quantity, uint new_bid, uint split_bid)
     {
-        uint prev_quantity;
-        uint prev_bid;
-        if (reversed) {
-            prev_quantity = a.buy_amount;
-            prev_bid = a.sell_amount;
-        } else {
-            prev_quantity = a.sell_amount;
-            prev_bid = a.buy_amount;
-        }
-
+        var (prev_bid, prev_quantity) = _getLastBid(a);
         new_quantity = prev_quantity - quantity;
         //@log previous quantity: `uint prev_quantity`
         //@log modified quantity: `uint new_quantity`
@@ -98,5 +65,18 @@ contract SplittableAuctionManager is AuctionManager {
         //@log previous bid: `uint prev_bid`
         //@log modified bid: `uint new_bid`
         //@log split bid:    `uint split_bid`
+    }
+    function _getLastBid(Auctionlet a)
+        internal
+        returns (uint prev_bid, uint prev_quantity)
+    {
+        var A = _auctions[a.auction_id];
+        if (A.reversed) {
+            prev_quantity = a.buy_amount;
+            prev_bid = a.sell_amount;
+        } else {
+            prev_quantity = a.sell_amount;
+            prev_bid = a.buy_amount;
+        }
     }
 }

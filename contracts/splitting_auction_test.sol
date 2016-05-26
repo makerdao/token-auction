@@ -133,6 +133,61 @@ contract ForwardSplittingTest is Test {
 
         assertEq(balance_after - balance_before, 10 * T2);
     }
+    function testAnotherSplitTransfersToPrevSplitter() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1);
+
+        var balance_before = t2.balanceOf(bidder1);
+        bidder2.doBid(sid, 20 * T2, 40 * T1);
+        var balance_after = t2.balanceOf(bidder1);
+
+        assertEq(balance_after - balance_before, 10 * T2);
+    }
+    function testAnotherSplitTransfersToSeller() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1);
+
+        var balance_before = t2.balanceOf(seller);
+        bidder2.doBid(sid, 20 * T2, 40 * T1);
+        var balance_after = t2.balanceOf(seller);
+
+        assertEq(balance_after - balance_before, 10 * T2);
+    }
+    function testAnotherSplitTransfersFromSplitter() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1);
+
+        var balance_before = t2.balanceOf(bidder2);
+        bidder2.doBid(sid, 20 * T2, 40 * T1);
+        var balance_after = t2.balanceOf(bidder2);
+
+        assertEq(balance_before - balance_after, 20 * T2);
+    }
+    function testSplitTransfersToSeller() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1);
+
+        var balance_before = t2.balanceOf(seller);
+        bidder2.doBid(nid, 20 * T2, 10 * T1);
+        var balance_after = t2.balanceOf(seller);
+
+        assertEq(balance_after - balance_before, 20 * T2);
+    }
+    function testBidTransfersToPrevSplitter() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1);
+
+        var balance_before = t2.balanceOf(bidder1);
+        bidder2.doBid(sid, 30 * T2);
+        var balance_after = t2.balanceOf(bidder1);
+
+        assertEq(balance_after - balance_before, 20 * T2);
+    }
     function testSplitBaseAddresses() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 

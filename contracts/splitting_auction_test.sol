@@ -78,6 +78,11 @@ contract ForwardSplittingTest is Test {
 
         t2.transfer(bidder2, 1000 * T2);
         bidder2.doApprove(manager, 1000 * T2, t2);
+
+        t1.transfer(this, 1000 * T1);
+        t2.transfer(this, 1000 * T2);
+        t1.approve(manager, 1000 * T1);
+        t2.approve(manager, 1000 * T2);
     }
     function testSetUp() {
         assertEq(t2.balanceOf(bidder1), 1000 * T2);
@@ -351,38 +356,26 @@ contract ForwardSplittingTest is Test {
         var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
         assertEq(bidder_balance_diff, 10 * T2);
     }
-    function testSplitBaseTransfersBenefactor() {
-        var seller_t2_balance_before = t2.balanceOf(seller);
-        var seller_t1_balance_before = t1.balanceOf(seller);
+    function testSplitBaseTransfersToBenefactor() {
 
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var balance_before = t2.balanceOf(seller);
         bidder2.doBid(base, 20 * T2, 25 * T1);
+        var balance_after = t2.balanceOf(seller);
 
-        var seller_t2_balance_after = t2.balanceOf(seller);
-        var seller_t1_balance_after = t1.balanceOf(seller);
-
-        var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
-        var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
-
-        assertEq(diff_t2, 20 * T2);
-        assertEq(diff_t1, 100 * T1);
+        assertEq(balance_after - balance_before, 20 * T2);
     }
     function testSplitTransfersBenefactor() {
-        var seller_t2_balance_before = t2.balanceOf(seller);
-        var seller_t1_balance_before = t1.balanceOf(seller);
-
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var balance_before = t2.balanceOf(seller);
         bidder1.doBid(base, 40 * T2);
         bidder2.doBid(base, 20 * T2, 25 * T1);
 
-        var seller_t2_balance_after = t2.balanceOf(seller);
-        var seller_t1_balance_after = t1.balanceOf(seller);
+        var balance_after = t2.balanceOf(seller);
 
-        var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
-        var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
-
-        assertEq(diff_t2, 50 * T2);
-        assertEq(diff_t1, 100 * T1);
+        assertEq(balance_after - balance_before, 50 * T2);
     }
     function testFailBidAfterSplit() {
         // splitting deletes the old auctionlet_id

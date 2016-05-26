@@ -73,6 +73,11 @@ contract AuctionManagerTest is Test {
 
         t2.transfer(bidder2, 1000 * T2);
         bidder2.doApprove(manager, 1000 * T2, t2);
+
+        t1.transfer(this, 1000 * T1);
+        t2.transfer(this, 1000 * T2);
+        t1.approve(manager, 1000 * T1);
+        t2.approve(manager, 1000 * T2);
     }
     function testSetUp() {
         assertEq(t2.balanceOf(bidder1), 1000 * T2);
@@ -100,19 +105,19 @@ contract AuctionManagerTest is Test {
         assertEq(min_increase, 1 * T2);
         assertEq(expiration, manager.getTime() + 1 years);
     }
-    function testNewAuctionTransfersFromSeller() {
-        var balance_before = t1.balanceOf(seller);
-        manager.newAuction(seller, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
-        var balance_after = t1.balanceOf(seller);
-
-        assertEq(balance_before - balance_after, 100 * T1);
-    }
     function testNewAuctionTransfersToManager() {
         var balance_before = t1.balanceOf(manager);
         manager.newAuction(seller, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
         var balance_after = t1.balanceOf(manager);
 
         assertEq(balance_after - balance_before, 100 * T1);
+    }
+    function testNewAuctionTransfersFromCreator() {
+        var balance_before = t1.balanceOf(this);
+        var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var balance_after = t1.balanceOf(this);
+
+        assertEq(balance_before - balance_after, 100 * T1);
     }
     function testNewAuctionlet() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
@@ -184,20 +189,13 @@ contract AuctionManagerTest is Test {
         bidder2.doBid(base, 12 * T2);
     }
     function testBidTransfersBenefactor() {
-        var seller_t2_balance_before = t2.balanceOf(seller);
-        var seller_t1_balance_before = t1.balanceOf(seller);
-
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var balance_before = t2.balanceOf(seller);
         bidder1.doBid(base, 40 * T2);
+        var balance_after = t2.balanceOf(seller);
 
-        var seller_t2_balance_after = t2.balanceOf(seller);
-        var seller_t1_balance_after = t1.balanceOf(seller);
-
-        var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
-        var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
-
-        assertEq(diff_t2, 40 * T2);
-        assertEq(diff_t1, 100 * T1);
+        assertEq(balance_after - balance_before, 40 * T2);
     }
     function testClaimTransfersBidder() {
         var bidder_t2_balance_before = t2.balanceOf(bidder1);
@@ -240,8 +238,8 @@ contract AuctionManagerTest is Test {
         t2.transfer(seller, 200 * T2);
         seller.doApprove(manager, 200 * T2, t2);
 
-        var t1_balance_before = t1.balanceOf(seller);
-        var t2_balance_before = t2.balanceOf(seller);
+        var t1_balance_before = t1.balanceOf(this);
+        var t2_balance_before = t2.balanceOf(this);
 
         var (id1, base1) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         var (id2, base2) = manager.newAuction(seller, t2, t1, 100 * T2, 10 * T1, 1 * T1, 1 years);
@@ -249,8 +247,8 @@ contract AuctionManagerTest is Test {
         assertEq(id1, 1);
         assertEq(id2, 2);
 
-        assertEq(t1_balance_before - t1.balanceOf(seller), 100 * T1);
-        assertEq(t2_balance_before - t2.balanceOf(seller), 100 * T2);
+        assertEq(t1_balance_before - t1.balanceOf(this), 100 * T1);
+        assertEq(t2_balance_before - t2.balanceOf(this), 100 * T2);
 
         var (beneficiary, selling, buying,
              sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id2);
@@ -263,23 +261,30 @@ contract AuctionManagerTest is Test {
         assertEq(min_increase, 1 * T1);
         assertEq(expiration, manager.getTime() + 1 years);
     }
-    function testMultipleAuctionsTransferBenefactor() {
-        var seller_t2_balance_before = t2.balanceOf(seller);
-        var seller_t1_balance_before = t1.balanceOf(seller);
-
+    function testMultipleAuctionsBidTransferToBenefactor() {
         var (id1, base1) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         var (id2, base2) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var seller_t2_balance_before = t2.balanceOf(seller);
+
         bidder1.doBid(base1, 11 * T2);
         bidder2.doBid(base2, 11 * T2);
 
         var seller_t2_balance_after = t2.balanceOf(seller);
-        var seller_t1_balance_after = t1.balanceOf(seller);
 
-        var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
         var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
 
         assertEq(diff_t2, 22 * T2);
-        assertEq(diff_t1, 200 * T1);
+    }
+    function testMultipleAuctionsTransferFromCreator() {
+        var balance_before = t1.balanceOf(this);
+
+        var (id1, base1) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var balance_after = t1.balanceOf(this);
+
+        assertEq(balance_before - balance_after, 200 * T1);
     }
     function testFailBidderClaimAgain() {
         // bidders should not be able to claim their auctionlet more than once
@@ -315,5 +320,14 @@ contract AuctionManagerTest is Test {
     function testFailSellerReclaimBeforeExpiry() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         seller.doReclaim(id);
+    }
+    function testBidTransfersToDistinctBeneficiary() {
+        var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+
+        var balance_before = t2.balanceOf(bidder2);
+        bidder1.doBid(base, 10 * T2);
+        var balance_after = t2.balanceOf(bidder2);
+
+        assertEq(balance_after - balance_before, 10 * T2);
     }
 }

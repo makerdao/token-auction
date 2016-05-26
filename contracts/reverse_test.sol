@@ -78,6 +78,11 @@ contract ReverseTest is Test {
 
         t2.transfer(bidder2, 1000 * T2);
         bidder2.doApprove(manager, 1000 * T2, t2);
+
+        t1.transfer(this, 1000 * T1);
+        t2.transfer(this, 1000 * T2);
+        t1.approve(manager, 1000 * T1);
+        t2.approve(manager, 1000 * T2);
     }
     function newReverseAuction() returns (uint, uint) {
         return manager.newReverseAuction({beneficiary: seller,
@@ -103,10 +108,10 @@ contract ReverseTest is Test {
         assertEq(buy_amount, 5 * T2);
         assertEq(sell_amount, 100 * T1);
     }
-    function testNewReverseAuctionTransfersFromSeller() {
-        var balance_before = t1.balanceOf(seller);
+    function testNewReverseAuctionTransfersFromCreator() {
+        var balance_before = t1.balanceOf(this);
         var (id, base) = newReverseAuction();
-        var balance_after = t1.balanceOf(seller);
+        var balance_after = t1.balanceOf(this);
 
         assertEq(balance_before - balance_after, 100 * T1);
     }

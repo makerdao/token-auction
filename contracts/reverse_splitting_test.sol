@@ -83,6 +83,11 @@ contract ReverseSplittingTest is Test {
 
         t2.transfer(bidder2, 1000 * T2);
         bidder2.doApprove(manager, 1000 * T2, t2);
+
+        t1.transfer(this, 1000 * T1);
+        t2.transfer(this, 1000 * T2);
+        t1.approve(manager, 1000 * T1);
+        t2.approve(manager, 1000 * T2);
     }
     function newReverseAuction() returns (uint, uint) {
         return manager.newReverseAuction({beneficiary: seller,
@@ -273,25 +278,16 @@ contract ReverseSplittingTest is Test {
         assertEq(bidder_balance_diff, 2 * T2);
     }
     function testTransferToBenefactorAfterSplit() {
-        var seller_t2_balance_before = t2.balanceOf(seller);
-        var seller_t1_balance_before = t1.balanceOf(seller);
-
         var (id, base) = newReverseAuction();
 
+        var balance_before = t1.balanceOf(seller);
         bidder1.doBid(base, 80 * T1);
         bidder2.doBid(base, 40 * T1, 4 * T2);
+        var balance_after = t1.balanceOf(seller);
 
-        var seller_t2_balance_after = t2.balanceOf(seller);
-        var seller_t1_balance_after = t1.balanceOf(seller);
-
-        var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
-        var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
-
-        //@log seller t2 balance change
-        assertEq(diff_t2, 5 * T2);
         //@log seller t1 balance change
-        // 40 + 80 * (1 / 5) = 56
-        assertEq(diff_t1, 56 * T1);
+        // 20 + 80 * (4 / 5) - 40 = 44
+        assertEq(balance_after - balance_before, 44 * T1);
     }
     function testSellerReclaimAfterBaseSplit() {
         var (id, base) = newReverseAuction();

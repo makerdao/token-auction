@@ -10,6 +10,7 @@ contract TimeUser {
 
 contract AuctionUser is Assertive, TimeUser {
     struct Auction {
+        address creator;
         address beneficiary;
         ERC20 selling;
         ERC20 buying;
@@ -211,16 +212,17 @@ contract AuctionManager is AuctionUser {
                         )
         returns (uint auction_id, uint base_id)
     {
-        (auction_id, base_id) = newTwoWayAuction({beneficiary: beneficiary,
-                                                  selling: selling,
-                                                  buying: buying,
-                                                  sell_amount: sell_amount,
-                                                  start_bid: start_bid,
-                                                  min_increase: min_increase,
-                                                  min_decrease: 0,
-                                                  duration: duration,
-                                                  COLLECT_MAX: INFINITY
-                                                });
+        (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
+                                                   beneficiary: beneficiary,
+                                                   selling: selling,
+                                                   buying: buying,
+                                                   sell_amount: sell_amount,
+                                                   start_bid: start_bid,
+                                                   min_increase: min_increase,
+                                                   min_decrease: 0,
+                                                   duration: duration,
+                                                   COLLECT_MAX: INFINITY
+                                                 });
     }
     // Create a new reverse auction
     function newReverseAuction( address beneficiary
@@ -235,16 +237,17 @@ contract AuctionManager is AuctionUser {
     {
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
-        (auction_id, base_id) = newTwoWayAuction({beneficiary: beneficiary,
-                                                  selling: selling,
-                                                  buying: buying,
-                                                  sell_amount: max_sell_amount,
-                                                  start_bid: buy_amount,
-                                                  min_increase: 0,
-                                                  min_decrease: min_decrease,
-                                                  duration: duration,
-                                                  COLLECT_MAX: 0
-                                                });
+        (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
+                                                   beneficiary: beneficiary,
+                                                   selling: selling,
+                                                   buying: buying,
+                                                   sell_amount: max_sell_amount,
+                                                   start_bid: buy_amount,
+                                                   min_increase: 0,
+                                                   min_decrease: min_decrease,
+                                                   duration: duration,
+                                                   COLLECT_MAX: 0
+                                                 });
         Auction A = _auctions[auction_id];
         A.reversed = true;
     }
@@ -261,7 +264,34 @@ contract AuctionManager is AuctionUser {
                              )
         returns (uint, uint)
     {
+        return _newTwoWayAuction({creator: msg.sender,
+                                  beneficiary: beneficiary,
+                                  selling: selling,
+                                  buying: buying,
+                                  sell_amount: sell_amount,
+                                  start_bid: start_bid,
+                                  min_increase: min_increase,
+                                  min_decrease: min_decrease,
+                                  duration: duration,
+                                  COLLECT_MAX: COLLECT_MAX
+                                  });
+    }
+    function _newTwoWayAuction( address creator
+                              , address beneficiary
+                              , ERC20 selling
+                              , ERC20 buying
+                              , uint sell_amount
+                              , uint start_bid
+                              , uint min_increase
+                              , uint min_decrease
+                              , uint duration
+                              , uint COLLECT_MAX
+                              )
+        internal
+        returns (uint, uint)
+    {
         Auction memory A;
+        A.creator = creator;
         A.beneficiary = beneficiary;
         A.selling = selling;
         A.buying = buying;
@@ -272,16 +302,15 @@ contract AuctionManager is AuctionUser {
         A.expiration = getTime() + duration;
         A.COLLECT_MAX = COLLECT_MAX;
 
-        //@log new auction: receiving `uint sell_amount` from `address beneficiary`
-        var received_lot = selling.transferFrom(beneficiary, this, sell_amount);
-        assert(received_lot);
+        //@log new auction: receiving `uint sell_amount` from `address creator`
+        assert(selling.transferFrom(A.creator, this, A.sell_amount));
 
         _auctions[++_last_auction_id] = A;
 
         // create the base auctionlet
         var base_id = newAuctionlet({auction_id: _last_auction_id,
-                                     bid:         start_bid,
-                                     quantity:    sell_amount,
+                                     bid:         A.start_bid,
+                                     quantity:    A.sell_amount,
                                      last_bidder: A.beneficiary
                                    });
 

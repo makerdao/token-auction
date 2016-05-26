@@ -81,6 +81,11 @@ contract TwoWayTest is Test {
 
         t2.transfer(bidder2, 1000 * T2);
         bidder2.doApprove(manager, 1000 * T2, t2);
+
+        t1.transfer(this, 1000 * T1);
+        t2.transfer(this, 1000 * T2);
+        t1.approve(manager, 1000 * T1);
+        t2.approve(manager, 1000 * T2);
     }
     function newTwoWayAuction() returns (uint, uint) {
         return manager.newTwoWayAuction({beneficiary: seller,

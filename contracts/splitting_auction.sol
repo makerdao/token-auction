@@ -6,13 +6,18 @@ import 'auction_manager.sol';
 // which has all of the Auctions properties but allows for bidding on a
 // subset of the full Auction lot.
 contract SplittableAuctionManager is AuctionManager {
-    // bid on a specific quantity of an auctionlet
+    // Place a partial bid on an auctionlet, for less than the full lot.
+    // This splits the auctionlet into two, bids on one of the new
+    // auctionlets and leaves the other to the previous bidder.
+    // The new auctionlet ids are returned, corresponding to the new
+    // auctionlets owned by (prev_bidder, new_bidder).
     function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
-        returns (uint, uint)
+        returns (uint new_id, uint split_id)
     {
         _assertSplittable(auctionlet_id, bid_how_much, quantity);
-        return _doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
+        (new_id, split_id) = _doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
     }
+    // Check that an auctionlet can be split by the new bid.
     function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity) internal {
         var a = _auctionlets[auctionlet_id];
 
@@ -27,27 +32,26 @@ contract SplittableAuctionManager is AuctionManager {
 
         _assertBiddable(auctionlet_id, valuation);
     }
+    // Auctionlet splitting logic.
     function _doSplit(uint auctionlet_id, address splitter,
                       uint bid_how_much, uint quantity)
         internal
-        returns (uint, uint)
+        returns (uint new_id, uint split_id)
     {
         var a = _auctionlets[auctionlet_id];
 
         var (new_quantity, new_bid, split_bid) = _calculate_split(a, quantity);
 
         // create two new auctionlets and bid on them
-        var new_id = newAuctionlet(a.auction_id, new_bid, new_quantity, a.last_bidder);
-        var split_id = newAuctionlet(a.auction_id, split_bid, quantity, a.last_bidder);
+        new_id = newAuctionlet(a.auction_id, new_bid, new_quantity, a.last_bidder);
+        split_id = newAuctionlet(a.auction_id, split_bid, quantity, a.last_bidder);
 
         _updateBid(new_id, a.last_bidder, new_bid);
         _doBid(split_id, splitter, bid_how_much);
 
         delete _auctionlets[auctionlet_id];
-
-        return (new_id, split_id);
     }
-    // work out how to split a bid into two parts
+    // Work out how to split a bid into two parts
     function _calculate_split(Auctionlet a, uint quantity)
         internal
         returns (uint new_quantity, uint new_bid, uint split_bid)

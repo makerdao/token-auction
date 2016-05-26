@@ -37,18 +37,22 @@ contract AuctionUser is Assertive, TimeUser {
     mapping(uint => Auctionlet) _auctionlets;
     uint _last_auctionlet_id;
 
-    // bid on a specifc auctionlet
+    // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much) {
         _assertBiddable(auctionlet_id, bid_how_much);
         _doBid(auctionlet_id, msg.sender, bid_how_much);
     }
-    // Parties to an auction can claim their take. The auction creator
-    // (the beneficiary) can claim across an entire auction. Individual
-    // auctionlet high bidders must claim per auctionlet.
+    // Allow parties to an auction to claim their take.
+    // If the auction has expired, individual auctionlet high bidders
+    // can claim their winnings.
     function claim(uint auctionlet_id) {
         _assertClaimable(auctionlet_id);
         _doClaim(auctionlet_id);
     }
+    // Starting an auction takes funds from the beneficiary to keep in
+    // escrow. If there are any funds remaining after expiry, e.g. if
+    // there were no bids or if only a portion of the lot was bid for,
+    // the seller can reclaim them.
     function reclaim(uint auction_id) {
         var A = _auctions[auction_id];
         var expired = A.expiration <= getTime();
@@ -75,6 +79,7 @@ contract AuctionUser is Assertive, TimeUser {
             assert(bid_how_much >= (a.buy_amount + A.min_increase));
         }
     }
+    // Auctionlet bid logic, including transfers.
     function _doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal
     {
@@ -84,6 +89,9 @@ contract AuctionUser is Assertive, TimeUser {
         // new bidder pays off the old bidder directly. For the first
         // bid this is the seller, so they receive their minimum bid.
         assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
+
+        // if the auctionlet has not been bid on before we need to
+        // do some extra accounting
         if (!a.bid) {
             A.collected += a.buy_amount;
             A.sold += a.sell_amount;
@@ -95,6 +103,8 @@ contract AuctionUser is Assertive, TimeUser {
             A.collected += excess_buy;
         }
 
+        // determine if this bid causes a forward -> reverse transition
+        // (only happens in the twoway auction)
         var transition = !A.reversed && (A.collected > A.COLLECT_MAX);
 
         if (transition) {
@@ -125,6 +135,7 @@ contract AuctionUser is Assertive, TimeUser {
         // update the bid quantities - new bidder, new bid, same quantity
         _updateBid(auctionlet_id, bidder, bid_how_much);
     }
+    // Auctionlet bid update logic.
     function _updateBid(uint auctionlet_id, address bidder, uint bid_how_much) {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
@@ -137,6 +148,7 @@ contract AuctionUser is Assertive, TimeUser {
 
         a.last_bidder = bidder;
     }
+    // Check whether an auctionlet can be claimed.
     function _assertClaimable(uint auctionlet_id) internal {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
@@ -146,7 +158,7 @@ contract AuctionUser is Assertive, TimeUser {
 
         assert(a.unclaimed);
     }
-    // claim the proceedings from an auction for the highest bidder
+    // Auctionlet claim logic, including transfers.
     function _doClaim(uint auctionlet_id) internal {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
@@ -186,7 +198,7 @@ contract AuctionUser is Assertive, TimeUser {
 
 contract AuctionManager is AuctionUser {
     uint constant INFINITY = 2 ** 256 - 1;
-    // Create a new auction, with specific parameters.
+    // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
     // of which there is one initially.
     function newAuction( address beneficiary
@@ -210,6 +222,7 @@ contract AuctionManager is AuctionUser {
                                                   COLLECT_MAX: INFINITY
                                                 });
     }
+    // Create a new reverse auction
     function newReverseAuction( address beneficiary
                               , ERC20 selling
                               , ERC20 buying
@@ -235,6 +248,7 @@ contract AuctionManager is AuctionUser {
         Auction A = _auctions[auction_id];
         A.reversed = true;
     }
+    // Create a new two-way auction.
     function newTwoWayAuction( address beneficiary
                              , ERC20 selling
                              , ERC20 buying

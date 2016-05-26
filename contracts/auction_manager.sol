@@ -28,6 +28,7 @@ contract AuctionUser is Assertive, TimeUser {
         uint     buy_amount;
         uint     sell_amount;
         bool     unclaimed;
+        bool     bid;
     }
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
@@ -74,17 +75,42 @@ contract AuctionUser is Assertive, TimeUser {
 
         // new bidder pays off the old bidder directly. For the first
         // bid this is the seller, so they receive their minimum bid.
-        var bid_paid_off = A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount);
-        assert(bid_paid_off);
+        assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
+        if (!a.bid) {
+            A.collected += a.buy_amount;
+            a.bid = true;
+        }
 
         if (!A.reversed) {
+            var excess_buy = bid_how_much - a.buy_amount;
+            A.collected += excess_buy;
+        }
+
+        var transition = !A.reversed && (A.collected >= A.COLLECT_MAX);
+
+        if (transition) {
+            // only take excess from the bidder up to the collect target.
+            var bid_over_target = A.collected - A.COLLECT_MAX;
+            A.collected = A.COLLECT_MAX;
+
+            assert(A.buying.transferFrom(bidder, A.beneficiary, excess_buy - bid_over_target));
+
+            // over the target, impute how much less they would have been
+            // willing to accept, based on their bid price
+            var effective_target_bid = (a.sell_amount * A.COLLECT_MAX) / A.sell_amount;
+            var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
+            //@log effective target bid: `uint effective_target_bid`
+            //@log previous sell_amount: `uint a.sell_amount`
+            //@log reduced sell_amount:  `uint reduced_sell_amount`
+            a.buy_amount = bid_how_much - bid_over_target;
+            bid_how_much = reduced_sell_amount;
+            A.reversed = true;
+        } else if (!A.reversed) {
             // excess buy token is sent directly from bidder to beneficiary
-            var sent_excess_buy = A.buying.transferFrom(bidder, A.beneficiary, bid_how_much - a.buy_amount);
-            assert(sent_excess_buy);
+            assert(A.buying.transferFrom(bidder, A.beneficiary, excess_buy));
         } else {
             // excess sell token is sent from auction escrow to the beneficiary
-            var sent_excess_sell = A.selling.transfer(A.beneficiary, a.sell_amount - bid_how_much);
-            assert(sent_excess_sell);
+            assert(A.selling.transfer(A.beneficiary, a.sell_amount - bid_how_much));
         }
 
         // update the bid quantities - new bidder, new bid, same quantity

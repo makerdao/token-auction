@@ -164,7 +164,7 @@ contract AuctionManager is Assertive {
 
         if (A.reversed) {
             //@log check if reverse biddable
-            assert(bid_how_much <= a.sell_amount - A.min_decrease);
+            assert(bid_how_much <= (a.sell_amount - A.min_decrease));
         } else {
             //@log check if forward biddable
             assert(bid_how_much >= (a.buy_amount + A.min_increase));

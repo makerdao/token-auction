@@ -155,6 +155,7 @@ contract AuctionUser is Assertive, TimeUser {
         returns (uint prev_bid, uint prev_quantity)
     {
         var A = _auctions[a.auction_id];
+
         if (A.reversed) {
             prev_quantity = a.buy_amount;
             prev_bid = a.sell_amount;

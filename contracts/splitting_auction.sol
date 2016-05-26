@@ -15,7 +15,6 @@ contract SplittableAuctionManager is AuctionManager {
     }
     function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity) internal {
         var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
 
         var (_, prev_quantity) = _getLastBid(a);
 
@@ -33,7 +32,6 @@ contract SplittableAuctionManager is AuctionManager {
         returns (uint, uint)
     {
         var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
 
         var (new_quantity, new_bid, split_bid) = _calculate_split(a, quantity);
 

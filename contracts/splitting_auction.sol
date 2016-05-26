@@ -40,7 +40,7 @@ contract SplittableAuctionManager is AuctionManager {
         var new_id = newAuctionlet(a.auction_id, new_bid, new_quantity, a.last_bidder);
         var split_id = newAuctionlet(a.auction_id, split_bid, quantity, a.last_bidder);
 
-        _doBid(new_id, a.last_bidder, new_bid);
+        _updateBid(new_id, a.last_bidder, new_bid);
         _doBid(split_id, splitter, bid_how_much);
 
         delete _auctionlets[auctionlet_id];

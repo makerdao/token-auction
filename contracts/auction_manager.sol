@@ -81,16 +81,26 @@ contract AuctionUser is Assertive, TimeUser {
             // excess buy token is sent directly from bidder to beneficiary
             var sent_excess_buy = A.buying.transferFrom(bidder, A.beneficiary, bid_how_much - a.buy_amount);
             assert(sent_excess_buy);
-            a.buy_amount = bid_how_much;
         } else {
             // excess sell token is sent from auction escrow to the beneficiary
             var sent_excess_sell = A.selling.transfer(A.beneficiary, a.sell_amount - bid_how_much);
-            assert(return_excess_sell);
+            assert(sent_excess_sell);
+        }
+
+        // update the bid quantities - new bidder, new bid, same quantity
+        _updateBid(auctionlet_id, bidder, bid_how_much);
+    }
+    function _updateBid(uint auctionlet_id, address bidder, uint bid_how_much) {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        if (!A.reversed) {
+            a.buy_amount = bid_how_much;
+        } else {
             a.sell_amount = bid_how_much;
         }
 
         a.last_bidder = bidder;
-
     }
     function _assertClaimable(uint auctionlet_id) internal {
         var a = _auctionlets[auctionlet_id];

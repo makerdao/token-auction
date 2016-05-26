@@ -72,38 +72,25 @@ contract AuctionUser is Assertive, TimeUser {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        uint receive_amount;
-        if (A.reversed) {
-            receive_amount = a.buy_amount;
-        } else {
-            receive_amount = bid_how_much;
-        }
-
         // new bidder pays off the old bidder directly. For the first
         // bid this is the seller, so they receive their minimum bid.
-        if (bidder != a.last_bidder) {
-            var bid_paid_off = A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount);
-            assert(bid_paid_off);
-        }
+        var bid_paid_off = A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount);
+        assert(bid_paid_off);
 
-        // excess is sent to the beneficiary
-        var bid_added = receive_amount - a.buy_amount;
-
-        var benefit = A.buying.transferFrom(bidder, A.beneficiary, bid_added);
-        assert(benefit);
-
-        // now update the bid
-        a.last_bidder = bidder;
-
-        if (A.reversed) {
-            // send excess sell token back to seller
-            var return_excess_sell = A.selling.transfer(A.beneficiary,
-                                                        a.sell_amount - bid_how_much);
+        if (!A.reversed) {
+            // excess buy token is sent directly from bidder to beneficiary
+            var sent_excess_buy = A.buying.transferFrom(bidder, A.beneficiary, bid_how_much - a.buy_amount);
+            assert(sent_excess_buy);
+            a.buy_amount = bid_how_much;
+        } else {
+            // excess sell token is sent from auction escrow to the beneficiary
+            var sent_excess_sell = A.selling.transfer(A.beneficiary, a.sell_amount - bid_how_much);
             assert(return_excess_sell);
             a.sell_amount = bid_how_much;
-        } else {
-            a.buy_amount = bid_how_much;
         }
+
+        a.last_bidder = bidder;
+
     }
     function _assertClaimable(uint auctionlet_id) internal {
         var a = _auctionlets[auctionlet_id];
@@ -126,17 +113,17 @@ contract AuctionUser is Assertive, TimeUser {
         delete _auctionlets[auctionlet_id];
     }
     function _getLastBid(Auctionlet a)
-        internal
+        internal constant
         returns (uint prev_bid, uint prev_quantity)
     {
         var A = _auctions[a.auction_id];
 
         if (A.reversed) {
-            prev_quantity = a.buy_amount;
             prev_bid = a.sell_amount;
+            prev_quantity = a.buy_amount;
         } else {
-            prev_quantity = a.sell_amount;
             prev_bid = a.buy_amount;
+            prev_quantity = a.sell_amount;
         }
     }
     function _setLastBid(Auctionlet a, uint bid, uint quantity) internal {

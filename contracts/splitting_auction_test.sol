@@ -107,12 +107,20 @@ contract ForwardSplittingTest is Test {
     function testSplitTransfersFromBidder() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
 
-        var bidder1_t2_balance_before = t2.balanceOf(bidder1);
+        var balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(base, 7 * T2, 60 * T1);
-        var bidder1_t2_balance_after = t2.balanceOf(bidder1);
+        var balance_after = t2.balanceOf(bidder1);
 
-        var balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
-        assertEq(balance_diff, 7 * T2);
+        assertEq(balance_before - balance_after, 7 * T2);
+    }
+    function testSplitBaseTransfersToSeller() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var balance_before = t2.balanceOf(seller);
+        bidder1.doBid(base, 7 * T2, 60 * T1);
+        var balance_after = t2.balanceOf(seller);
+
+        assertEq(balance_after - balance_before, 7 * T2);
     }
     function testSplitBaseAddresses() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);

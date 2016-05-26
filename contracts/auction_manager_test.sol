@@ -303,7 +303,7 @@ contract AuctionManagerTest is Test {
         bidder1.doClaim(1);
         bidder1.doClaim(1);
     }
-    function testSellerReclaimAfterExpiry() {
+    function testReclaimAfterExpiry() {
         // the seller should be able to reclaim any unbid on
         // sell token after the auction has expired.
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
@@ -311,13 +311,13 @@ contract AuctionManagerTest is Test {
         // force expiry
         manager.setTime(manager.getTime() + 2 years);
 
-        var balance_before = t1.balanceOf(seller);
-        seller.doReclaim(id);
-        var balance_after = t1.balanceOf(seller);
+        var balance_before = t1.balanceOf(this);
+        manager.reclaim(id);
+        var balance_after = t1.balanceOf(this);
 
         assertEq(balance_after - balance_before, 100 * T1);
     }
-    function testFailSellerReclaimBeforeExpiry() {
+    function testFailReclaimBeforeExpiry() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         seller.doReclaim(id);
     }

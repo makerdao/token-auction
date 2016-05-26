@@ -289,7 +289,7 @@ contract ReverseSplittingTest is Test {
         // 20 + 80 * (4 / 5) - 40 = 44
         assertEq(balance_after - balance_before, 44 * T1);
     }
-    function testSellerReclaimAfterBaseSplit() {
+    function testCreatorReclaimAfterBaseSplit() {
         var (id, base) = newReverseAuction();
 
         bidder1.doBid(base, 50 * T1, 3 * T2);
@@ -297,9 +297,9 @@ contract ReverseSplittingTest is Test {
         // force expiry
         manager.setTime(manager.getTime() + 2 years);
 
-        var balance_before = t1.balanceOf(seller);
-        seller.doReclaim(id);
-        var balance_after = t1.balanceOf(seller);
+        var balance_before = t1.balanceOf(this);
+        manager.reclaim(id);
+        var balance_after = t1.balanceOf(this);
 
         assertEq(balance_after - balance_before, 40 * T1);
     }

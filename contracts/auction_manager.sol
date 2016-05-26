@@ -59,7 +59,7 @@ contract AuctionUser is Assertive, TimeUser {
         var expired = A.expiration <= getTime();
         assert(expired);
 
-        A.selling.transfer(A.beneficiary, A.sell_amount - A.sold);
+        A.selling.transfer(A.creator, A.sell_amount - A.sold);
     }
     // Check whether an auctionlet is eligible for bidding on
     function _assertBiddable(uint auctionlet_id, uint bid_how_much) internal {

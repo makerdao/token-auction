@@ -164,26 +164,11 @@ contract AuctionManager is Assertive {
 
         if (A.reversed) {
             //@log check if reverse biddable
-            _assertReverseBiddable(auctionlet_id, bid_how_much);
+            assert(bid_how_much <= a.sell_amount - A.min_decrease);
         } else {
             //@log check if forward biddable
-            _assertForwardBiddable(auctionlet_id, bid_how_much);
+            assert(bid_how_much >= (a.buy_amount + A.min_increase));
         }
-    }
-    function _assertForwardBiddable(uint auctionlet_id, uint bid_how_much) internal {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
-
-        assert(bid_how_much >= (a.buy_amount + A.min_increase));
-    }
-    function _assertReverseBiddable(uint auctionlet_id, uint bid_how_much) internal {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
-        //@log bid how much: `uint bid_how_much`
-        //@log sell_amount:     `uint a.sell_amount`
-        //@log last bid:     `uint a.buy_amount`
-        //@log min decrease: `uint A.min_decrease`
-        assert(bid_how_much <= a.sell_amount - A.min_decrease);
     }
     function _doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal

@@ -161,44 +161,6 @@ contract TwoWayTest is Test {
         assertEq(buy_amount1, 100 * T2);
         assertEq(buy_amount2, 100 * T2);
     }
-    function testClaimSellerAfterReversal() {
-        // after reversal, the seller should receive the available
-        // buying token, plus any excess sell token
-        var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 100 * T2);  // force reversal
-        bidder1.doBid(1, 85 * T1);
-
-        var t1_balance_before = t1.balanceOf(seller);
-        var t2_balance_before = t2.balanceOf(seller);
-
-        seller.doClaim(1);
-
-        var t1_balance_after = t1.balanceOf(seller);
-        var t2_balance_after = t2.balanceOf(seller);
-
-        var t1_balance_diff = t1_balance_after - t1_balance_before;
-        var t2_balance_diff = t2_balance_after - t2_balance_before;
-
-        //@log claim max buying token?
-        assertEq(t2_balance_diff, 100 * T2);
-        //@log claim excess selling token?
-        assertEq(t1_balance_diff, 15 * T1);
-    }
-    function testClaimBidderAfterReversal() {
-        var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 100 * T2);  // force the reversal
-        bidder1.doBid(1, 85 * T1);
-
-        // force expiry
-        manager.setTime(manager.getTime() + 2 years);
-
-        var t1_balance_before = t1.balanceOf(bidder1);
-        bidder1.doClaim(1);
-        var t1_balance_after = t1.balanceOf(bidder1);
-        var t1_balance_diff = t1_balance_after - t1_balance_before;
-
-        assertEq(t1_balance_diff, 85 * T1);
-    }
     function testSplitAfterReversal() {
         var (id, base) = newTwoWayAuction();
 

@@ -96,16 +96,23 @@ contract ReverseTest is Test {
              buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(auction_id, 1);
-        assertEq(last_bidder, manager);
+        assertEq(last_bidder, seller);
         assertEq(buy_amount, 5 * T2);
         assertEq(sell_amount, 100 * T1);
     }
     function testNewReverseAuctionTransfersFromSeller() {
-        var seller_t1_balance_before = t1.balanceOf(seller);
+        var balance_before = t1.balanceOf(seller);
         var (id, base) = newReverseAuction();
-        var seller_t1_balance_after = t1.balanceOf(seller);
+        var balance_after = t1.balanceOf(seller);
 
-        assertEq(seller_t1_balance_before - seller_t1_balance_after, 100 * T1);
+        assertEq(balance_before - balance_after, 100 * T1);
+    }
+    function testNewReverseAuctionTransfersToManager() {
+        var balance_before = t1.balanceOf(manager);
+        var (id, base) = newReverseAuction();
+        var balance_after = t1.balanceOf(manager);
+
+        assertEq(balance_after - balance_before, 100 * T1);
     }
     function testFirstBidTransfersFromBidder() {
         var (id, base) = newReverseAuction();
@@ -117,12 +124,12 @@ contract ReverseTest is Test {
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 5 * T2);
     }
-    function testFirstBidTransfersToManager() {
+    function testFirstBidTransfersToSeller() {
         var (id, base) = newReverseAuction();
 
-        var auction_t2_balance_before = t2.balanceOf(manager);
+        var auction_t2_balance_before = t2.balanceOf(seller);
         bidder1.doBid(base, 90 * T1);
-        var auction_t2_balance_after = t2.balanceOf(manager);
+        var auction_t2_balance_after = t2.balanceOf(seller);
 
         // auction should have increased funds
         assertEq(auction_t2_balance_after - auction_t2_balance_before, 5 * T2);
@@ -152,13 +159,11 @@ contract ReverseTest is Test {
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 0);
     }
-    function testClaimSeller() {
+    function testBidTransfersBenefactor() {
         var (base, id) = newReverseAuction();
 
-        bidder1.doBid(1, 85 * T1);
-
         var t1_balance_before = t1.balanceOf(seller);
-        seller.doClaim(base);
+        bidder1.doBid(1, 85 * T1);
         var t1_balance_after = t1.balanceOf(seller);
 
         var t1_balance_diff = t1_balance_after - t1_balance_before;

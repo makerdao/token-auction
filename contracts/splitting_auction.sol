@@ -57,19 +57,13 @@ contract SplittableAuctionManager is AuctionManager {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        if (a.last_bidder != address(this)) {
-            var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
-            assert(returned_bid);
-            A.collected -= a.buy_amount;
-        }
-
         var (new_quantity, new_bid, split_bid) = _calculate_split(a,
                                                                   quantity,
                                                                   A.reversed);
 
         // create two new auctionlets and bid on them
-        var new_id = newAuctionlet(a.auction_id, new_bid, new_quantity);
-        var split_id = newAuctionlet(a.auction_id, split_bid, quantity);
+        var new_id = newAuctionlet(a.auction_id, new_bid, new_quantity, a.last_bidder);
+        var split_id = newAuctionlet(a.auction_id, split_bid, quantity, a.last_bidder);
 
         _doBid(new_id, a.last_bidder, new_bid);
         _doBid(split_id, msg.sender, bid_how_much);

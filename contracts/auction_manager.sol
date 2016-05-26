@@ -12,10 +12,8 @@ contract AuctionManager is Assertive {
         uint sell_amount;
         uint collected;
         uint COLLECT_MAX;
-        uint claimed;
         uint expiration;
         bool reversed;
-        uint excess_claimable;
     }
     struct Auctionlet {
         uint     auction_id;
@@ -105,6 +103,7 @@ contract AuctionManager is Assertive {
         A.expiration = getTime() + duration;
         A.COLLECT_MAX = COLLECT_MAX;
 
+        //@log new auction: receiving `uint sell_amount` from `address beneficiary`
         var received_lot = selling.transferFrom(beneficiary, this, sell_amount);
         assert(received_lot);
 
@@ -113,12 +112,14 @@ contract AuctionManager is Assertive {
         // create the base auctionlet
         var base_id = newAuctionlet({auction_id: _last_auction_id,
                                      bid:         start_bid,
-                                     quantity:    sell_amount
+                                     quantity:    sell_amount,
+                                     last_bidder: A.beneficiary
                                    });
 
         return (_last_auction_id, base_id);
     }
-    function newAuctionlet(uint auction_id, uint bid, uint quantity)
+    function newAuctionlet(uint auction_id, uint bid,
+                           uint quantity, address last_bidder)
         internal returns (uint)
     {
         var A = _auctions[auction_id];
@@ -126,7 +127,7 @@ contract AuctionManager is Assertive {
         Auctionlet memory auctionlet;
         auctionlet.auction_id = auction_id;
         auctionlet.unclaimed = true;
-        auctionlet.last_bidder = this;
+        auctionlet.last_bidder = last_bidder;
 
         if (A.reversed) {
             auctionlet.sell_amount = bid;
@@ -149,11 +150,7 @@ contract AuctionManager is Assertive {
     // (the beneficiary) can claim across an entire auction. Individual
     // auctionlet high bidders must claim per auctionlet.
     function claim(uint id) {
-        if (msg.sender == _auctions[id].beneficiary) {
-            _doClaimSeller(id);
-        } else {
-            _doClaimBidder(id, msg.sender);
-        }
+        _doClaimBidder(id, msg.sender);
     }
     // Check whether an auctionlet is eligible for bidding on
     function _assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
@@ -201,41 +198,48 @@ contract AuctionManager is Assertive {
             receive_amount = bid_how_much;
         }
 
-        if (bidder != address(this)) {
-            //@log receive `uint receive_amount` from `address bidder`
-            var received_bid = A.buying.transferFrom(bidder, this, receive_amount);
-            assert(received_bid);
-            A.collected += receive_amount;
+        // new bidder pays off the old bidder directly. For the first
+        // bid this is the seller, so they receive their minimum bid.
+        if (bidder != a.last_bidder) {
+            var bid_paid_off = A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount);
+            assert(bid_paid_off);
         }
 
-        if (a.last_bidder != address(this)) {
-            //@log return  `uint a.buy_amount` to   `address a.last_bidder`
-            var returned_bid = A.buying.transfer(a.last_bidder, a.buy_amount);
-            assert(returned_bid);
-            A.collected -= a.buy_amount;
+        // excess is sent to the beneficiary
+        var bid_added = receive_amount - a.buy_amount;
+        A.collected += bid_added;
+
+        uint transition_excess;
+        if (!A.reversed && (A.collected >= A.COLLECT_MAX)) {
+            // return excess to bidder
+            transition_excess = A.collected - A.COLLECT_MAX;
+            A.collected = A.COLLECT_MAX;
+        } else {
+            transition_excess = 0;
         }
 
+        var benefit = A.buying.transferFrom(bidder, A.beneficiary,
+                                            bid_added - transition_excess);
+        assert(benefit);
+
+        // now update the bid
         a.last_bidder = bidder;
 
         if (A.reversed) {
-            //@log excess claimable: `uint A.excess_claimable`
-            A.excess_claimable += a.sell_amount - bid_how_much;
-            //@log excess claimable: `uint A.excess_claimable`
+            // send excess sell token back to seller
+            var return_excess_sell = A.selling.transfer(A.beneficiary,
+                                                        a.sell_amount - bid_how_much);
+            assert(return_excess_sell);
             a.sell_amount = bid_how_much;
         } else {
             a.buy_amount = bid_how_much;
         }
 
+        // reverse transition
         if (!A.reversed && (A.collected >= A.COLLECT_MAX)) {
-            // return excess to bidder
-            var excess = A.collected - A.COLLECT_MAX;
-            var returned_excess = A.buying.transfer(bidder, excess);
-            assert(returned_excess);
-
-            A.collected = A.COLLECT_MAX;
             A.reversed = true;
 
-            a.buy_amount = bid_how_much - excess;
+            a.buy_amount = bid_how_much - transition_excess;
 
             var effective_target_bid = (a.sell_amount * A.COLLECT_MAX) / A.sell_amount;
             var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
@@ -243,26 +247,6 @@ contract AuctionManager is Assertive {
             //@log previous sell_amount:    `uint a.sell_amount`
             //@log reduced sell_amount:     `uint reduced_sell_amount`
             a.sell_amount = reduced_sell_amount;
-        }
-    }
-    // claim the existing bids from all auctionlets connected to a
-    // specific auction
-    function _doClaimSeller(uint auction_id) internal {
-        var A = _auctions[auction_id];
-
-        //@log collected: `uint A.collected`
-        //@log claimed:   `uint A.claimed`
-        //@log balance:   `uint A.buying.balanceOf(this)`
-        var settled = A.buying.transfer(A.beneficiary, A.collected - A.claimed);
-        assert(settled);
-        A.claimed = A.collected;
-
-        // transfer excess sell token
-        if (A.reversed) {
-            var settled_excess = A.selling.transfer(A.beneficiary,
-                                                    A.excess_claimable);
-            assert(settled_excess);
-            A.excess_claimable = 0;
         }
     }
     // claim the proceedings from an auction for the highest bidder

@@ -36,7 +36,7 @@ contract SplitAuctionTester is Tester {
     }
 }
 
-contract SplittingAuctionManagerTest is Test {
+contract ForwardSplittingTest is Test {
     TestableSplitManager manager;
     SplitAuctionTester seller;
     SplitAuctionTester bidder1;
@@ -95,8 +95,8 @@ contract SplittingAuctionManagerTest is Test {
         var expected_new_sell_amount = 60 * T1;
 
         assertEq(auction_id0, auction_id1);
-        assertEq(last_bidder0, manager);
-        assertEq(last_bidder1, manager);
+        assertEq(last_bidder0, seller);
+        assertEq(last_bidder1, seller);
 
         assertEq(buy_amount0, 10 * T2);
         assertEq(sell_amount0, 100 * T1);
@@ -125,7 +125,7 @@ contract SplittingAuctionManagerTest is Test {
              buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
 
         assertEq(auction_id1, auction_id2);
-        assertEq(last_bidder1, manager);
+        assertEq(last_bidder1, seller);
         assertEq(last_bidder2, bidder1);
     }
     function testSplitBaseResult() {
@@ -274,18 +274,29 @@ contract SplittingAuctionManagerTest is Test {
         var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
         assertEq(bidder_balance_diff, 10 * T2);
     }
-    function testClaimTransfersBenefactorAfterSplit() {
+    function testSplitBaseTransfersBenefactor() {
+        var seller_t2_balance_before = t2.balanceOf(seller);
+        var seller_t1_balance_before = t1.balanceOf(seller);
+
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        bidder2.doBid(base, 20 * T2, 25 * T1);
+
+        var seller_t2_balance_after = t2.balanceOf(seller);
+        var seller_t1_balance_after = t1.balanceOf(seller);
+
+        var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
+        var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
+
+        assertEq(diff_t2, 20 * T2);
+        assertEq(diff_t1, 100 * T1);
+    }
+    function testSplitTransfersBenefactor() {
         var seller_t2_balance_before = t2.balanceOf(seller);
         var seller_t1_balance_before = t1.balanceOf(seller);
 
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
         bidder1.doBid(base, 40 * T2);
         bidder2.doBid(base, 20 * T2, 25 * T1);
-
-        var manager_t2_balance_before_claim = t2.balanceOf(manager);
-        assertEq(manager_t2_balance_before_claim, 50 * T2);
-
-        seller.doClaim(id);
 
         var seller_t2_balance_after = t2.balanceOf(seller);
         var seller_t1_balance_after = t1.balanceOf(seller);

@@ -101,7 +101,7 @@ contract ReverseSplittingTest is Test {
              buy_amount, sell_amount) = manager.getAuctionlet(base);
 
         assertEq(auction_id, 1);
-        assertEq(last_bidder, manager);
+        assertEq(last_bidder, seller);
         assertEq(buy_amount, 5 * T2);
         assertEq(sell_amount, 100 * T1);
     }
@@ -120,8 +120,8 @@ contract ReverseSplittingTest is Test {
         var expected_new_sell_amount = 20 * T1;
 
         assertEq(auction_id0, auction_id1);
-        assertEq(last_bidder0, manager);
-        assertEq(last_bidder1, manager);
+        assertEq(last_bidder0, seller);
+        assertEq(last_bidder1, seller);
 
         assertEq(last_bid0, 5 * T2);
         assertEq(quantity0, 100 * T1);
@@ -150,7 +150,7 @@ contract ReverseSplittingTest is Test {
              buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
 
         assertEq(auction_id1, auction_id2);
-        assertEq(last_bidder1, manager);
+        assertEq(last_bidder1, seller);
         assertEq(last_bidder2, bidder1);
     }
     function testSplitBaseResult() {
@@ -269,7 +269,7 @@ contract ReverseSplittingTest is Test {
         var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
         assertEq(bidder_balance_diff, 2 * T2);
     }
-    function testClaimTransfersBenefactorAfterSplit() {
+    function testTransferToBenefactorAfterSplit() {
         var seller_t2_balance_before = t2.balanceOf(seller);
         var seller_t1_balance_before = t1.balanceOf(seller);
 
@@ -278,18 +278,15 @@ contract ReverseSplittingTest is Test {
         bidder1.doBid(base, 80 * T1);
         bidder2.doBid(base, 40 * T1, 4 * T2);
 
-        var manager_t2_balance_before_claim = t2.balanceOf(manager);
-        assertEq(manager_t2_balance_before_claim, 5 * T2);
-
-        seller.doClaim(id);
-
         var seller_t2_balance_after = t2.balanceOf(seller);
         var seller_t1_balance_after = t1.balanceOf(seller);
 
         var diff_t1 = seller_t1_balance_before - seller_t1_balance_after;
         var diff_t2 = seller_t2_balance_after - seller_t2_balance_before;
 
+        //@log seller t2 balance change
         assertEq(diff_t2, 5 * T2);
+        //@log seller t1 balance change
         // 40 + 80 * (1 / 5) = 56
         assertEq(diff_t1, 56 * T1);
     }

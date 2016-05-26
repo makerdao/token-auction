@@ -206,7 +206,8 @@ contract AuctionManagerTest is Test {
         // force expiry
         manager.setTime(manager.getTime() + 2 years);
 
-        bidder1.doClaim(1);
+        // n.b. anyone can force claim, not just the bidder
+        manager.claim(1);
 
         var bidder_t2_balance_after = t2.balanceOf(bidder1);
         var bidder_t1_balance_after = t1.balanceOf(bidder1);

@@ -98,11 +98,11 @@ contract TwoWayTest is Test {
         var (id, base) = newTwoWayAuction();
         assertEq(manager.getCollectMax(id), 100 * T2);
     }
-    function testBidEqualTargetReversal() {
+    function testBidEqualTargetNoReversal() {
         // bids at or over the target should cause the auction to reverse
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 100 * T2);
-        assertEq(manager.isReversed(id), true);
+        assertEq(manager.isReversed(id), false);
     }
     function testBidOverTargetReversal() {
         // bids at or over the target should cause the auction to reverse
@@ -154,10 +154,10 @@ contract TwoWayTest is Test {
         var expected_sell_amount = (100 * T1 * 100 * T2) / (110 * T2);
         assertEq(sell_amount, expected_sell_amount);
     }
-    function testBaseSplitEqualTargetReversal() {
+    function testBaseSplitEqualTargetNoReversal() {
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 100 * T2, 60 * T1);
-        assertEq(manager.isReversed(id), true);
+        assertEq(manager.isReversed(id), false);
     }
     function testBaseSplitOverTargetReversal() {
         var (id, base) = newTwoWayAuction();

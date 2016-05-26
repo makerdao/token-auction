@@ -86,7 +86,7 @@ contract AuctionUser is Assertive, TimeUser {
             A.collected += excess_buy;
         }
 
-        var transition = !A.reversed && (A.collected >= A.COLLECT_MAX);
+        var transition = !A.reversed && (A.collected > A.COLLECT_MAX);
 
         if (transition) {
             // only take excess from the bidder up to the collect target.

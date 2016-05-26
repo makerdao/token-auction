@@ -11,7 +11,7 @@ contract SplittableAuctionManager is AuctionManager {
         returns (uint, uint)
     {
         _assertSplittable(auctionlet_id, bid_how_much, quantity);
-        return _doSplit(auctionlet_id, bid_how_much, quantity);
+        return _doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
     }
     function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity) internal {
         var a = _auctionlets[auctionlet_id];
@@ -27,7 +27,8 @@ contract SplittableAuctionManager is AuctionManager {
 
         _assertBiddable(auctionlet_id, valuation);
     }
-    function _doSplit(uint auctionlet_id, uint bid_how_much, uint quantity)
+    function _doSplit(uint auctionlet_id, address splitter,
+                      uint bid_how_much, uint quantity)
         internal
         returns (uint, uint)
     {
@@ -40,7 +41,7 @@ contract SplittableAuctionManager is AuctionManager {
         var split_id = newAuctionlet(a.auction_id, split_bid, quantity, a.last_bidder);
 
         _doBid(new_id, a.last_bidder, new_bid);
-        _doBid(split_id, msg.sender, bid_how_much);
+        _doBid(split_id, splitter, bid_how_much);
 
         delete _auctionlets[auctionlet_id];
 

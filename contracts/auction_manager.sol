@@ -59,6 +59,7 @@ contract AuctionUser is Assertive, TimeUser {
         var expired = A.expiration <= getTime();
         assert(expired);
 
+        //@log reclaim: sending `uint A.sell_amount` - `uint A.sold` to `address A.creator`
         A.selling.transfer(A.creator, A.sell_amount - A.sold);
     }
     // Check whether an auctionlet is eligible for bidding on
@@ -93,10 +94,14 @@ contract AuctionUser is Assertive, TimeUser {
 
         // if the auctionlet has not been bid on before we need to
         // do some extra accounting
-        if (a.base) {
+        if (!A.reversed && a.base) {
             //@log base accounting
             A.collected += a.buy_amount;
             A.sold += a.sell_amount;
+            a.base = false;
+        } else if (a.base) {
+            //@log base accounting
+            A.sold += bid_how_much;
             a.base = false;
         }
 
@@ -131,7 +136,9 @@ contract AuctionUser is Assertive, TimeUser {
             assert(A.buying.transferFrom(bidder, A.beneficiary, excess_buy));
         } else {
             // excess sell token is sent from auction escrow to the beneficiary
-            assert(A.selling.transfer(A.beneficiary, a.sell_amount - bid_how_much));
+            var excess_sell = a.sell_amount - bid_how_much;
+            assert(A.selling.transfer(A.beneficiary, excess_sell));
+            A.sell_amount -= excess_sell;
         }
 
         // update the bid quantities - new bidder, new bid, same quantity

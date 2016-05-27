@@ -43,8 +43,10 @@ contract SplittableAuctionManager is AuctionManager {
         var (new_quantity, new_bid, split_bid) = _calculate_split(a, quantity);
 
         // create two new auctionlets and bid on them
-        new_id = newAuctionlet(a.auction_id, new_bid, new_quantity, a.last_bidder);
-        split_id = newAuctionlet(a.auction_id, split_bid, quantity, a.last_bidder);
+        new_id = newAuctionlet(a.auction_id, new_bid, new_quantity,
+                               a.last_bidder, a.base);
+        split_id = newAuctionlet(a.auction_id, split_bid, quantity,
+                                 a.last_bidder, a.base);
 
         _updateBid(new_id, a.last_bidder, new_bid);
         _doBid(split_id, splitter, bid_how_much);

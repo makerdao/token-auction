@@ -404,4 +404,20 @@ contract ForwardSplittingTest is Test {
 
         assertEq(balance_after - balance_before, 50 * T1);
     }
+    function testReclaimAfterSplitBaseSplit() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var (nid, sid) = bidder1.doBid(base, 20 * T2, 50 * T1);
+        bidder2.doBid(sid, 20 * T2, 40 * T1);
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        var balance_before = t1.balanceOf(this);
+        manager.reclaim(id);
+        var balance_after = t1.balanceOf(this);
+
+        // reclaimable balance should be the same as after
+        // just the base split
+        assertEq(balance_after - balance_before, 50 * T1);
+    }
 }

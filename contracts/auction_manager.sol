@@ -30,7 +30,7 @@ contract AuctionUser is Assertive, TimeUser {
         uint     buy_amount;
         uint     sell_amount;
         bool     unclaimed;
-        bool     bid;
+        bool     base;
     }
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
@@ -93,10 +93,11 @@ contract AuctionUser is Assertive, TimeUser {
 
         // if the auctionlet has not been bid on before we need to
         // do some extra accounting
-        if (!a.bid) {
+        if (a.base) {
+            //@log base accounting
             A.collected += a.buy_amount;
             A.sold += a.sell_amount;
-            a.bid = true;
+            a.base = false;
         }
 
         if (!A.reversed) {
@@ -311,19 +312,21 @@ contract AuctionManager is AuctionUser {
         var base_id = newAuctionlet({auction_id: _last_auction_id,
                                      bid:         A.start_bid,
                                      quantity:    A.sell_amount,
-                                     last_bidder: A.beneficiary
+                                     last_bidder: A.beneficiary,
+                                     base:        true
                                    });
 
         return (_last_auction_id, base_id);
     }
     function newAuctionlet(uint auction_id, uint bid,
-                           uint quantity, address last_bidder)
+                           uint quantity, address last_bidder, bool base)
         internal returns (uint)
     {
         Auctionlet memory auctionlet;
         auctionlet.auction_id = auction_id;
         auctionlet.unclaimed = true;
         auctionlet.last_bidder = last_bidder;
+        auctionlet.base = base;
 
         _setLastBid(auctionlet, bid, quantity);
 

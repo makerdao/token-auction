@@ -22,7 +22,7 @@ contract AuctionUser is Assertive, TimeUser {
         uint COLLECT_MAX;
         uint expiration;
         bool reversed;
-        uint sold;
+        uint unsold;
     }
     struct Auctionlet {
         uint     auction_id;
@@ -59,8 +59,8 @@ contract AuctionUser is Assertive, TimeUser {
         var expired = A.expiration <= getTime();
         assert(expired);
 
-        //@log reclaim: sending `uint A.sell_amount` - `uint A.sold` to `address A.creator`
-        A.selling.transfer(A.creator, A.sell_amount - A.sold);
+        //@log reclaim: sending `uint A.unsold` to `address A.creator`
+        A.selling.transfer(A.creator, A.unsold);
     }
     // Check whether an auctionlet is eligible for bidding on
     function _assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
@@ -97,11 +97,11 @@ contract AuctionUser is Assertive, TimeUser {
         if (!A.reversed && a.base) {
             //@log base accounting
             A.collected += a.buy_amount;
-            A.sold += a.sell_amount;
+            A.unsold -= a.sell_amount;
             a.base = false;
         } else if (a.base) {
             //@log base accounting
-            A.sold += bid_how_much;
+            A.unsold -= bid_how_much;
             a.base = false;
         }
 
@@ -309,6 +309,7 @@ contract AuctionManager is AuctionUser {
         A.min_decrease = min_decrease;
         A.expiration = getTime() + duration;
         A.COLLECT_MAX = COLLECT_MAX;
+        A.unsold = sell_amount;
 
         //@log new auction: receiving `uint sell_amount` from `address creator`
         assert(selling.transferFrom(A.creator, this, A.sell_amount));

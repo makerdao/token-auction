@@ -242,6 +242,6 @@ contract ReverseTest is Test {
         manager.reclaim(id);
         var balance_after = t1.balanceOf(this);
 
-        assertEq(balance_after, balance_before);
+        assertEq(balance_after - balance_before, 50 * T1);
     }
 }

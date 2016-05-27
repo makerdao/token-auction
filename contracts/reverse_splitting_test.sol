@@ -301,6 +301,9 @@ contract ReverseSplittingTest is Test {
         manager.reclaim(id);
         var balance_after = t1.balanceOf(this);
 
+        // check that the unsold sell tokens are sent back
+        // to the creator.
+        // 100 * (5 - 3) / 5 = 40
         assertEq(balance_after - balance_before, 40 * T1);
     }
 }

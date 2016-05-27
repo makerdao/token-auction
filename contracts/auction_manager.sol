@@ -95,14 +95,10 @@ contract AuctionUser is Assertive, TimeUser {
 
         // if the auctionlet has not been bid on before we need to
         // do some extra accounting
-        if (!A.reversed && a.base) {
+        if (a.base) {
             //@log base accounting
             A.collected += a.buy_amount;
             A.unsold -= a.sell_amount;
-            a.base = false;
-        } else if (a.base) {
-            //@log base accounting
-            A.unsold -= bid_how_much;
             a.base = false;
         }
 

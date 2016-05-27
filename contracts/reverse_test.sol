@@ -132,15 +132,26 @@ contract ReverseTest is Test {
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 5 * T2);
     }
-    function testFirstBidTransfersToSeller() {
+    function testFirstBidTransfersBuyTokenToBenefactor() {
         var (id, base) = newReverseAuction();
 
-        var auction_t2_balance_before = t2.balanceOf(seller);
+        var balance_before = t2.balanceOf(seller);
         bidder1.doBid(base, 90 * T1);
-        var auction_t2_balance_after = t2.balanceOf(seller);
+        var balance_after = t2.balanceOf(seller);
 
-        // auction should have increased funds
-        assertEq(auction_t2_balance_after - auction_t2_balance_before, 5 * T2);
+        // beneficiary should have received all the available buy
+        // token, as a bidder has committed to the auction
+        assertEq(balance_after - balance_before, 5 * T2);
+    }
+    function testFirstBidTransfersExcessSellTokenToBenefactor() {
+        var (base, id) = newReverseAuction();
+
+        var balance_before = t1.balanceOf(seller);
+        bidder1.doBid(1, 85 * T1);
+        var balance_after = t1.balanceOf(seller);
+
+        // beneficiary should have received the excess sell token
+        assertEq(balance_after - balance_before, 15 * T1);
     }
     function testFailFirstBidOverStartBid() {
         var (id, base) = newReverseAuction();
@@ -167,17 +178,27 @@ contract ReverseTest is Test {
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 0);
     }
-    function testBidTransfersBenefactor() {
-        var (base, id) = newReverseAuction();
+    function testNextBidTransfersNoExtraBuyToken() {
+        var (id, base) = newReverseAuction();
 
-        var t1_balance_before = t1.balanceOf(seller);
-        bidder1.doBid(1, 85 * T1);
-        var t1_balance_after = t1.balanceOf(seller);
+        bidder1.doBid(base, 90 * T1);
 
-        var t1_balance_diff = t1_balance_after - t1_balance_before;
+        var balance_before = t2.balanceOf(seller);
+        bidder2.doBid(base, 85 * T1);
+        var balance_after = t2.balanceOf(seller);
 
-        //@log claim excess selling token?
-        assertEq(t1_balance_diff, 15 * T1);
+        assertEq(balance_after, balance_before);
+    }
+    function testNextBidTransfersExcessSellToken() {
+        var (id, base) = newReverseAuction();
+
+        bidder1.doBid(base, 90 * T1);
+
+        var balance_before = t1.balanceOf(seller);
+        bidder2.doBid(base, 85 * T1);
+        var balance_after = t1.balanceOf(seller);
+
+        assertEq(balance_after - balance_before, 5 * T1);
     }
     function testClaimBidder() {
         var (base, id) = newReverseAuction();
@@ -206,5 +227,21 @@ contract ReverseTest is Test {
         var balance_after = t1.balanceOf(this);
 
         assertEq(balance_after - balance_before, 100 * T1);
+    }
+    function testCreatorReclaimAfterBid() {
+        // if there has already been a bid (on the full lot), the
+        // creator should not receive any more sell token on reclaim
+        var (id, base) = newReverseAuction();
+
+        bidder1.doBid(base, 50 * T1);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        var balance_before = t1.balanceOf(this);
+        manager.reclaim(id);
+        var balance_after = t1.balanceOf(this);
+
+        assertEq(balance_after, balance_before);
     }
 }

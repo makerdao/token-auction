@@ -330,4 +330,19 @@ contract AuctionManagerTest is Test {
 
         assertEq(balance_after - balance_before, 10 * T2);
     }
+    function testReclaimOnlyOnce() {
+        var (id1, base1) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        // force expiry
+        manager.setTime(manager.getTime() + 2 years);
+
+        manager.reclaim(id1);
+        var balance_before = t1.balanceOf(this);
+        manager.reclaim(id1);
+        var balance_after = t1.balanceOf(this);
+
+        assertEq(balance_after, balance_before);
+
+    }
 }

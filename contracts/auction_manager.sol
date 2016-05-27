@@ -61,6 +61,7 @@ contract AuctionUser is Assertive, TimeUser {
 
         //@log reclaim: sending `uint A.unsold` to `address A.creator`
         A.selling.transfer(A.creator, A.unsold);
+        A.unsold = 0;
     }
     // Check whether an auctionlet is eligible for bidding on
     function _assertBiddable(uint auctionlet_id, uint bid_how_much) internal {

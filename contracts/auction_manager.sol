@@ -8,7 +8,14 @@ contract TimeUser {
     }
 }
 
-contract AuctionUser is Assertive, TimeUser {
+contract EventfulAuction {
+    event Bid(uint indexed auctionlet_id);
+}
+contract EventfulManager {
+    event NewAuction(uint indexed id, uint base_id);
+}
+
+contract AuctionUser is Assertive, EventfulAuction, TimeUser {
     struct Auction {
         address creator;
         address beneficiary;
@@ -42,6 +49,7 @@ contract AuctionUser is Assertive, TimeUser {
     function bid(uint auctionlet_id, uint bid_how_much) {
         _assertBiddable(auctionlet_id, bid_how_much);
         _doBid(auctionlet_id, msg.sender, bid_how_much);
+        Bid(auctionlet_id);
     }
     // Allow parties to an auction to claim their take.
     // If the auction has expired, individual auctionlet high bidders
@@ -59,7 +67,6 @@ contract AuctionUser is Assertive, TimeUser {
         var expired = A.expiration <= getTime();
         assert(expired);
 
-        //@log reclaim: sending `uint A.unsold` to `address A.creator`
         A.selling.transfer(A.creator, A.unsold);
         A.unsold = 0;
     }
@@ -75,10 +82,10 @@ contract AuctionUser is Assertive, TimeUser {
         assert(!expired);
 
         if (A.reversed) {
-            //@log check if reverse biddable
+            // check if reverse biddable
             assert(bid_how_much <= (a.sell_amount - A.min_decrease));
         } else {
-            //@log check if forward biddable
+            // check if forward biddable
             assert(bid_how_much >= (a.buy_amount + A.min_increase));
         }
     }
@@ -96,7 +103,6 @@ contract AuctionUser is Assertive, TimeUser {
         // if the auctionlet has not been bid on before we need to
         // do some extra accounting
         if (a.base) {
-            //@log base accounting
             A.collected += a.buy_amount;
             A.unsold -= a.sell_amount;
             a.base = false;
@@ -122,9 +128,6 @@ contract AuctionUser is Assertive, TimeUser {
             // willing to accept, based on their bid price
             var effective_target_bid = (a.sell_amount * A.COLLECT_MAX) / A.sell_amount;
             var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
-            //@log effective target bid: `uint effective_target_bid`
-            //@log previous sell_amount: `uint a.sell_amount`
-            //@log reduced sell_amount:  `uint reduced_sell_amount`
             a.buy_amount = bid_how_much - bid_over_target;
             bid_how_much = reduced_sell_amount;
             A.reversed = true;
@@ -202,7 +205,7 @@ contract AuctionUser is Assertive, TimeUser {
     }
 }
 
-contract AuctionManager is AuctionUser {
+contract AuctionManager is AuctionUser, EventfulManager {
     uint constant INFINITY = 2 ** 256 - 1;
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
@@ -308,7 +311,6 @@ contract AuctionManager is AuctionUser {
         A.COLLECT_MAX = COLLECT_MAX;
         A.unsold = sell_amount;
 
-        //@log new auction: receiving `uint sell_amount` from `address creator`
         assert(selling.transferFrom(A.creator, this, A.sell_amount));
 
         _auctions[++_last_auction_id] = A;
@@ -320,6 +322,8 @@ contract AuctionManager is AuctionUser {
                                      last_bidder: A.beneficiary,
                                      base:        true
                                    });
+
+        NewAuction(_last_auction_id, base_id);
 
         return (_last_auction_id, base_id);
     }

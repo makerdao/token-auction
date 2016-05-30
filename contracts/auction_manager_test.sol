@@ -34,7 +34,7 @@ contract AuctionTester is Tester {
     }
 }
 
-contract AuctionManagerTest is Test {
+contract AuctionManagerTest is Test, EventfulAuction, EventfulManager {
     TestableManager manager;
     AuctionTester seller;
     AuctionTester bidder1;
@@ -82,6 +82,22 @@ contract AuctionManagerTest is Test {
     function testSetUp() {
         assertEq(t2.balanceOf(bidder1), 1000 * T2);
         assertEq(t2.allowance(bidder1, manager), 1000 * T2);
+    }
+    function testNewAuctionEvent() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+
+        expectEventsExact(manager);
+        NewAuction(id, base);
+    }
+    function testBidEvent() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        bidder1.doBid(base, 11 * T2);
+        bidder2.doBid(base, 12 * T2);
+
+        expectEventsExact(manager);
+        NewAuction(id, base);
+        Bid(base);
+        Bid(base);
     }
     function testNewAuction() {
         var (id, base) = manager.newAuction(seller,  // beneficiary

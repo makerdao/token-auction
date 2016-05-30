@@ -10,6 +10,7 @@ contract TimeUser {
 
 contract EventfulAuction {
     event Bid(uint indexed auctionlet_id);
+    event AuctionReversal(uint indexed auctionlet_id);
 }
 contract EventfulManager {
     event NewAuction(uint indexed id, uint base_id);
@@ -131,6 +132,7 @@ contract AuctionUser is Assertive, EventfulAuction, TimeUser {
             a.buy_amount = bid_how_much - bid_over_target;
             bid_how_much = reduced_sell_amount;
             A.reversed = true;
+            AuctionReversal(a.auction_id);
         } else if (!A.reversed) {
             // excess buy token is sent directly from bidder to beneficiary
             assert(A.buying.transferFrom(bidder, A.beneficiary, excess_buy));

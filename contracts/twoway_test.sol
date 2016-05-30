@@ -42,7 +42,7 @@ contract AuctionTester is Tester {
     }
 }
 
-contract TwoWayTest is Test {
+contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     Manager manager;
     AuctionTester seller;
     AuctionTester bidder1;
@@ -98,6 +98,15 @@ contract TwoWayTest is Test {
                                          duration: 1 years,
                                          COLLECT_MAX: 100 * T2,
                                         });
+    }
+    function testReversalEvent() {
+        var (id, base) = newTwoWayAuction();
+        bidder1.doBid(1, 101 * T2);
+
+        expectEventsExact(manager);
+        NewAuction(id, base);
+        AuctionReversal(id);
+        Bid(base);
     }
     function testNewTwoWayAuction() {
         var (id, base) = newTwoWayAuction();

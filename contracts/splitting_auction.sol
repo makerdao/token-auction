@@ -1,11 +1,16 @@
 import 'erc20/erc20.sol';
 import 'auction_manager.sol';
 
+
+contract EventfulSplitter {
+    event Split(uint base_id, uint new_id, uint split_id);
+}
+
 // This contract contains a number of Auctions, each of which is
 // *splittable*.  The splittable unit of an Auction is an Auctionlet,
 // which has all of the Auctions properties but allows for bidding on a
 // subset of the full Auction lot.
-contract SplittableAuctionManager is AuctionManager {
+contract SplittableAuctionManager is AuctionManager, EventfulSplitter {
     // Place a partial bid on an auctionlet, for less than the full lot.
     // This splits the auctionlet into two, bids on one of the new
     // auctionlets and leaves the other to the previous bidder.
@@ -16,6 +21,7 @@ contract SplittableAuctionManager is AuctionManager {
     {
         _assertSplittable(auctionlet_id, bid_how_much, quantity);
         (new_id, split_id) = _doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
+        Split(auctionlet_id, new_id, split_id);
     }
     // Check that an auctionlet can be split by the new bid.
     function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity) internal {
@@ -60,15 +66,9 @@ contract SplittableAuctionManager is AuctionManager {
     {
         var (prev_bid, prev_quantity) = _getLastBid(a);
         new_quantity = prev_quantity - quantity;
-        //@log previous quantity: `uint prev_quantity`
-        //@log modified quantity: `uint new_quantity`
-        //@log split quantity:    `uint quantity`
 
         // n.b. associativity important because of truncating division
         new_bid = (prev_bid * new_quantity) / prev_quantity;
         split_bid = (prev_bid * quantity) / prev_quantity;
-        //@log previous bid: `uint prev_bid`
-        //@log modified bid: `uint new_bid`
-        //@log split bid:    `uint split_bid`
     }
 }

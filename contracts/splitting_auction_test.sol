@@ -39,7 +39,11 @@ contract SplitAuctionTester is Tester {
     }
 }
 
-contract ForwardSplittingTest is Test {
+contract ForwardSplittingTest is Test
+                               , EventfulAuction
+                               , EventfulManager
+                               , EventfulSplitter
+{
     TestableSplitManager manager;
     SplitAuctionTester seller;
     SplitAuctionTester bidder1;
@@ -87,6 +91,19 @@ contract ForwardSplittingTest is Test {
     function testSetUp() {
         assertEq(t2.balanceOf(bidder1), 1000 * T2);
         assertEq(t2.allowance(bidder1, manager), 1000 * T2);
+    }
+    function testSplitEvent() {
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+
+        var (nid1, sid1) = bidder1.doBid(base, 5 * T2, 40 * T1);
+        var (nid2, sid2) = bidder2.doBid(nid1, 6 * T2, 40 * T1);
+        var (nid3, sid3) = bidder1.doBid(sid1, 6 * T2, 30 * T1);
+
+        expectEventsExact(manager);
+        NewAuction(id, base);
+        Split(base, nid1, sid1);
+        Split(nid1, nid2, sid2);
+        Split(sid1, nid3, sid3);
     }
     function testSplitBase() {
         var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);

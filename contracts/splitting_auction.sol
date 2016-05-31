@@ -10,7 +10,7 @@ contract EventfulSplitter {
 // *splittable*.  The splittable unit of an Auction is an Auctionlet,
 // which has all of the Auctions properties but allows for bidding on a
 // subset of the full Auction lot.
-contract SplittableAuctionManager is AuctionManager, EventfulSplitter {
+contract SplitUser is AuctionUser, EventfulSplitter {
     // Place a partial bid on an auctionlet, for less than the full lot.
     // This splits the auctionlet into two, bids on one of the new
     // auctionlets and leaves the other to the previous bidder.
@@ -72,3 +72,5 @@ contract SplittableAuctionManager is AuctionManager, EventfulSplitter {
         split_bid = (prev_bid * quantity) / prev_quantity;
     }
 }
+
+contract SplittableAuctionManager is SplitUser, AuctionManager {}

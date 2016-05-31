@@ -46,6 +46,22 @@ contract AuctionUser is Assertive, EventfulAuction, TimeUser {
     mapping(uint => Auctionlet) _auctionlets;
     uint _last_auctionlet_id;
 
+    function newAuctionlet(uint auction_id, uint bid,
+                           uint quantity, address last_bidder, bool base)
+        internal returns (uint)
+    {
+        Auctionlet memory auctionlet;
+        auctionlet.auction_id = auction_id;
+        auctionlet.unclaimed = true;
+        auctionlet.last_bidder = last_bidder;
+        auctionlet.base = base;
+
+        _setLastBid(auctionlet, bid, quantity);
+
+        _auctionlets[++_last_auctionlet_id] = auctionlet;
+
+        return _last_auctionlet_id;
+    }
     // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much) {
         _assertBiddable(auctionlet_id, bid_how_much);
@@ -328,22 +344,6 @@ contract AuctionManager is AuctionUser, EventfulManager {
         NewAuction(_last_auction_id, base_id);
 
         return (_last_auction_id, base_id);
-    }
-    function newAuctionlet(uint auction_id, uint bid,
-                           uint quantity, address last_bidder, bool base)
-        internal returns (uint)
-    {
-        Auctionlet memory auctionlet;
-        auctionlet.auction_id = auction_id;
-        auctionlet.unclaimed = true;
-        auctionlet.last_bidder = last_bidder;
-        auctionlet.base = base;
-
-        _setLastBid(auctionlet, bid, quantity);
-
-        _auctionlets[++_last_auctionlet_id] = auctionlet;
-
-        return _last_auctionlet_id;
     }
     function getAuction(uint id) constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)

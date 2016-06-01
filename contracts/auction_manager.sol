@@ -12,11 +12,12 @@ contract EventfulAuction {
     event Bid(uint indexed auctionlet_id);
     event AuctionReversal(uint indexed auctionlet_id);
 }
+
 contract EventfulManager {
     event NewAuction(uint indexed id, uint base_id);
 }
 
-contract AuctionUser is Assertive, EventfulAuction, TimeUser {
+contract AuctionTypes {
     struct Auction {
         address creator;
         address beneficiary;
@@ -40,6 +41,33 @@ contract AuctionUser is Assertive, EventfulAuction, TimeUser {
         bool     unclaimed;
         bool     base;
     }
+}
+
+contract TransferUser is Assertive, AuctionTypes {
+    function takeFundsIntoEscrow(Auction A) internal {
+        assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
+    }
+    function payOffLastBidder(Auction A, Auctionlet a, address bidder) internal {
+        assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
+    }
+    function settleExcessBuy(Auction A, address bidder, uint excess_buy) internal {
+        assert(A.buying.transferFrom(bidder, A.beneficiary, excess_buy));
+    }
+    function settleExcessSell(Auction A, uint excess_sell) internal {
+        assert(A.selling.transfer(A.beneficiary, excess_sell));
+    }
+    function settleBidderClaim(Auction A, Auctionlet a) internal {
+        assert(A.selling.transfer(a.last_bidder, a.sell_amount));
+    }
+    function settleReclaim(Auction A) internal {
+        assert(A.selling.transfer(A.creator, A.unsold));
+    }
+}
+
+contract AuctionUser is EventfulAuction
+                      , TimeUser
+                      , TransferUser
+{
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
 
@@ -84,7 +112,7 @@ contract AuctionUser is Assertive, EventfulAuction, TimeUser {
         var expired = A.expiration <= getTime();
         assert(expired);
 
-        A.selling.transfer(A.creator, A.unsold);
+        settleReclaim(A);
         A.unsold = 0;
     }
     // Check whether an auctionlet is eligible for bidding on
@@ -115,7 +143,7 @@ contract AuctionUser is Assertive, EventfulAuction, TimeUser {
 
         // new bidder pays off the old bidder directly. For the first
         // bid this is the seller, so they receive their minimum bid.
-        assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
+        payOffLastBidder(A, a, bidder);
 
         // if the auctionlet has not been bid on before we need to
         // do some extra accounting
@@ -139,7 +167,7 @@ contract AuctionUser is Assertive, EventfulAuction, TimeUser {
             var bid_over_target = A.collected - A.COLLECT_MAX;
             A.collected = A.COLLECT_MAX;
 
-            assert(A.buying.transferFrom(bidder, A.beneficiary, excess_buy - bid_over_target));
+            settleExcessBuy(A, bidder, excess_buy - bid_over_target);
 
             // over the target, impute how much less they would have been
             // willing to accept, based on their bid price
@@ -151,11 +179,11 @@ contract AuctionUser is Assertive, EventfulAuction, TimeUser {
             AuctionReversal(a.auction_id);
         } else if (!A.reversed) {
             // excess buy token is sent directly from bidder to beneficiary
-            assert(A.buying.transferFrom(bidder, A.beneficiary, excess_buy));
+            settleExcessBuy(A, bidder, excess_buy);
         } else {
             // excess sell token is sent from auction escrow to the beneficiary
             var excess_sell = a.sell_amount - bid_how_much;
-            assert(A.selling.transfer(A.beneficiary, excess_sell));
+            settleExcessSell(A, excess_sell);
             A.sell_amount -= excess_sell;
         }
 
@@ -190,8 +218,7 @@ contract AuctionUser is Assertive, EventfulAuction, TimeUser {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        var settled = A.selling.transfer(a.last_bidder, a.sell_amount);
-        assert(settled);
+        settleBidderClaim(A, a);
 
         a.unclaimed = false;
         delete _auctionlets[auctionlet_id];
@@ -329,7 +356,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.COLLECT_MAX = COLLECT_MAX;
         A.unsold = sell_amount;
 
-        assert(selling.transferFrom(A.creator, this, A.sell_amount));
+        takeFundsIntoEscrow(A);
 
         _auctions[++_last_auction_id] = A;
 

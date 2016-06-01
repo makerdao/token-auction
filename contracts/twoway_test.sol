@@ -2,7 +2,7 @@ import 'dapple/test.sol';
 import 'erc20/base.sol';
 import 'splitting_auction.sol';
 
-contract Manager is SplittableAuctionManager {
+contract Manager is SplittingAuctionManager {
     uint public debug_timestamp;
 
     function getTime() public constant returns (uint) {

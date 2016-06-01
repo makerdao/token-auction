@@ -73,4 +73,4 @@ contract SplitUser is AuctionUser, EventfulSplitter {
     }
 }
 
-contract SplittableAuctionManager is SplitUser, AuctionManager {}
+contract SplittingAuctionManager is SplitUser, AuctionManager {}

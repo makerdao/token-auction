@@ -12,7 +12,7 @@ contract Manager is AuctionManager {
         debug_timestamp = timestamp;
     }
     function getCollectMax(uint auction_id) returns (uint) {
-        return _auctions[auction_id].COLLECT_MAX;
+        return _auctions[auction_id].collection_limit;
     }
     function isReversed(uint auction_id) returns (bool) {
         return _auctions[auction_id].reversed;

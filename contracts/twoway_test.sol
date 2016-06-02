@@ -12,7 +12,7 @@ contract Manager is SplittingAuctionManager {
         debug_timestamp = timestamp;
     }
     function getCollectMax(uint auction_id) returns (uint) {
-        return _auctions[auction_id].COLLECT_MAX;
+        return _auctions[auction_id].collection_limit;
     }
     function isReversed(uint auction_id) returns (bool) {
         return _auctions[auction_id].reversed;
@@ -96,7 +96,7 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
                                          min_increase: 1 * T2,
                                          min_decrease: 1 * T1,
                                          duration: 1 years,
-                                         COLLECT_MAX: 100 * T2,
+                                         collection_limit: 100 * T2,
                                         });
     }
     function testReversalEvent() {

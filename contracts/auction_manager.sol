@@ -28,7 +28,7 @@ contract AuctionTypes {
         uint min_decrease;
         uint sell_amount;
         uint collected;
-        uint COLLECT_MAX;
+        uint collection_limit;
         uint expiration;
         bool reversed;
         uint unsold;
@@ -160,18 +160,18 @@ contract AuctionUser is EventfulAuction
 
         // determine if this bid causes a forward -> reverse transition
         // (only happens in the twoway auction)
-        var transition = !A.reversed && (A.collected > A.COLLECT_MAX);
+        var transition = !A.reversed && (A.collected > A.collection_limit);
 
         if (transition) {
             // only take excess from the bidder up to the collect target.
-            var bid_over_target = A.collected - A.COLLECT_MAX;
-            A.collected = A.COLLECT_MAX;
+            var bid_over_target = A.collected - A.collection_limit;
+            A.collected = A.collection_limit;
 
             settleExcessBuy(A, bidder, excess_buy - bid_over_target);
 
             // over the target, impute how much less they would have been
             // willing to accept, based on their bid price
-            var effective_target_bid = (a.sell_amount * A.COLLECT_MAX) / A.sell_amount;
+            var effective_target_bid = (a.sell_amount * A.collection_limit) / A.sell_amount;
             var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
             a.buy_amount = bid_how_much - bid_over_target;
             bid_how_much = reduced_sell_amount;
@@ -274,7 +274,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                                    min_increase: min_increase,
                                                    min_decrease: 0,
                                                    duration: duration,
-                                                   COLLECT_MAX: INFINITY
+                                                   collection_limit: INFINITY
                                                  });
     }
     // Create a new reverse auction
@@ -299,7 +299,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                                    min_increase: 0,
                                                    min_decrease: min_decrease,
                                                    duration: duration,
-                                                   COLLECT_MAX: 0
+                                                   collection_limit: 0
                                                  });
         Auction A = _auctions[auction_id];
         A.reversed = true;
@@ -313,7 +313,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                              , uint min_increase
                              , uint min_decrease
                              , uint duration
-                             , uint COLLECT_MAX
+                             , uint collection_limit
                              )
         returns (uint, uint)
     {
@@ -326,7 +326,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                   min_increase: min_increase,
                                   min_decrease: min_decrease,
                                   duration: duration,
-                                  COLLECT_MAX: COLLECT_MAX
+                                  collection_limit: collection_limit
                                   });
     }
     function _newTwoWayAuction( address creator
@@ -338,7 +338,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                               , uint min_increase
                               , uint min_decrease
                               , uint duration
-                              , uint COLLECT_MAX
+                              , uint collection_limit
                               )
         internal
         returns (uint, uint)
@@ -353,7 +353,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.min_increase = min_increase;
         A.min_decrease = min_decrease;
         A.expiration = getTime() + duration;
-        A.COLLECT_MAX = COLLECT_MAX;
+        A.collection_limit = collection_limit;
         A.unsold = sell_amount;
 
         takeFundsIntoEscrow(A);

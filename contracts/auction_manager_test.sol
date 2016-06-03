@@ -380,6 +380,7 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
     // use prime numbers to avoid coincidental collisions
     uint constant T1 = 5 ** 12;
     uint constant T2 = 7 ** 10;
+    uint constant INFINITY = uint(-1);
 
     function setUp() {
         manager = new TestableManager();
@@ -419,10 +420,11 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary1;
 
-        uint[] memory limits = new uint[](1);
+        uint[] memory payouts = new uint[](1);
+        payouts[0] = INFINITY;
 
         var (id1, base1) = manager.newAuction(beneficiary1, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
-        var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
 
         var (beneficiary, selling, buying,
              sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id1);
@@ -434,47 +436,36 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
 
         assertEq(beneficiary, beneficiary1);
     }
-    function testFailUnequalLimitsLength() {
+    function testFailUnequalPayoutsLength() {
         address[] memory beneficiaries = new address[](2);
         beneficiaries[0] = beneficiary1;
 
-        uint[] memory limits = new uint[](3);
-        limits[0] = 0;
-        limits[1] = 1;
-        limits[2] = 2;
+        uint[] memory payouts = new uint[](1);
+        payouts[0] = INFINITY;
 
-        var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
     }
-    function testFailNonIncreasingLimits() {
+    function testFailNonSummingPayouts() {
         address[] memory beneficiaries = new address[](3);
         beneficiaries[0] = beneficiary1;
 
-        uint[] memory limits = new uint[](3);
-        limits[0] = 0;
-        limits[1] = 2;
-        limits[2] = 1;
+        uint[] memory payouts = new uint[](3);
+        payouts[0] = 0;
+        payouts[1] = 1;
+        payouts[2] = 2;
 
-        var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
-    }
-    function testFailNonZeroLowerLimit() {
-        address[] memory beneficiaries = new address[](1);
-        beneficiaries[0] = beneficiary1;
-
-        uint[] memory limits = new uint[](1);
-        limits[0] = 1;
-
-        var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 1 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
     }
     function testPayoutFirstBeneficiary() {
         address[] memory beneficiaries = new address[](2);
         beneficiaries[0] = beneficiary1;
         beneficiaries[1] = beneficiary2;
 
-        uint[] memory limits = new uint[](2);
-        limits[0] = 0 * T2;
-        limits[1] = 10 * T2;
+        uint[] memory payouts = new uint[](2);
+        payouts[0] = 10 * T2;
+        payouts[1] = INFINITY - 10 * T2;
 
-        var (id, base) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 5 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 5 * T2, 1 * T2, 1 years);
 
         var balance_before = t2.balanceOf(beneficiary1);
         bidder1.doBid(id, 30 * T2);

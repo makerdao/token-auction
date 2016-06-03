@@ -7,6 +7,20 @@ contract TimeUser {
         return block.timestamp;
     }
 }
+contract MathUser {
+    function flat(uint x, uint y) internal returns (uint) {
+        if (x > y) return x - y;
+        else return 0;
+    }
+    function cumsum(uint[] array) internal returns (uint[]) {
+        uint[] memory out = new uint[](array.length);
+        out[0] = array[0];
+        for (uint i = 1; i < array.length; i++) {
+            out[i] = array[i] + out[i - 1];
+        }
+        return out;
+    }
+}
 
 contract EventfulAuction {
     event Bid(uint indexed auctionlet_id);
@@ -21,7 +35,7 @@ contract AuctionTypes {
     struct Auction {
         address creator;
         address[] beneficiaries;
-        uint[] limits;
+        uint[] payouts;
         ERC20 selling;
         ERC20 buying;
         uint start_bid;
@@ -44,11 +58,7 @@ contract AuctionTypes {
     }
 }
 
-contract TransferUser is Assertive, AuctionTypes {
-    function flat(uint x, uint y) internal returns (uint) {
-        if (x > y) return x - y;
-        else return 0;
-    }
+contract TransferUser is Assertive, AuctionTypes, MathUser {
     function takeFundsIntoEscrow(Auction A) internal {
         assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
     }
@@ -63,16 +73,18 @@ contract TransferUser is Assertive, AuctionTypes {
 
         var prev_collected = A.collected - excess_buy;
 
-        for (uint i = 0; i < A.limits.length; i++) {
-            var limit = A.limits[i];
-            if (limit > A.collected) break;
+        var limits = cumsum(A.payouts);
 
-            var next_limit = (i + 1 == A.limits.length) ? uint(-1) : A.limits[i + 1];
-            if (next_limit < prev_collected) continue;
+        for (uint i = 0; i < limits.length; i++) {
+            var prev_limit = (i == 0) ? 0 : limits[i - 1];
+            if (prev_limit > A.collected) break;
+
+            var limit = limits[i];
+            if (limit < prev_collected) continue;
 
             var payout = excess_buy
-                       - flat(limit, prev_collected)
-                       - flat(A.collected, next_limit);
+                       - flat(prev_limit, prev_collected)
+                       - flat(A.collected, limit);
 
             assert(A.buying.transferFrom(bidder, A.beneficiaries[i], payout));
         }
@@ -291,12 +303,12 @@ contract AuctionManager is AuctionUser, EventfulManager {
     {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary;
-        uint[] memory limits = new uint[](1);
-        limits[0] = 0;
+        uint[] memory payouts = new uint[](1);
+        payouts[0] = INFINITY;
 
         (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
                                                    beneficiaries: beneficiaries,
-                                                   limits: limits,
+                                                   payouts: payouts,
                                                    selling: selling,
                                                    buying: buying,
                                                    sell_amount: sell_amount,
@@ -308,7 +320,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                                  });
     }
     function newAuction( address[] beneficiaries
-                       , uint[] limits
+                       , uint[] payouts
                        , ERC20 selling
                        , ERC20 buying
                        , uint sell_amount
@@ -320,7 +332,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
     {
         (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
                                                    beneficiaries: beneficiaries,
-                                                   limits: limits,
+                                                   payouts: payouts,
                                                    selling: selling,
                                                    buying: buying,
                                                    sell_amount: sell_amount,
@@ -344,14 +356,14 @@ contract AuctionManager is AuctionUser, EventfulManager {
     {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary;
-        uint[] memory limits = new uint[](1);
-        limits[0] = 0;
+        uint[] memory payouts = new uint[](1);
+        payouts[0] = 0;
 
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
         (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
                                                    beneficiaries: beneficiaries,
-                                                   limits: limits,
+                                                   payouts: payouts,
                                                    selling: selling,
                                                    buying: buying,
                                                    sell_amount: max_sell_amount,
@@ -379,12 +391,12 @@ contract AuctionManager is AuctionUser, EventfulManager {
     {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary;
-        uint[] memory limits = new uint[](1);
-        limits[0] = 0;
+        uint[] memory payouts = new uint[](1);
+        payouts[0] = collection_limit;
 
         return _newTwoWayAuction({creator: msg.sender,
                                   beneficiaries: beneficiaries,
-                                  limits: limits,
+                                  payouts: payouts,
                                   selling: selling,
                                   buying: buying,
                                   sell_amount: sell_amount,
@@ -395,9 +407,13 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                   collection_limit: collection_limit
                                   });
     }
+    function _checkPayouts(Auction A) internal {
+        assert(A.beneficiaries.length == A.payouts.length);
+        assert(cumsum(A.payouts)[A.payouts.length -1] == A.collection_limit);
+    }
     function _newTwoWayAuction( address creator
                               , address[] beneficiaries
-                              , uint[] limits
+                              , uint[] payouts
                               , ERC20 selling
                               , ERC20 buying
                               , uint sell_amount
@@ -410,14 +426,10 @@ contract AuctionManager is AuctionUser, EventfulManager {
         internal
         returns (uint, uint)
     {
-        assert(beneficiaries.length == limits.length);
-        assertIncreasing(limits);
-        assert(limits[0] == 0);
-
         Auction memory A;
         A.creator = creator;
         A.beneficiaries = beneficiaries;
-        A.limits = limits;
+        A.payouts = payouts;
         A.selling = selling;
         A.buying = buying;
         A.sell_amount = sell_amount;
@@ -428,6 +440,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.collection_limit = collection_limit;
         A.unsold = sell_amount;
 
+        _checkPayouts(A);
         takeFundsIntoEscrow(A);
 
         _auctions[++_last_auction_id] = A;

@@ -411,6 +411,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
     }
     function _checkPayouts(Auction A) internal {
         assert(A.beneficiaries.length == A.payouts.length);
+        if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
         assert(cumsum(A.payouts)[A.payouts.length -1] == A.collection_limit);
     }
     function _newTwoWayAuction( address creator

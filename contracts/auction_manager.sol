@@ -385,6 +385,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         returns (uint, uint)
     {
         assert(beneficiaries.length == limits.length);
+        assertIncreasing(limits);
 
         Auction memory A;
         A.creator = creator;

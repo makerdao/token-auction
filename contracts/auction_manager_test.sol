@@ -415,10 +415,10 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
         t2.approve(manager, 1000 * T2);
     }
     function testNewAuction() {
-        address[] memory beneficiaries = new address[](2);
+        address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary1;
 
-        uint[] memory limits = new uint[](2);
+        uint[] memory limits = new uint[](1);
 
         var (id1, base1) = manager.newAuction(beneficiary1, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
         var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
@@ -438,6 +438,20 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
         beneficiaries[0] = beneficiary1;
 
         uint[] memory limits = new uint[](3);
+        limits[0] = 0;
+        limits[1] = 1;
+        limits[2] = 2;
+
+        var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+    }
+    function testFailNonIncreasingLimits() {
+        address[] memory beneficiaries = new address[](3);
+        beneficiaries[0] = beneficiary1;
+
+        uint[] memory limits = new uint[](3);
+        limits[0] = 0;
+        limits[1] = 2;
+        limits[2] = 1;
 
         var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
     }

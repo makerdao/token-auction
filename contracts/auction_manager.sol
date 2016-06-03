@@ -266,8 +266,13 @@ contract AuctionManager is AuctionUser, EventfulManager {
                         )
         returns (uint auction_id, uint base_id)
     {
+        address[] memory beneficiaries = new address[](1);
+        beneficiaries[0] = beneficiary;
+        uint[] memory limits = new uint[](1);
+
         (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
-                                                   beneficiary: beneficiary,
+                                                   beneficiaries: beneficiaries,
+                                                   limits: limits,
                                                    selling: selling,
                                                    buying: buying,
                                                    sell_amount: sell_amount,
@@ -289,10 +294,15 @@ contract AuctionManager is AuctionUser, EventfulManager {
                               )
         returns (uint auction_id, uint base_id)
     {
+        address[] memory beneficiaries = new address[](1);
+        beneficiaries[0] = beneficiary;
+        uint[] memory limits = new uint[](1);
+
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
         (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
-                                                   beneficiary: beneficiary,
+                                                   beneficiaries: beneficiaries,
+                                                   limits: limits,
                                                    selling: selling,
                                                    buying: buying,
                                                    sell_amount: max_sell_amount,
@@ -318,8 +328,13 @@ contract AuctionManager is AuctionUser, EventfulManager {
                              )
         returns (uint, uint)
     {
+        address[] memory beneficiaries = new address[](1);
+        beneficiaries[0] = beneficiary;
+        uint[] memory limits = new uint[](1);
+
         return _newTwoWayAuction({creator: msg.sender,
-                                  beneficiary: beneficiary,
+                                  beneficiaries: beneficiaries,
+                                  limits: limits,
                                   selling: selling,
                                   buying: buying,
                                   sell_amount: sell_amount,
@@ -331,7 +346,8 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                   });
     }
     function _newTwoWayAuction( address creator
-                              , address beneficiary
+                              , address[] beneficiaries
+                              , uint[] limits
                               , ERC20 selling
                               , ERC20 buying
                               , uint sell_amount
@@ -344,11 +360,10 @@ contract AuctionManager is AuctionUser, EventfulManager {
         internal
         returns (uint, uint)
     {
-        address[] memory beneficiaries = new address[](1);
-        beneficiaries[0] = beneficiary;
         Auction memory A;
         A.creator = creator;
         A.beneficiaries = beneficiaries;
+        A.limits = limits;
         A.selling = selling;
         A.buying = buying;
         A.sell_amount = sell_amount;

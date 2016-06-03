@@ -21,6 +21,7 @@ contract AuctionTypes {
     struct Auction {
         address creator;
         address[] beneficiaries;
+        uint[] limits;
         ERC20 selling;
         ERC20 buying;
         uint start_bid;

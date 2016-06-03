@@ -455,12 +455,12 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
 
         var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
     }
-    function testFailLimitLowerThanStartBid() {
+    function testFailNonZeroLowerLimit() {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary1;
 
         uint[] memory limits = new uint[](1);
-        limits[0] = 0;
+        limits[0] = 1;
 
         var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 1 * T2, 1 * T2, 1 years);
     }

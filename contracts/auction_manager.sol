@@ -269,6 +269,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary;
         uint[] memory limits = new uint[](1);
+        limits[0] = 0;
 
         (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
                                                    beneficiaries: beneficiaries,
@@ -321,6 +322,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary;
         uint[] memory limits = new uint[](1);
+        limits[0] = 0;
 
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
@@ -355,6 +357,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary;
         uint[] memory limits = new uint[](1);
+        limits[0] = 0;
 
         return _newTwoWayAuction({creator: msg.sender,
                                   beneficiaries: beneficiaries,
@@ -386,7 +389,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
     {
         assert(beneficiaries.length == limits.length);
         assertIncreasing(limits);
-        assert(limits[0] >= start_bid);
+        assert(limits[0] == 0);
 
         Auction memory A;
         A.creator = creator;

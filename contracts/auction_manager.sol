@@ -45,6 +45,10 @@ contract AuctionTypes {
 }
 
 contract TransferUser is Assertive, AuctionTypes {
+    function flat(uint x, uint y) internal returns (uint) {
+        if (x > y) return x - y;
+        else return 0;
+    }
     function takeFundsIntoEscrow(Auction A) internal {
         assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
     }
@@ -52,7 +56,26 @@ contract TransferUser is Assertive, AuctionTypes {
         assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
     }
     function settleExcessBuy(Auction A, address bidder, uint excess_buy) internal {
-        assert(A.buying.transferFrom(bidder, A.beneficiaries[0], excess_buy));
+        if (A.beneficiaries.length == 1) {
+            assert(A.buying.transferFrom(bidder, A.beneficiaries[0], excess_buy));
+            return;
+        }
+
+        var prev_collected = A.collected - excess_buy;
+
+        for (uint i = 0; i < A.limits.length; i++) {
+            var limit = A.limits[i];
+            if (limit > A.collected) break;
+
+            var next_limit = (i + 1 == A.limits.length) ? uint(-1) : A.limits[i + 1];
+            if (next_limit < prev_collected) continue;
+
+            var payout = excess_buy
+                       - flat(limit, prev_collected)
+                       - flat(A.collected, next_limit);
+
+            assert(A.buying.transferFrom(bidder, A.beneficiaries[i], payout));
+        }
     }
     function settleExcessSell(Auction A, uint excess_sell) internal {
         assert(A.selling.transfer(A.beneficiaries[0], excess_sell));

@@ -372,6 +372,7 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
     AuctionTester bidder1;
     AuctionTester bidder2;
     AuctionTester beneficiary1;
+    AuctionTester beneficiary2;
 
     ERC20 t1;
     ERC20 t2;
@@ -463,6 +464,30 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
         limits[0] = 1;
 
         var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 1 * T2, 1 * T2, 1 years);
+    }
+    function testPayoutFirstBeneficiary() {
+        address[] memory beneficiaries = new address[](2);
+        beneficiaries[0] = beneficiary1;
+        beneficiaries[1] = beneficiary2;
+
+        uint[] memory limits = new uint[](2);
+        limits[0] = 0 * T2;
+        limits[1] = 10 * T2;
+
+        var (id, base) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 5 * T2, 1 * T2, 1 years);
+
+        var balance_before = t2.balanceOf(beneficiary1);
+        bidder1.doBid(id, 30 * T2);
+        var balance_after = t2.balanceOf(beneficiary1);
+
+        assertEq(balance_after - balance_before, 10 * T2);
+    }
+    function testPayoutSecondBeneficiary() {
+        var balance_before = t2.balanceOf(beneficiary2);
+        testPayoutFirstBeneficiary();
+        var balance_after = t2.balanceOf(beneficiary2);
+
+        assertEq(balance_after - balance_before, 20 * T2);
     }
 }
 

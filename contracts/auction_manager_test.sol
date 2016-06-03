@@ -442,3 +442,29 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
         var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
     }
 }
+
+contract AssertionTest is Test, Assertive() {
+    function testAssert() {
+        assert(2 > 1);
+    }
+    function testFailAssert() {
+        assert(2 < 1);
+    }
+    function testIncreasingNoop() {
+        uint[] memory array = new uint[](1);
+        array[0] = 1;
+        assertIncreasing(array);
+    }
+    function testIncreasing() {
+        uint[] memory array = new uint[](2);
+        array[0] = 1;
+        array[1] = 2;
+        assertIncreasing(array);
+    }
+    function testFailIncreasing() {
+        uint[] memory array = new uint[](2);
+        array[0] = 2;
+        array[1] = 1;
+        assertIncreasing(array);
+    }
+}

@@ -433,4 +433,12 @@ contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
 
         assertEq(beneficiary, beneficiary1);
     }
+    function testFailUnequalLimitsLength() {
+        address[] memory beneficiaries = new address[](2);
+        beneficiaries[0] = beneficiary1;
+
+        uint[] memory limits = new uint[](3);
+
+        var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+    }
 }

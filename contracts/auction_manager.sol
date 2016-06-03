@@ -283,6 +283,30 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                                    collection_limit: INFINITY
                                                  });
     }
+    function newAuction( address[] beneficiaries
+                       , uint[] limits
+                       , ERC20 selling
+                       , ERC20 buying
+                       , uint sell_amount
+                       , uint start_bid
+                       , uint min_increase
+                       , uint duration
+                       )
+        returns (uint auction_id, uint base_id)
+    {
+        (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
+                                                   beneficiaries: beneficiaries,
+                                                   limits: limits,
+                                                   selling: selling,
+                                                   buying: buying,
+                                                   sell_amount: sell_amount,
+                                                   start_bid: start_bid,
+                                                   min_increase: min_increase,
+                                                   min_decrease: 0,
+                                                   duration: duration,
+                                                   collection_limit: INFINITY
+                                                 });
+    }
     // Create a new reverse auction
     function newReverseAuction( address beneficiary
                               , ERC20 selling

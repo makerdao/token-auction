@@ -365,3 +365,72 @@ contract AuctionManagerTest is Test, EventfulAuction, EventfulManager {
         assertEq(balance_after, balance_before);
     }
 }
+
+contract MultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
+    TestableManager manager;
+    AuctionTester seller;
+    AuctionTester bidder1;
+    AuctionTester bidder2;
+    AuctionTester beneficiary1;
+
+    ERC20 t1;
+    ERC20 t2;
+
+    // use prime numbers to avoid coincidental collisions
+    uint constant T1 = 5 ** 12;
+    uint constant T2 = 7 ** 10;
+
+    function setUp() {
+        manager = new TestableManager();
+        manager.setTime(block.timestamp);
+
+        var million = 10 ** 6;
+
+        t1 = new ERC20Base(million * T1);
+        t2 = new ERC20Base(million * T2);
+
+        beneficiary1 = new AuctionTester();
+
+        seller = new AuctionTester();
+        seller.bindManager(manager);
+
+        t1.transfer(seller, 200 * T1);
+        seller.doApprove(manager, 200 * T1, t1);
+
+        bidder1 = new AuctionTester();
+        bidder1.bindManager(manager);
+
+        t2.transfer(bidder1, 1000 * T2);
+        bidder1.doApprove(manager, 1000 * T2, t2);
+
+        bidder2 = new AuctionTester();
+        bidder2.bindManager(manager);
+
+        t2.transfer(bidder2, 1000 * T2);
+        bidder2.doApprove(manager, 1000 * T2, t2);
+
+        t1.transfer(this, 1000 * T1);
+        t2.transfer(this, 1000 * T2);
+        t1.approve(manager, 1000 * T1);
+        t2.approve(manager, 1000 * T2);
+    }
+    function testNewAuction() {
+        address[] memory beneficiaries = new address[](2);
+        beneficiaries[0] = beneficiary1;
+
+        uint[] memory limits = new uint[](2);
+
+        var (id1, base1) = manager.newAuction(beneficiary1, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(beneficiaries, limits, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+
+        var (beneficiary, selling, buying,
+             sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id1);
+
+        assertEq(beneficiary, beneficiary1);
+
+        (beneficiary, selling, buying,
+         sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id2);
+
+        assertEq(beneficiary, beneficiary1);
+    }
+}

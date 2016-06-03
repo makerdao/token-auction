@@ -359,6 +359,5 @@ contract AuctionManagerTest is Test, EventfulAuction, EventfulManager {
         var balance_after = t1.balanceOf(this);
 
         assertEq(balance_after, balance_before);
-
     }
 }

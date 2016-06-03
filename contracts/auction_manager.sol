@@ -20,7 +20,7 @@ contract EventfulManager {
 contract AuctionTypes {
     struct Auction {
         address creator;
-        address beneficiary;
+        address[] beneficiaries;
         ERC20 selling;
         ERC20 buying;
         uint start_bid;
@@ -51,10 +51,10 @@ contract TransferUser is Assertive, AuctionTypes {
         assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
     }
     function settleExcessBuy(Auction A, address bidder, uint excess_buy) internal {
-        assert(A.buying.transferFrom(bidder, A.beneficiary, excess_buy));
+        assert(A.buying.transferFrom(bidder, A.beneficiaries[0], excess_buy));
     }
     function settleExcessSell(Auction A, uint excess_sell) internal {
-        assert(A.selling.transfer(A.beneficiary, excess_sell));
+        assert(A.selling.transfer(A.beneficiaries[0], excess_sell));
     }
     function settleBidderClaim(Auction A, Auctionlet a) internal {
         assert(A.selling.transfer(a.last_bidder, a.sell_amount));
@@ -343,9 +343,11 @@ contract AuctionManager is AuctionUser, EventfulManager {
         internal
         returns (uint, uint)
     {
+        address[] memory beneficiaries = new address[](1);
+        beneficiaries[0] = beneficiary;
         Auction memory A;
         A.creator = creator;
-        A.beneficiary = beneficiary;
+        A.beneficiaries = beneficiaries;
         A.selling = selling;
         A.buying = buying;
         A.sell_amount = sell_amount;
@@ -364,7 +366,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         var base_id = newAuctionlet({auction_id: _last_auction_id,
                                      bid:         A.start_bid,
                                      quantity:    A.sell_amount,
-                                     last_bidder: A.beneficiary,
+                                     last_bidder: A.beneficiaries[0],
                                      base:        true
                                    });
 
@@ -376,7 +378,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         returns (address, ERC20, ERC20, uint, uint, uint, uint)
     {
         Auction a = _auctions[id];
-        return (a.beneficiary, a.selling, a.buying,
+        return (a.beneficiaries[0], a.selling, a.buying,
                 a.sell_amount, a.start_bid, a.min_increase, a.expiration);
     }
     function getAuctionlet(uint id) constant

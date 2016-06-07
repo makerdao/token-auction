@@ -84,7 +84,14 @@ contract AuctionManagerTest is Test, EventfulAuction, EventfulManager {
         assertEq(t2.allowance(bidder1, manager), 1000 * T2);
     }
     function newAuction() returns (uint, uint) {
-        return manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 1 * T2, 1 years);
+        return manager.newAuction( seller    // beneficiary
+                                 , t1        // selling
+                                 , t2        // buying
+                                 , 100 * T1  // sell_amount
+                                 , 10 * T2   // start_bid
+                                 , 1 * T2    // min_increase
+                                 , 1 years   // duration
+                                 );
     }
     function testNewAuctionEvent() {
         var (id, base) = newAuction();

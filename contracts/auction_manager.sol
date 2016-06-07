@@ -316,7 +316,8 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                                    min_increase: min_increase,
                                                    min_decrease: 0,
                                                    duration: duration,
-                                                   collection_limit: INFINITY
+                                                   collection_limit: INFINITY,
+                                                   reversed: false
                                                  });
     }
     function newAuction( address[] beneficiaries
@@ -340,7 +341,8 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                                    min_increase: min_increase,
                                                    min_decrease: 0,
                                                    duration: duration,
-                                                   collection_limit: INFINITY
+                                                   collection_limit: INFINITY,
+                                                   reversed: false
                                                  });
     }
     // Create a new reverse auction
@@ -371,10 +373,9 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                                    min_increase: 0,
                                                    min_decrease: min_decrease,
                                                    duration: duration,
-                                                   collection_limit: 0
+                                                   collection_limit: 0,
+                                                   reversed: true
                                                  });
-        Auction A = _auctions[auction_id];
-        A.reversed = true;
     }
     // Create a new two-way auction.
     function newTwoWayAuction( address beneficiary
@@ -404,7 +405,8 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                   min_increase: min_increase,
                                   min_decrease: min_decrease,
                                   duration: duration,
-                                  collection_limit: collection_limit
+                                  collection_limit: collection_limit,
+                                  reversed: false
                                   });
     }
     function _checkPayouts(Auction A) internal {
@@ -422,9 +424,10 @@ contract AuctionManager is AuctionUser, EventfulManager {
                               , uint min_decrease
                               , uint duration
                               , uint collection_limit
+                              , bool reversed
                               )
         internal
-        returns (uint, uint)
+        returns (uint auction_id, uint base_id)
     {
         Auction memory A;
         A.creator = creator;
@@ -440,22 +443,28 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.collection_limit = collection_limit;
         A.unsold = sell_amount;
 
+        auction_id = ++_last_auction_id;
+
+        // create the base auctionlet
+        base_id = newAuctionlet({ auction_id:  auction_id
+                                , bid:         A.start_bid
+                                , quantity:    A.sell_amount
+                                , last_bidder: A.beneficiaries[0]
+                                , base:        true
+                                });
+
+        // set reversed after newAuctionlet because of reverse specific logic
+        A.reversed = reversed;
+        // TODO: this is a code smell. There may be a way around this by
+        // rethinking the reversed logic throughout - possibly renaming
+        // a.sell_amount / a.buy_amount
+
         _checkPayouts(A);
         takeFundsIntoEscrow(A);
 
-        _auctions[++_last_auction_id] = A;
-
-        // create the base auctionlet
-        var base_id = newAuctionlet({auction_id: _last_auction_id,
-                                     bid:         A.start_bid,
-                                     quantity:    A.sell_amount,
-                                     last_bidder: A.beneficiaries[0],
-                                     base:        true
-                                   });
+        _auctions[auction_id] = A;
 
         NewAuction(_last_auction_id, base_id);
-
-        return (_last_auction_id, base_id);
     }
     function getAuction(uint id) constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)

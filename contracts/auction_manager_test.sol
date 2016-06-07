@@ -518,3 +518,26 @@ contract AssertionTest is Test, Assertive() {
         assertIncreasing(array);
     }
 }
+
+contract MathTest is Test, MathUser {
+    function testFlat() {
+        assertEq(0, flat(1, 2));
+        assertEq(1, flat(2, 1));
+    }
+    function testCumSum() {
+        uint[] memory array = new uint[](3);
+        array[0] = 1;
+        array[1] = 3;
+        array[2] = 0;
+
+        uint[] memory expected = new uint[](3);
+        expected[0] = 1;
+        expected[1] = 4;
+        expected[2] = 4;
+
+        var found = cumsum(array);
+        for (uint i = 0; i < array.length; i++) {
+            assertEq(expected[i], found[i]);
+        }
+    }
+}

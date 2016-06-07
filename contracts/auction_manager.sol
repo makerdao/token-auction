@@ -409,6 +409,33 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                   reversed: false
                                   });
     }
+    function newTwoWayAuction( address[] beneficiaries
+                             , uint[] payouts
+                             , ERC20 selling
+                             , ERC20 buying
+                             , uint sell_amount
+                             , uint start_bid
+                             , uint min_increase
+                             , uint min_decrease
+                             , uint duration
+                             , uint collection_limit
+                             )
+        returns (uint, uint)
+    {
+        return _newTwoWayAuction({creator: msg.sender,
+                                  beneficiaries: beneficiaries,
+                                  payouts: payouts,
+                                  selling: selling,
+                                  buying: buying,
+                                  sell_amount: sell_amount,
+                                  start_bid: start_bid,
+                                  min_increase: min_increase,
+                                  min_decrease: min_decrease,
+                                  duration: duration,
+                                  collection_limit: collection_limit,
+                                  reversed: false
+                                  });
+    }
     function _checkPayouts(Auction A) internal {
         assert(A.beneficiaries.length == A.payouts.length);
         if (!A.reversed) assert(A.payouts[0] >= A.start_bid);

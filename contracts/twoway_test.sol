@@ -222,3 +222,94 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
         assertEq(sell_amount, expected_sell_amount);
     }
 }
+
+contract TwoWayMultipleBeneficiariesTest is Test, EventfulAuction, EventfulManager {
+    Manager manager;
+    AuctionTester seller;
+    AuctionTester bidder1;
+    AuctionTester bidder2;
+    AuctionTester beneficiary1;
+    AuctionTester beneficiary2;
+
+    ERC20 t1;
+    ERC20 t2;
+
+    // use prime numbers to avoid coincidental collisions
+    uint constant T1 = 5 ** 12;
+    uint constant T2 = 7 ** 10;
+    uint constant INFINITY = uint(-1);
+
+    function setUp() {
+        manager = new Manager();
+        manager.setTime(block.timestamp);
+
+        var million = 10 ** 6;
+
+        t1 = new ERC20Base(million * T1);
+        t2 = new ERC20Base(million * T2);
+
+        beneficiary1 = new AuctionTester();
+
+        seller = new AuctionTester();
+        seller.bindManager(manager);
+
+        t1.transfer(seller, 200 * T1);
+        seller.doApprove(manager, 200 * T1, t1);
+
+        bidder1 = new AuctionTester();
+        bidder1.bindManager(manager);
+
+        t2.transfer(bidder1, 1000 * T2);
+        bidder1.doApprove(manager, 1000 * T2, t2);
+
+        bidder2 = new AuctionTester();
+        bidder2.bindManager(manager);
+
+        t2.transfer(bidder2, 1000 * T2);
+        bidder2.doApprove(manager, 1000 * T2, t2);
+
+        t1.transfer(this, 1000 * T1);
+        t2.transfer(this, 1000 * T2);
+        t1.approve(manager, 1000 * T1);
+        t2.approve(manager, 1000 * T2);
+    }
+    function testNewAuction() {
+        address[] memory beneficiaries = new address[](1);
+        beneficiaries[0] = beneficiary1;
+
+        uint[] memory payouts = new uint[](1);
+        payouts[0] = 100 * T2;
+
+        var (id1, base1) = manager.newTwoWayAuction( beneficiary1
+                                                   , t1
+                                                   , t2
+                                                   , 100 * T1
+                                                   , 10 * T2
+                                                   , 1 * T2
+                                                   , 1 * T1
+                                                   , 1 years
+                                                   , 100 * T2
+                                                   );
+        var (id2, base2) = manager.newTwoWayAuction( beneficiaries
+                                                   , payouts
+                                                   , t1
+                                                   , t2
+                                                   , 100 * T1
+                                                   , 10 * T2
+                                                   , 1 * T2
+                                                   , 1 * T1
+                                                   , 1 years
+                                                   , 100 * T2
+                                                   );
+
+        var (beneficiary, selling, buying,
+             sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id1);
+
+        assertEq(beneficiary, beneficiary1);
+
+        (beneficiary, selling, buying,
+         sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id2);
+
+        assertEq(beneficiary, beneficiary1);
+    }
+}

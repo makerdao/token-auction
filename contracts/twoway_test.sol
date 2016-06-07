@@ -101,7 +101,7 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     }
     function testReversalEvent() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 101 * T2);
+        bidder1.doBid(base, 101 * T2);
 
         expectEventsExact(manager);
         NewAuction(id, base);
@@ -115,19 +115,19 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     function testBidEqualTargetNoReversal() {
         // bids at the target should not cause the auction to reverse
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 100 * T2);
+        bidder1.doBid(base, 100 * T2);
         assertEq(manager.isReversed(id), false);
     }
     function testBidOverTargetReversal() {
         // bids over the target should cause the auction to reverse
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 101 * T2);
+        bidder1.doBid(base, 101 * T2);
         assertEq(manager.isReversed(id), true);
     }
     function testBidOverTargetRefundsDifference() {
         var (id, base) = newTwoWayAuction();
         var t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(1, 110 * T2);
+        bidder1.doBid(base, 110 * T2);
         var t2_balance_after = t2.balanceOf(bidder1);
 
         var balance_diff = t2_balance_before - t2_balance_after;
@@ -135,7 +135,7 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     }
     function testBidOverTargetSetsReverseBidder() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 110 * T2);
+        bidder1.doBid(base, 110 * T2);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(base);
@@ -144,7 +144,7 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     }
     function testBidOverTargetSetsReverseBuyAmount() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 110 * T2);
+        bidder1.doBid(base, 110 * T2);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(base);
@@ -153,7 +153,7 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     }
     function testBidOverTargetSetsReverseBid() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 110 * T2);
+        bidder1.doBid(base, 110 * T2);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(base);
@@ -170,18 +170,18 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     }
     function testBaseSplitEqualTargetNoReversal() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 100 * T2, 60 * T1);
+        bidder1.doBid(base, 100 * T2, 60 * T1);
         assertEq(manager.isReversed(id), false);
     }
     function testBaseSplitOverTargetReversal() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(1, 110 * T2, 60 * T1);
+        bidder1.doBid(base, 110 * T2, 60 * T1);
         assertEq(manager.isReversed(id), true);
     }
     function testBaseSplitOverTargetRefundsDifference() {
         var (id, base) = newTwoWayAuction();
         var t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(1, 120 * T2, 60 * T1);
+        bidder1.doBid(base, 120 * T2, 60 * T1);
         var t2_balance_after = t2.balanceOf(bidder1);
 
         var balance_diff = t2_balance_before - t2_balance_after;
@@ -189,7 +189,7 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     }
     function testBaseSplitOverTargetSetsReverseBidder() {
         var (id, base) = newTwoWayAuction();
-        var (nid, sid) = bidder1.doBid(1, 120 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(sid);
@@ -198,7 +198,7 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     }
     function testBaseSplitOverTargetSetsReverseBuyAmount() {
         var (id, base) = newTwoWayAuction();
-        var (nid, sid) = bidder1.doBid(1, 120 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(sid);
@@ -207,7 +207,7 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
     }
     function testBaseSplitOverTargetSetsReverseBid() {
         var (id, base) = newTwoWayAuction();
-        var (nid, sid) = bidder1.doBid(1, 120 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(sid);

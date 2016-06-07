@@ -520,16 +520,19 @@ contract AssertionTest is Test, Assertive() {
 }
 
 contract MathTest is Test, MathUser {
+    uint[] array;
+    function setUp() {
+        uint[] memory _array = new uint[](3);
+        _array[0] = 1;
+        _array[1] = 3;
+        _array[2] = 0;
+        array = _array;
+    }
     function testFlat() {
         assertEq(0, flat(1, 2));
         assertEq(1, flat(2, 1));
     }
     function testCumSum() {
-        uint[] memory array = new uint[](3);
-        array[0] = 1;
-        array[1] = 3;
-        array[2] = 0;
-
         uint[] memory expected = new uint[](3);
         expected[0] = 1;
         expected[1] = 4;
@@ -539,5 +542,11 @@ contract MathTest is Test, MathUser {
         for (uint i = 0; i < array.length; i++) {
             assertEq(expected[i], found[i]);
         }
+    }
+    function testSum() {
+        assertEq(4, sum(array));
+    }
+    function testSumEquivalentCumSum() {
+        assertEq(cumsum(array)[2], sum(array));
     }
 }

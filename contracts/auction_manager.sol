@@ -20,6 +20,12 @@ contract MathUser {
         }
         return out;
     }
+    function sum(uint[] array) internal returns (uint total) {
+        total = 0;
+        for (uint i = 0; i < array.length; i++) {
+            total += array[i];
+        }
+    }
 }
 
 contract EventfulAuction {

@@ -299,7 +299,6 @@ contract TwoWayMultipleBeneficiariesTest is Test, EventfulAuction, EventfulManag
                                                    , 1 * T2
                                                    , 1 * T1
                                                    , 1 years
-                                                   , 100 * T2
                                                    );
 
         var (beneficiary, selling, buying,
@@ -311,5 +310,34 @@ contract TwoWayMultipleBeneficiariesTest is Test, EventfulAuction, EventfulManag
          sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id2);
 
         assertEq(beneficiary, beneficiary1);
+    }
+    function testSumPayoutsSetsCollectionLimit() {
+        address[] memory beneficiaries = new address[](2);
+        beneficiaries[0] = beneficiary1;
+        beneficiaries[1] = beneficiary2;
+
+        uint[] memory payouts = new uint[](2);
+        payouts[0] = 60 * T2;
+        payouts[1] = 40 * T2;
+
+        var (id, base) = manager.newTwoWayAuction( beneficiaries
+                                                 , payouts
+                                                 , t1
+                                                 , t2
+                                                 , 100 * T1
+                                                 , 10 * T2
+                                                 , 1 * T2
+                                                 , 1 * T1
+                                                 , 1 years
+                                                 );
+
+        bidder1.doBid(base, 101 * T2);
+
+        expectEventsExact(manager);
+        NewAuction(id, base);
+        AuctionReversal(id);
+        Bid(base);
+
+        assertEq(manager.isReversed(id), true);
     }
 }

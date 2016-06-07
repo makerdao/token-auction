@@ -424,10 +424,10 @@ contract AuctionManager is AuctionUser, EventfulManager {
                              , uint min_increase
                              , uint min_decrease
                              , uint duration
-                             , uint collection_limit
                              )
         returns (uint, uint)
     {
+        var collection_limit = sum(payouts);
         return _newTwoWayAuction({creator: msg.sender,
                                   beneficiaries: beneficiaries,
                                   payouts: payouts,

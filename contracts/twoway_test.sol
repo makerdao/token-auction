@@ -88,16 +88,16 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
         t2.approve(manager, 1000 * T2);
     }
     function newTwoWayAuction() returns (uint, uint) {
-        return manager.newTwoWayAuction({beneficiary: seller,
-                                         selling: t1,
-                                         buying: t2,
-                                         sell_amount: 100 * T1,
-                                         start_bid: 10 * T2,
-                                         min_increase: 1 * T2,
-                                         min_decrease: 1 * T1,
-                                         duration: 1 years,
-                                         collection_limit: 100 * T2,
-                                        });
+        return manager.newTwoWayAuction( seller    // beneficiary
+                                       , t1        // selling
+                                       , t2        // buying
+                                       , 100 * T1  // sell_amount
+                                       , 10 * T2   // start_bid
+                                       , 1 * T2    // min_increase
+                                       , 1 * T1    // min_decrease
+                                       , 1 years   // duration
+                                       , 100 * T2  // collection_limit
+                                       );
     }
     function testReversalEvent() {
         var (id, base) = newTwoWayAuction();

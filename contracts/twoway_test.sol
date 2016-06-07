@@ -113,13 +113,13 @@ contract TwoWayTest is Test, EventfulAuction, EventfulManager {
         assertEq(manager.getCollectMax(id), 100 * T2);
     }
     function testBidEqualTargetNoReversal() {
-        // bids at or over the target should cause the auction to reverse
+        // bids at the target should not cause the auction to reverse
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 100 * T2);
         assertEq(manager.isReversed(id), false);
     }
     function testBidOverTargetReversal() {
-        // bids at or over the target should cause the auction to reverse
+        // bids over the target should cause the auction to reverse
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(1, 101 * T2);
         assertEq(manager.isReversed(id), true);

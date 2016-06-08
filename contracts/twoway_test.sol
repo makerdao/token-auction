@@ -311,7 +311,7 @@ contract TwoWayMultipleBeneficiariesTest is Test, EventfulAuction, EventfulManag
 
         assertEq(beneficiary, beneficiary1);
     }
-    function testSumPayoutsSetsCollectionLimit() {
+    function newTwoWayTwoPayeeAuction() returns (uint, uint) {
         address[] memory beneficiaries = new address[](2);
         beneficiaries[0] = beneficiary1;
         beneficiaries[1] = beneficiary2;
@@ -320,17 +320,19 @@ contract TwoWayMultipleBeneficiariesTest is Test, EventfulAuction, EventfulManag
         payouts[0] = 60 * T2;
         payouts[1] = 40 * T2;
 
-        var (id, base) = manager.newTwoWayAuction( beneficiaries
-                                                 , payouts
-                                                 , t1
-                                                 , t2
-                                                 , 100 * T1
-                                                 , 10 * T2
-                                                 , 1 * T2
-                                                 , 1 * T1
-                                                 , 1 years
-                                                 );
-
+        return manager.newTwoWayAuction( beneficiaries
+                                       , payouts
+                                       , t1
+                                       , t2
+                                       , 100 * T1
+                                       , 10 * T2
+                                       , 1 * T2
+                                       , 1 * T1
+                                       , 1 years
+                                       );
+    }
+    function testSumPayoutsSetsCollectionLimit() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
         bidder1.doBid(base, 101 * T2);
 
         expectEventsExact(manager);
@@ -339,5 +341,99 @@ contract TwoWayMultipleBeneficiariesTest is Test, EventfulAuction, EventfulManag
         Bid(base);
 
         assertEq(manager.isReversed(id), true);
+    }
+    function testBidTransfersPartialToFirstPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary1);
+        bidder1.doBid(base, 50 * T2);
+        var balance_after = t2.balanceOf(beneficiary1);
+
+        assertEq(balance_after - balance_before, 50 * T2);
+    }
+    function testBidTransfersFullToFirstPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary1);
+        bidder1.doBid(base, 70 * T2);
+        var balance_after = t2.balanceOf(beneficiary1);
+
+        assertEq(balance_after - balance_before, 60 * T2);
+    }
+    function testBidTransfersPartialToSecondPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary2);
+        bidder1.doBid(base, 70 * T2);
+        var balance_after = t2.balanceOf(beneficiary2);
+
+        assertEq(balance_after - balance_before, 10 * T2);
+    }
+    function testBidTransfersFullToSecondPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary2);
+        bidder1.doBid(base, 100 * T2);
+        var balance_after = t2.balanceOf(beneficiary2);
+
+        assertEq(balance_after - balance_before, 40 * T2);
+    }
+    function testSplitBidsTransferPartialToFirstPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary1);
+        var (nid, sid) = bidder1.doBid(base, 20 * T2, 40 * T1);
+        bidder2.doBid(nid, 20 * T2, 50 * T1);
+        var balance_after = t2.balanceOf(beneficiary1);
+
+        assertEq(balance_after - balance_before, 40 * T2);
+    }
+    function testSplitBidsTransfersFullToFirstPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary1);
+        var (nid, sid) = bidder1.doBid(base, 50 * T2, 40 * T1);
+        bidder2.doBid(nid, 20 * T2, 50 * T1);
+        var balance_after = t2.balanceOf(beneficiary1);
+
+        assertEq(balance_after - balance_before, 60 * T2);
+    }
+    function testSplitBidsTransferPartialToSecondPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary2);
+        var (nid, sid) = bidder1.doBid(base, 40 * T2, 40 * T1);
+        bidder2.doBid(nid, 30 * T2, 50 * T1);
+        var balance_after = t2.balanceOf(beneficiary2);
+
+        assertEq(balance_after - balance_before, 10 * T2);
+    }
+    function testSplitBidsTransfersFullToSecondPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary2);
+        var (nid, sid) = bidder1.doBid(base, 50 * T2, 40 * T1);
+        bidder2.doBid(nid, 50 * T2, 50 * T1);
+        var balance_after = t2.balanceOf(beneficiary2);
+
+        assertEq(balance_after - balance_before, 40 * T2);
+    }
+    function testExcessBidTransfersFullyToFirstPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary1);
+        bidder1.doBid(base, 200 * T2);
+        var balance_after = t2.balanceOf(beneficiary1);
+
+        assertEq(balance_after - balance_before, 60 * T2);
+    }
+    function testExcessBidTransfersFullyToSecondPayee() {
+        var (id, base) = newTwoWayTwoPayeeAuction();
+
+        var balance_before = t2.balanceOf(beneficiary2);
+        bidder1.doBid(base, 200 * T2);
+        var balance_after = t2.balanceOf(beneficiary2);
+
+        assertEq(balance_after - balance_before, 40 * T2);
     }
 }

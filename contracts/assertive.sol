@@ -4,4 +4,11 @@ contract Assertive {
             throw;
         }
     }
+    function assertIncreasing(uint[] array) {
+        if (array.length < 2) return;
+
+        for (uint i = 1; i < array.length; i ++) {
+            assert(array[i] > array[i - 1]);
+        }
+    }
 }

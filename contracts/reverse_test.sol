@@ -85,14 +85,14 @@ contract ReverseTest is Test {
         t2.approve(manager, 1000 * T2);
     }
     function newReverseAuction() returns (uint, uint) {
-        return manager.newReverseAuction({beneficiary: seller,
-                                          selling: t1,
-                                          buying: t2,
-                                          max_sell_amount: 100 * T1,
-                                          buy_amount: 5 * T2,
-                                          min_decrease: 2 * T1,
-                                          duration: 1 years
-                                        });
+        return manager.newReverseAuction( seller    // beneficiary
+                                        , t1        // selling
+                                        , t2        // buying
+                                        , 100 * T1  // max_sell_amount
+                                        , 5 * T2    // buy_amount
+                                        , 2 * T1    // min_decrease
+                                        , 1 years   // duration
+                                        );
     }
     function testNewReverseAuction() {
         var (id, base) = newReverseAuction();

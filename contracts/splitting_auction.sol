@@ -25,8 +25,6 @@ contract SplitUser is AuctionUser, EventfulSplitter {
     }
     // Check that an auctionlet can be split by the new bid.
     function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity) internal {
-        var a = _auctionlets[auctionlet_id];
-
         var (_, prev_quantity) = _getLastBid(auctionlet_id);
 
         // splits have to reduce the quantity being bid on

@@ -229,19 +229,16 @@ contract AuctionUser is EventfulAuction
         }
 
         // update the bid quantities - new bidder, new bid, same quantity
-        _updateBid(auctionlet_id, bidder, bid_how_much);
+        _newBid(auctionlet_id, bidder, bid_how_much);
     }
     // Auctionlet bid update logic.
-    function _updateBid(uint auctionlet_id, address bidder, uint bid_how_much) {
+    function _newBid(uint auctionlet_id, address bidder, uint bid_how_much) {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        if (!A.reversed) {
-            a.buy_amount = bid_how_much;
-        } else {
-            a.sell_amount = bid_how_much;
-        }
+        var quantity = A.reversed ? a.buy_amount : a.sell_amount;
 
+        _setLastBid(auctionlet_id, bid_how_much, quantity);
         a.last_bidder = bidder;
     }
     // Check whether an auctionlet can be claimed.

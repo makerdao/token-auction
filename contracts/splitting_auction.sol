@@ -54,7 +54,7 @@ contract SplitUser is AuctionUser, EventfulSplitter {
         split_id = newAuctionlet(a.auction_id, split_bid, quantity,
                                  a.last_bidder, a.base);
 
-        _updateBid(new_id, a.last_bidder, new_bid);
+        _newBid(new_id, a.last_bidder, new_bid);
         _doBid(split_id, splitter, bid_how_much);
 
         delete _auctionlets[auctionlet_id];

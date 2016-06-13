@@ -27,7 +27,7 @@ contract SplitUser is AuctionUser, EventfulSplitter {
     function _assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity) internal {
         var a = _auctionlets[auctionlet_id];
 
-        var (_, prev_quantity) = _getLastBid(a);
+        var (_, prev_quantity) = _getLastBid(auctionlet_id);
 
         // splits have to reduce the quantity being bid on
         assert(quantity < prev_quantity);
@@ -46,7 +46,7 @@ contract SplitUser is AuctionUser, EventfulSplitter {
     {
         var a = _auctionlets[auctionlet_id];
 
-        var (new_quantity, new_bid, split_bid) = _calculate_split(a, quantity);
+        var (new_quantity, new_bid, split_bid) = _calculate_split(auctionlet_id, quantity);
 
         // create two new auctionlets and bid on them
         new_id = newAuctionlet(a.auction_id, new_bid, new_quantity,
@@ -60,11 +60,11 @@ contract SplitUser is AuctionUser, EventfulSplitter {
         delete _auctionlets[auctionlet_id];
     }
     // Work out how to split a bid into two parts
-    function _calculate_split(Auctionlet a, uint quantity)
+    function _calculate_split(uint auctionlet_id, uint quantity)
         internal
         returns (uint new_quantity, uint new_bid, uint split_bid)
     {
-        var (prev_bid, prev_quantity) = _getLastBid(a);
+        var (prev_bid, prev_quantity) = _getLastBid(auctionlet_id);
         new_quantity = prev_quantity - quantity;
 
         // n.b. associativity important because of truncating division

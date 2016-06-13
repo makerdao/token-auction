@@ -118,7 +118,7 @@ contract AuctionUser is EventfulAuction
 
     function newAuctionlet(uint auction_id, uint bid,
                            uint quantity, address last_bidder, bool base)
-        internal returns (uint)
+        internal returns (uint auctionlet_id)
     {
         Auctionlet memory auctionlet;
         auctionlet.auction_id = auction_id;
@@ -126,11 +126,10 @@ contract AuctionUser is EventfulAuction
         auctionlet.last_bidder = last_bidder;
         auctionlet.base = base;
 
-        _setLastBid(auctionlet, bid, quantity);
+        auctionlet_id = ++_last_auctionlet_id;
+        _auctionlets[auctionlet_id] = auctionlet;
 
-        _auctionlets[++_last_auctionlet_id] = auctionlet;
-
-        return _last_auctionlet_id;
+        _setLastBid(auctionlet_id, bid, quantity);
     }
     // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much) {
@@ -265,10 +264,11 @@ contract AuctionUser is EventfulAuction
         a.unclaimed = false;
         delete _auctionlets[auctionlet_id];
     }
-    function _getLastBid(Auctionlet a)
+    function _getLastBid(uint auctionlet_id)
         internal constant
         returns (uint prev_bid, uint prev_quantity)
     {
+        var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
         if (A.reversed) {
@@ -279,7 +279,10 @@ contract AuctionUser is EventfulAuction
             prev_quantity = a.sell_amount;
         }
     }
-    function _setLastBid(Auctionlet a, uint bid, uint quantity) internal {
+    function _setLastBid(uint auctionlet_id, uint bid, uint quantity)
+        internal
+    {
+        var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
         if (A.reversed) {

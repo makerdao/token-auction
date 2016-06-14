@@ -106,16 +106,34 @@ contract TransferUser is Assertive, AuctionTypes, MathUser {
     }
 }
 
-contract AuctionUser is EventfulAuction
-                      , TimeUser
-                      , TransferUser
-{
+contract AuctionDatabase is AuctionTypes {
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
 
     mapping(uint => Auctionlet) _auctionlets;
     uint _last_auctionlet_id;
 
+    function createAuctionlet(Auctionlet a) internal returns (uint id) {
+        id = ++_last_auctionlet_id;
+        _auctionlets[id] = a;
+    }
+    function createAuction(Auction A) internal returns (uint id) {
+        id = ++_last_auction_id;
+        _auctions[id] = A;
+    }
+    function setReversed(uint id, bool reversed) internal {
+        _auctions[id].reversed = reversed;
+    }
+    function getReversed(uint id) internal returns (bool reversed) {
+        return _auctions[id].reversed;
+    }
+}
+
+contract AuctionUser is EventfulAuction
+                      , AuctionDatabase
+                      , TimeUser
+                      , TransferUser
+{
     function newAuctionlet(uint auction_id, uint bid,
                            uint quantity, address last_bidder, bool base)
         internal returns (uint auctionlet_id)
@@ -126,8 +144,7 @@ contract AuctionUser is EventfulAuction
         auctionlet.last_bidder = last_bidder;
         auctionlet.base = base;
 
-        auctionlet_id = ++_last_auctionlet_id;
-        _auctionlets[auctionlet_id] = auctionlet;
+        auctionlet_id = createAuctionlet(auctionlet);
 
         _setLastBid(auctionlet_id, bid, quantity);
     }
@@ -477,7 +494,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.collection_limit = collection_limit;
         A.unsold = sell_amount;
 
-        auction_id = ++_last_auction_id;
+        auction_id = createAuction(A);
 
         // create the base auctionlet
         base_id = newAuctionlet({ auction_id:  auction_id
@@ -488,6 +505,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                                 });
 
         // set reversed after newAuctionlet because of reverse specific logic
+        setReversed(auction_id, reversed);
         A.reversed = reversed;
         // TODO: this is a code smell. There may be a way around this by
         // rethinking the reversed logic throughout - possibly renaming
@@ -496,9 +514,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         _checkPayouts(A);
         takeFundsIntoEscrow(A);
 
-        _auctions[auction_id] = A;
-
-        NewAuction(_last_auction_id, base_id);
+        NewAuction(auction_id, base_id);
     }
     function getAuction(uint id) constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)

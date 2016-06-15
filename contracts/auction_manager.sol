@@ -107,7 +107,7 @@ contract TransferUser is Assertive, AuctionTypes, MathUser {
     }
 }
 
-contract AuctionDatabase is AuctionTypes {
+contract AuctionDatabase is AuctionTypes, TimeUser {
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
 
@@ -122,17 +122,23 @@ contract AuctionDatabase is AuctionTypes {
         id = ++_last_auction_id;
         _auctions[id] = A;
     }
-    function setReversed(uint id, bool reversed) internal {
-        _auctions[id].reversed = reversed;
+    function setReversed(uint auction_id, bool reversed) internal {
+        _auctions[auction_id].reversed = reversed;
     }
-    function getReversed(uint id) internal returns (bool reversed) {
-        return _auctions[id].reversed;
+    // check if an auction is reversed
+    function isReversed(uint auction_id) constant returns (bool reversed) {
+        return _auctions[auction_id].reversed;
+    }
+    // check if an auctionlet is expired
+    function isExpired(uint auctionlet_id) constant returns (bool expired) {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+        expired = (getTime() - a.last_bid_time) > A.duration;
     }
 }
 
 contract AuctionUser is EventfulAuction
                       , AuctionDatabase
-                      , TimeUser
                       , TransferUser
 {
     function newAuctionlet(uint auction_id, uint bid,
@@ -171,8 +177,7 @@ contract AuctionUser is EventfulAuction
         assert(a.auction_id > 0);  // test for deleted auction
         assert(auctionlet_id > 0);  // test for deleted auctionlet
 
-        var expired = (getTime() - a.last_bid_time) > A.duration;
-        assert(a.base || !expired);
+        assert(a.base || !isExpired(auctionlet_id));
 
         if (A.reversed) {
             // check if reverse biddable
@@ -254,8 +259,7 @@ contract AuctionUser is EventfulAuction
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        var expired = (getTime() - a.last_bid_time) > A.duration;
-        assert(expired);
+        assert(isExpired(auctionlet_id));
 
         assert(a.unclaimed);
     }

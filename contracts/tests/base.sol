@@ -17,14 +17,6 @@ contract TestableManager is SplittingAuctionManager {
     function getCollectMax(uint auction_id) returns (uint) {
         return _auctions[auction_id].collection_limit;
     }
-    function isReversed(uint auction_id) returns (bool) {
-        return _auctions[auction_id].reversed;
-    }
-    function isExpired(uint auctionlet_id) returns (bool) {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
-        return (getTime() - a.last_bid_time) > A.duration;
-    }
     function getAuction(uint id) constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)
     {

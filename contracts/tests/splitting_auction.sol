@@ -1,6 +1,5 @@
-import 'dapple/test.sol';
-import 'test_base.sol';
-import 'erc20/base.sol';
+import 'tests/base.sol';
+
 import 'splitting_auction.sol';
 
 contract ForwardSplittingTest is AuctionTest

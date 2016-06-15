@@ -39,7 +39,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertEq(id, 1);
 
         var (beneficiary, selling, buying,
-             sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id);
+             sell_amount, start_bid, min_increase, duration) = manager.getAuction(id);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == t1);
@@ -47,7 +47,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertEq(sell_amount, 100 * T1);
         assertEq(start_bid, 10 * T2);
         assertEq(min_increase, 1 * T2);
-        assertEq(expiration, manager.getTime() + 1 years);
+        assertEq(duration, 1 years);
     }
     function testNewAuctionTransfersToManager() {
         var balance_before = t1.balanceOf(manager);
@@ -128,9 +128,18 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         bidder1.doBid(base, 11 * T2);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         bidder2.doBid(base, 12 * T2);
+    }
+    function testBaseDoesNotExpire() {
+        var (id, base) = newAuction();
+
+        // push past the base auction duration
+        manager.addTime(2 years);
+
+        // this should succeed as there are no real bidders
+        bidder1.doBid(base, 11 * T2);
     }
     function testBidTransfersBenefactor() {
         var (id, base) = newAuction();
@@ -149,7 +158,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         bidder1.doBid(base, 11 * T2);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         // n.b. anyone can force claim, not just the bidder
         manager.claim(1);
@@ -196,7 +205,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertEq(t2_balance_before - t2.balanceOf(this), 100 * T2);
 
         var (beneficiary, selling, buying,
-             sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id2);
+             sell_amount, start_bid, min_increase, duration) = manager.getAuction(id2);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == t2);
@@ -204,7 +213,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertEq(sell_amount, 100 * T2);
         assertEq(start_bid, 10 * T1);
         assertEq(min_increase, 1 * T1);
-        assertEq(expiration, manager.getTime() + 1 years);
+        assertEq(duration, 1 years);
     }
     function testMultipleAuctionsBidTransferToBenefactor() {
         var (id1, base1) = newAuction();
@@ -243,28 +252,13 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         bidder1.doBid(base1, 11 * T2);
         bidder2.doBid(base2, 11 * T2);
 
+        // force expiry
+        manager.addTime(2 years);
+
         // now attempt to claim the proceedings from the first
         // auctionlet twice
-        bidder1.doClaim(1);
-        bidder1.doClaim(1);
-    }
-    function testReclaimAfterExpiry() {
-        // the seller should be able to reclaim any unbid on
-        // sell token after the auction has expired.
-        var (id, base) = newAuction();
-
-        // force expiry
-        manager.setTime(manager.getTime() + 2 years);
-
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
-
-        assertEq(balance_after - balance_before, 100 * T1);
-    }
-    function testFailReclaimBeforeExpiry() {
-        var (id, base) = newAuction();
-        seller.doReclaim(id);
+        bidder1.doClaim(base1);
+        bidder1.doClaim(base1);
     }
     function testBidTransfersToDistinctBeneficiary() {
         var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
@@ -274,20 +268,6 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         var balance_after = t2.balanceOf(bidder2);
 
         assertEq(balance_after - balance_before, 10 * T2);
-    }
-    function testReclaimOnlyOnce() {
-        var (id1, base1) = newAuction();
-        var (id2, base2) = newAuction();
-
-        // force expiry
-        manager.setTime(manager.getTime() + 2 years);
-
-        manager.reclaim(id1);
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id1);
-        var balance_after = t1.balanceOf(this);
-
-        assertEq(balance_after, balance_before);
     }
 }
 

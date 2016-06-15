@@ -11,18 +11,18 @@ contract TestableManager is SplittingAuctionManager {
     function setTime(uint timestamp) {
         debug_timestamp = timestamp;
     }
+    function addTime(uint time) {
+        setTime(getTime() + time);
+    }
     function getCollectMax(uint auction_id) returns (uint) {
         return _auctions[auction_id].collection_limit;
-    }
-    function isReversed(uint auction_id) returns (bool) {
-        return _auctions[auction_id].reversed;
     }
     function getAuction(uint id) constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)
     {
         Auction a = _auctions[id];
         return (a.beneficiaries[0], a.selling, a.buying,
-                a.sell_amount, a.start_bid, a.min_increase, a.expiration);
+                a.sell_amount, a.start_bid, a.min_increase, a.duration);
     }
     function getAuctionlet(uint id) constant
         returns (uint, address, uint, uint)
@@ -52,9 +52,6 @@ contract AuctionTester is Tester {
     }
     function doClaim(uint id) {
         return manager.claim(id);
-    }
-    function doReclaim(uint id) {
-        return manager.reclaim(id);
     }
 }
 

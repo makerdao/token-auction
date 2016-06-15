@@ -283,7 +283,7 @@ contract ForwardSplittingTest is AuctionTest
         bidder1.doBid(base, 11 * T2);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         bidder2.doBid(base, 10 * T2, 50 * T1);
     }
@@ -333,33 +333,38 @@ contract ForwardSplittingTest is AuctionTest
         var (nid, sid) = bidder2.doBid(base, 12 * T2, 60 * T1);
         bidder1.doBid(base, 20 * T2, 60 * T1);
     }
-    function testReclaimAfterBaseSplit() {
+    function testBaseDoesNotExpire() {
         var (id, base) = newAuction();
 
-        bidder1.doBid(base, 20 * T2, 50 * T1);
-        // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
 
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
+        // push past the base auction duration
+        manager.addTime(2 years);
 
-        assertEq(balance_after - balance_before, 50 * T1);
+        // this should succeed as there are no real bidders
+        bidder1.doBid(nid, 11 * T2);
     }
-    function testReclaimAfterSplitBaseSplit() {
+    function testFailSplitExpires() {
         var (id, base) = newAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 20 * T2, 50 * T1);
-        bidder2.doBid(sid, 20 * T2, 40 * T1);
-        // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
 
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
+        // push past the base auction duration
+        manager.addTime(2 years);
 
-        // reclaimable balance should be the same as after
-        // just the base split
-        assertEq(balance_after - balance_before, 50 * T1);
+        // this should succeed as there are no real bidders
+        bidder1.doBid(sid, 11 * T2);
+    }
+    function testIndependentExpirations() {
+        var (id, base) = newAuction();
+
+        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
+
+        manager.addTime(200 days);
+        bidder1.doBid(nid, 10 * T2);
+        manager.addTime(200 days);
+
+        assertTrue(manager.isExpired(sid));
+        assertFalse(manager.isExpired(nid));
     }
 }

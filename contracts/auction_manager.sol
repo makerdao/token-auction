@@ -50,13 +50,14 @@ contract AuctionTypes {
         uint sell_amount;
         uint collected;
         uint collection_limit;
-        uint expiration;
+        uint duration;
         bool reversed;
         uint unsold;
     }
     struct Auctionlet {
         uint     auction_id;
         address  last_bidder;
+        uint     last_bid_time;
         uint     buy_amount;
         uint     sell_amount;
         bool     unclaimed;
@@ -106,7 +107,7 @@ contract TransferUser is Assertive, AuctionTypes, MathUser {
     }
 }
 
-contract AuctionDatabase is AuctionTypes {
+contract AuctionDatabase is AuctionTypes, TimeUser {
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
 
@@ -121,17 +122,23 @@ contract AuctionDatabase is AuctionTypes {
         id = ++_last_auction_id;
         _auctions[id] = A;
     }
-    function setReversed(uint id, bool reversed) internal {
-        _auctions[id].reversed = reversed;
+    function setReversed(uint auction_id, bool reversed) internal {
+        _auctions[auction_id].reversed = reversed;
     }
-    function getReversed(uint id) internal returns (bool reversed) {
-        return _auctions[id].reversed;
+    // check if an auction is reversed
+    function isReversed(uint auction_id) constant returns (bool reversed) {
+        return _auctions[auction_id].reversed;
+    }
+    // check if an auctionlet is expired
+    function isExpired(uint auctionlet_id) constant returns (bool expired) {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+        expired = (getTime() - a.last_bid_time) > A.duration;
     }
 }
 
 contract AuctionUser is EventfulAuction
                       , AuctionDatabase
-                      , TimeUser
                       , TransferUser
 {
     function newAuctionlet(uint auction_id, uint bid,
@@ -143,6 +150,7 @@ contract AuctionUser is EventfulAuction
         auctionlet.unclaimed = true;
         auctionlet.last_bidder = last_bidder;
         auctionlet.base = base;
+        auctionlet.last_bid_time = getTime();
 
         auctionlet_id = createAuctionlet(auctionlet);
 
@@ -161,18 +169,6 @@ contract AuctionUser is EventfulAuction
         _assertClaimable(auctionlet_id);
         _doClaim(auctionlet_id);
     }
-    // Starting an auction takes funds from the beneficiary to keep in
-    // escrow. If there are any funds remaining after expiry, e.g. if
-    // there were no bids or if only a portion of the lot was bid for,
-    // the seller can reclaim them.
-    function reclaim(uint auction_id) {
-        var A = _auctions[auction_id];
-        var expired = A.expiration <= getTime();
-        assert(expired);
-
-        settleReclaim(A);
-        A.unsold = 0;
-    }
     // Check whether an auctionlet is eligible for bidding on
     function _assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];
@@ -181,8 +177,7 @@ contract AuctionUser is EventfulAuction
         assert(a.auction_id > 0);  // test for deleted auction
         assert(auctionlet_id > 0);  // test for deleted auctionlet
 
-        var expired = A.expiration <= getTime();
-        assert(!expired);
+        assert(a.base || !isExpired(auctionlet_id));
 
         if (A.reversed) {
             // check if reverse biddable
@@ -247,6 +242,7 @@ contract AuctionUser is EventfulAuction
 
         // update the bid quantities - new bidder, new bid, same quantity
         _newBid(auctionlet_id, bidder, bid_how_much);
+        a.last_bid_time = getTime();
     }
     // Auctionlet bid update logic.
     function _newBid(uint auctionlet_id, address bidder, uint bid_how_much) {
@@ -263,8 +259,7 @@ contract AuctionUser is EventfulAuction
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        var expired = A.expiration <= getTime();
-        assert(expired);
+        assert(isExpired(auctionlet_id));
 
         assert(a.unclaimed);
     }
@@ -490,7 +485,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.start_bid = start_bid;
         A.min_increase = min_increase;
         A.min_decrease = min_decrease;
-        A.expiration = getTime() + duration;
+        A.duration = duration;
         A.collection_limit = collection_limit;
         A.unsold = sell_amount;
 

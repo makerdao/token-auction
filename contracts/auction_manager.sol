@@ -50,13 +50,14 @@ contract AuctionTypes {
         uint sell_amount;
         uint collected;
         uint collection_limit;
-        uint expiration;
+        uint duration;
         bool reversed;
         uint unsold;
     }
     struct Auctionlet {
         uint     auction_id;
         address  last_bidder;
+        uint     last_bid_time;
         uint     buy_amount;
         uint     sell_amount;
         bool     unclaimed;
@@ -143,6 +144,7 @@ contract AuctionUser is EventfulAuction
         auctionlet.unclaimed = true;
         auctionlet.last_bidder = last_bidder;
         auctionlet.base = base;
+        auctionlet.last_bid_time = getTime();
 
         auctionlet_id = createAuctionlet(auctionlet);
 
@@ -169,8 +171,8 @@ contract AuctionUser is EventfulAuction
         assert(a.auction_id > 0);  // test for deleted auction
         assert(auctionlet_id > 0);  // test for deleted auctionlet
 
-        var expired = A.expiration <= getTime();
-        assert(!expired);
+        var expired = (getTime() - a.last_bid_time) > A.duration;
+        assert(a.base || !expired);
 
         if (A.reversed) {
             // check if reverse biddable
@@ -235,6 +237,7 @@ contract AuctionUser is EventfulAuction
 
         // update the bid quantities - new bidder, new bid, same quantity
         _newBid(auctionlet_id, bidder, bid_how_much);
+        a.last_bid_time = getTime();
     }
     // Auctionlet bid update logic.
     function _newBid(uint auctionlet_id, address bidder, uint bid_how_much) {
@@ -251,7 +254,7 @@ contract AuctionUser is EventfulAuction
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        var expired = A.expiration <= getTime();
+        var expired = (getTime() - a.last_bid_time) > A.duration;
         assert(expired);
 
         assert(a.unclaimed);
@@ -478,7 +481,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.start_bid = start_bid;
         A.min_increase = min_increase;
         A.min_decrease = min_decrease;
-        A.expiration = getTime() + duration;
+        A.duration = duration;
         A.collection_limit = collection_limit;
         A.unsold = sell_amount;
 

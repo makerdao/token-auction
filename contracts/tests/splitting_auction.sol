@@ -333,4 +333,38 @@ contract ForwardSplittingTest is AuctionTest
         var (nid, sid) = bidder2.doBid(base, 12 * T2, 60 * T1);
         bidder1.doBid(base, 20 * T2, 60 * T1);
     }
+    function testBaseDoesNotExpire() {
+        var (id, base) = newAuction();
+
+        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
+
+        // push past the base auction duration
+        manager.addTime(2 years);
+
+        // this should succeed as there are no real bidders
+        bidder1.doBid(nid, 11 * T2);
+    }
+    function testFailSplitExpires() {
+        var (id, base) = newAuction();
+
+        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
+
+        // push past the base auction duration
+        manager.addTime(2 years);
+
+        // this should succeed as there are no real bidders
+        bidder1.doBid(sid, 11 * T2);
+    }
+    function testIndependentExpirations() {
+        var (id, base) = newAuction();
+
+        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
+
+        manager.addTime(200 days);
+        bidder1.doBid(nid, 10 * T2);
+        manager.addTime(200 days);
+
+        assertTrue(manager.isExpired(sid));
+        assertFalse(manager.isExpired(nid));
+    }
 }

@@ -39,7 +39,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertEq(id, 1);
 
         var (beneficiary, selling, buying,
-             sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id);
+             sell_amount, start_bid, min_increase, duration) = manager.getAuction(id);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == t1);
@@ -47,7 +47,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertEq(sell_amount, 100 * T1);
         assertEq(start_bid, 10 * T2);
         assertEq(min_increase, 1 * T2);
-        assertEq(expiration, manager.getTime() + 1 years);
+        assertEq(duration, 1 years);
     }
     function testNewAuctionTransfersToManager() {
         var balance_before = t1.balanceOf(manager);
@@ -132,6 +132,15 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
 
         bidder2.doBid(base, 12 * T2);
     }
+    function testBaseDoesNotExpire() {
+        var (id, base) = newAuction();
+
+        // push past the base auction duration
+        manager.addTime(2 years);
+
+        // this should succeed as there are no real bidders
+        bidder1.doBid(base, 11 * T2);
+    }
     function testBidTransfersBenefactor() {
         var (id, base) = newAuction();
 
@@ -196,7 +205,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertEq(t2_balance_before - t2.balanceOf(this), 100 * T2);
 
         var (beneficiary, selling, buying,
-             sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id2);
+             sell_amount, start_bid, min_increase, duration) = manager.getAuction(id2);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == t2);
@@ -204,7 +213,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertEq(sell_amount, 100 * T2);
         assertEq(start_bid, 10 * T1);
         assertEq(min_increase, 1 * T1);
-        assertEq(expiration, manager.getTime() + 1 years);
+        assertEq(duration, 1 years);
     }
     function testMultipleAuctionsBidTransferToBenefactor() {
         var (id1, base1) = newAuction();

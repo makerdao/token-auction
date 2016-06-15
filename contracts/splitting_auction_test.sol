@@ -1,53 +1,17 @@
 import 'dapple/test.sol';
+import 'test_base.sol';
 import 'erc20/base.sol';
 import 'splitting_auction.sol';
-
-contract TestableSplitManager is SplittingAuctionManager {
-    uint public debug_timestamp;
-
-    function getTime() public constant returns (uint) {
-        return debug_timestamp;
-    }
-    function setTime(uint timestamp) {
-        debug_timestamp = timestamp;
-    }
-}
-
-contract SplitAuctionTester is Tester {
-    TestableSplitManager manager;
-    function bindManager(TestableSplitManager _manager) {
-        _target(_manager);
-        manager = TestableSplitManager(_t);
-    }
-    function doApprove(address spender, uint value, ERC20 token) {
-        token.approve(spender, value);
-    }
-    function doBid(uint auctionlet_id, uint bid_how_much)
-    {
-        return manager.bid(auctionlet_id, bid_how_much);
-    }
-    function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
-        returns (uint, uint)
-    {
-        return manager.bid(auctionlet_id, bid_how_much, sell_amount);
-    }
-    function doClaim(uint id) {
-        return manager.claim(id);
-    }
-    function doReclaim(uint id) {
-        return manager.reclaim(id);
-    }
-}
 
 contract ForwardSplittingTest is Test
                                , EventfulAuction
                                , EventfulManager
                                , EventfulSplitter
 {
-    TestableSplitManager manager;
-    SplitAuctionTester seller;
-    SplitAuctionTester bidder1;
-    SplitAuctionTester bidder2;
+    TestableManager manager;
+    AuctionTester seller;
+    AuctionTester bidder1;
+    AuctionTester bidder2;
 
     ERC20 t1;
     ERC20 t2;
@@ -57,7 +21,7 @@ contract ForwardSplittingTest is Test
     uint constant T2 = 7 ** 10;
 
     function setUp() {
-        manager = new TestableSplitManager();
+        manager = new TestableManager();
         manager.setTime(block.timestamp);
 
         var million = 10 ** 6;
@@ -65,19 +29,19 @@ contract ForwardSplittingTest is Test
         t1 = new ERC20Base(million * T1);
         t2 = new ERC20Base(million * T2);
 
-        seller = new SplitAuctionTester();
+        seller = new AuctionTester();
         seller.bindManager(manager);
 
         t1.transfer(seller, 200 * T1);
         seller.doApprove(manager, 200 * T1, t1);
 
-        bidder1 = new SplitAuctionTester();
+        bidder1 = new AuctionTester();
         bidder1.bindManager(manager);
 
         t2.transfer(bidder1, 1000 * T2);
         bidder1.doApprove(manager, 1000 * T2, t2);
 
-        bidder2 = new SplitAuctionTester();
+        bidder2 = new AuctionTester();
         bidder2.bindManager(manager);
 
         t2.transfer(bidder2, 1000 * T2);

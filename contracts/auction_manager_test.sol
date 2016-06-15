@@ -1,38 +1,8 @@
 import 'dapple/test.sol';
+import 'test_base.sol';
 import 'erc20/base.sol';
 import 'auction_manager.sol';
 
-contract TestableManager is AuctionManager {
-    uint public debug_timestamp;
-
-    function getTime() public constant returns (uint) {
-        return debug_timestamp;
-    }
-    function setTime(uint timestamp) {
-        debug_timestamp = timestamp;
-    }
-}
-
-contract AuctionTester is Tester {
-    TestableManager manager;
-    function bindManager(TestableManager _manager) {
-        _target(_manager);
-        manager = TestableManager(_t);
-    }
-    function doApprove(address spender, uint value, ERC20 token) {
-        token.approve(spender, value);
-    }
-    function doBid(uint auctionlet_id, uint bid_how_much)
-    {
-        return manager.bid(auctionlet_id, bid_how_much);
-    }
-    function doClaim(uint id) {
-        return manager.claim(id);
-    }
-    function doReclaim(uint id) {
-        return manager.reclaim(id);
-    }
-}
 
 contract AuctionManagerTest is Test, EventfulAuction, EventfulManager {
     TestableManager manager;

@@ -1,47 +1,11 @@
 import 'dapple/test.sol';
+import 'test_base.sol';
+
 import 'erc20/base.sol';
 import 'auction_manager.sol';
 
-contract Manager is AuctionManager {
-    uint public debug_timestamp;
-
-    function getTime() public constant returns (uint) {
-        return debug_timestamp;
-    }
-    function setTime(uint timestamp) {
-        debug_timestamp = timestamp;
-    }
-    function getCollectMax(uint auction_id) returns (uint) {
-        return _auctions[auction_id].collection_limit;
-    }
-    function isReversed(uint auction_id) returns (bool) {
-        return _auctions[auction_id].reversed;
-    }
-}
-
-contract AuctionTester is Tester {
-    Manager manager;
-    function bindManager(Manager _manager) {
-        _target(_manager);
-        manager = Manager(_t);
-    }
-    function doApprove(address spender, uint value, ERC20 token) {
-        token.approve(spender, value);
-    }
-    function doBid(uint auctionlet_id, uint bid_how_much)
-    {
-        return manager.bid(auctionlet_id, bid_how_much);
-    }
-    function doClaim(uint id) {
-        return manager.claim(id);
-    }
-    function doReclaim(uint id) {
-        return manager.reclaim(id);
-    }
-}
-
 contract ReverseTest is Test {
-    Manager manager;
+    TestableManager manager;
     AuctionTester seller;
     AuctionTester bidder1;
     AuctionTester bidder2;
@@ -53,7 +17,7 @@ contract ReverseTest is Test {
     uint constant T2 = 7 ** 10;
 
     function setUp() {
-        manager = new Manager();
+        manager = new TestableManager();
         manager.setTime(block.timestamp);
 
         var million = 10 ** 6;

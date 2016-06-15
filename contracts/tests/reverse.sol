@@ -124,7 +124,7 @@ contract ReverseTest is AuctionTest {
         bidder1.doBid(1, 85 * T1);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         var t1_balance_before = t1.balanceOf(bidder1);
         bidder1.doClaim(1);
@@ -139,7 +139,7 @@ contract ReverseTest is AuctionTest {
         var (id, base) = newReverseAuction();
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         var balance_before = t1.balanceOf(this);
         manager.reclaim(id);
@@ -155,7 +155,7 @@ contract ReverseTest is AuctionTest {
         bidder1.doBid(base, 50 * T1);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         var balance_before = t1.balanceOf(this);
         manager.reclaim(id);

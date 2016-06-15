@@ -176,7 +176,7 @@ contract ReverseSplittingTest is AuctionTest {
         bidder1.doBid(base, 90 * T1);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         bidder2.doBid(base, 40 * T1, 4 * T2);
     }
@@ -209,7 +209,7 @@ contract ReverseSplittingTest is AuctionTest {
         bidder1.doBid(base, 50 * T1, 3 * T2);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(+ 2 years);
 
         var balance_before = t1.balanceOf(this);
         manager.reclaim(id);
@@ -227,7 +227,7 @@ contract ReverseSplittingTest is AuctionTest {
         bidder2.doBid(sid, 20 * T1, 2 * T2);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         var balance_before = t1.balanceOf(this);
         manager.reclaim(id);

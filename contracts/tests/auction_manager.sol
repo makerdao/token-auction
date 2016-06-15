@@ -128,7 +128,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         bidder1.doBid(base, 11 * T2);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         bidder2.doBid(base, 12 * T2);
     }
@@ -149,7 +149,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         bidder1.doBid(base, 11 * T2);
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         // n.b. anyone can force claim, not just the bidder
         manager.claim(1);
@@ -254,7 +254,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         var (id, base) = newAuction();
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         var balance_before = t1.balanceOf(this);
         manager.reclaim(id);
@@ -280,7 +280,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         var (id2, base2) = newAuction();
 
         // force expiry
-        manager.setTime(manager.getTime() + 2 years);
+        manager.addTime(2 years);
 
         manager.reclaim(id1);
         var balance_before = t1.balanceOf(this);

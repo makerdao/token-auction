@@ -11,6 +11,9 @@ contract TestableManager is SplittingAuctionManager {
     function setTime(uint timestamp) {
         debug_timestamp = timestamp;
     }
+    function addTime(uint time) {
+        setTime(getTime() + time);
+    }
     function getCollectMax(uint auction_id) returns (uint) {
         return _auctions[auction_id].collection_limit;
     }

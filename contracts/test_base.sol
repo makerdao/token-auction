@@ -1,5 +1,5 @@
 import 'dapple/test.sol';
-import 'erc20/erc20.sol';
+import 'erc20/base.sol';
 import 'splitting_auction.sol';
 
 contract TestableManager is SplittingAuctionManager {
@@ -55,5 +55,52 @@ contract AuctionTester is Tester {
     }
     function doReclaim(uint id) {
         return manager.reclaim(id);
+    }
+}
+
+contract AuctionTest is Test {
+    TestableManager manager;
+    AuctionTester seller;
+    AuctionTester bidder1;
+    AuctionTester bidder2;
+
+    ERC20 t1;
+    ERC20 t2;
+
+    // use prime numbers to avoid coincidental collisions
+    uint constant T1 = 5 ** 12;
+    uint constant T2 = 7 ** 10;
+
+    function setUp() {
+        manager = new TestableManager();
+        manager.setTime(block.timestamp);
+
+        var million = 10 ** 6;
+
+        t1 = new ERC20Base(million * T1);
+        t2 = new ERC20Base(million * T2);
+
+        seller = new AuctionTester();
+        seller.bindManager(manager);
+
+        t1.transfer(seller, 200 * T1);
+        seller.doApprove(manager, 200 * T1, t1);
+
+        bidder1 = new AuctionTester();
+        bidder1.bindManager(manager);
+
+        t2.transfer(bidder1, 1000 * T2);
+        bidder1.doApprove(manager, 1000 * T2, t2);
+
+        bidder2 = new AuctionTester();
+        bidder2.bindManager(manager);
+
+        t2.transfer(bidder2, 1000 * T2);
+        bidder2.doApprove(manager, 1000 * T2, t2);
+
+        t1.transfer(this, 1000 * T1);
+        t2.transfer(this, 1000 * T2);
+        t1.approve(manager, 1000 * T1);
+        t2.approve(manager, 1000 * T2);
     }
 }

@@ -333,33 +333,4 @@ contract ForwardSplittingTest is AuctionTest
         var (nid, sid) = bidder2.doBid(base, 12 * T2, 60 * T1);
         bidder1.doBid(base, 20 * T2, 60 * T1);
     }
-    function testReclaimAfterBaseSplit() {
-        var (id, base) = newAuction();
-
-        bidder1.doBid(base, 20 * T2, 50 * T1);
-        // force expiry
-        manager.addTime(2 years);
-
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
-
-        assertEq(balance_after - balance_before, 50 * T1);
-    }
-    function testReclaimAfterSplitBaseSplit() {
-        var (id, base) = newAuction();
-
-        var (nid, sid) = bidder1.doBid(base, 20 * T2, 50 * T1);
-        bidder2.doBid(sid, 20 * T2, 40 * T1);
-        // force expiry
-        manager.addTime(2 years);
-
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
-
-        // reclaimable balance should be the same as after
-        // just the base split
-        assertEq(balance_after - balance_before, 50 * T1);
-    }
 }

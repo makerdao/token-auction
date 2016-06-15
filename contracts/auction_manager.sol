@@ -161,18 +161,6 @@ contract AuctionUser is EventfulAuction
         _assertClaimable(auctionlet_id);
         _doClaim(auctionlet_id);
     }
-    // Starting an auction takes funds from the beneficiary to keep in
-    // escrow. If there are any funds remaining after expiry, e.g. if
-    // there were no bids or if only a portion of the lot was bid for,
-    // the seller can reclaim them.
-    function reclaim(uint auction_id) {
-        var A = _auctions[auction_id];
-        var expired = A.expiration <= getTime();
-        assert(expired);
-
-        settleReclaim(A);
-        A.unsold = 0;
-    }
     // Check whether an auctionlet is eligible for bidding on
     function _assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];

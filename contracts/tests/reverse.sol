@@ -133,34 +133,4 @@ contract ReverseTest is AuctionTest {
 
         assertEq(t1_balance_diff, 85 * T1);
     }
-    function testCreatorReclaimAfterExpiry() {
-        // the seller should be able to reclaim any unbid on
-        // sell token after the auction has expired.
-        var (id, base) = newReverseAuction();
-
-        // force expiry
-        manager.addTime(2 years);
-
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
-
-        assertEq(balance_after - balance_before, 100 * T1);
-    }
-    function testCreatorReclaimAfterBid() {
-        // if there has already been a bid (on the full lot), the
-        // creator should not receive any more sell token on reclaim
-        var (id, base) = newReverseAuction();
-
-        bidder1.doBid(base, 50 * T1);
-
-        // force expiry
-        manager.addTime(2 years);
-
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
-
-        assertEq(balance_after, balance_after);
-    }
 }

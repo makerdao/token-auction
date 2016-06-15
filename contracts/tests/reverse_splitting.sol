@@ -203,39 +203,4 @@ contract ReverseSplittingTest is AuctionTest {
         // 20 + 80 * (4 / 5) - 40 = 44
         assertEq(balance_after - balance_before, 44 * T1);
     }
-    function testCreatorReclaimAfterBaseSplit() {
-        var (id, base) = newReverseAuction();
-
-        bidder1.doBid(base, 50 * T1, 3 * T2);
-
-        // force expiry
-        manager.addTime(+ 2 years);
-
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
-
-        // check that the unsold sell tokens are sent back
-        // to the creator.
-        // 100 * (5 - 3) / 5 = 40
-        assertEq(balance_after - balance_before, 40 * T1);
-    }
-    function testCreatorReclaimAfterSplitBaseSplit() {
-        var (id, base) = newReverseAuction();
-
-        var (nid, sid) = bidder1.doBid(base, 50 * T1, 3 * T2);
-        bidder2.doBid(sid, 20 * T1, 2 * T2);
-
-        // force expiry
-        manager.addTime(2 years);
-
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
-
-        // There should still be the same number of tokens available for
-        // reclaim as the second split is a sub-split of the first.
-        // 100 * (5 - 3) / 5 = 40
-        assertEq(balance_after - balance_before, 40 * T1);
-    }
 }

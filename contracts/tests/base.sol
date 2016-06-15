@@ -56,9 +56,6 @@ contract AuctionTester is Tester {
     function doClaim(uint id) {
         return manager.claim(id);
     }
-    function doReclaim(uint id) {
-        return manager.reclaim(id);
-    }
 }
 
 contract AuctionTest is Test {

@@ -248,24 +248,6 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         bidder1.doClaim(1);
         bidder1.doClaim(1);
     }
-    function testReclaimAfterExpiry() {
-        // the seller should be able to reclaim any unbid on
-        // sell token after the auction has expired.
-        var (id, base) = newAuction();
-
-        // force expiry
-        manager.addTime(2 years);
-
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id);
-        var balance_after = t1.balanceOf(this);
-
-        assertEq(balance_after - balance_before, 100 * T1);
-    }
-    function testFailReclaimBeforeExpiry() {
-        var (id, base) = newAuction();
-        seller.doReclaim(id);
-    }
     function testBidTransfersToDistinctBeneficiary() {
         var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
 
@@ -274,20 +256,6 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         var balance_after = t2.balanceOf(bidder2);
 
         assertEq(balance_after - balance_before, 10 * T2);
-    }
-    function testReclaimOnlyOnce() {
-        var (id1, base1) = newAuction();
-        var (id2, base2) = newAuction();
-
-        // force expiry
-        manager.addTime(2 years);
-
-        manager.reclaim(id1);
-        var balance_before = t1.balanceOf(this);
-        manager.reclaim(id1);
-        var balance_after = t1.balanceOf(this);
-
-        assertEq(balance_after, balance_before);
     }
 }
 

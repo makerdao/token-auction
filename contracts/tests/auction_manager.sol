@@ -243,10 +243,13 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         bidder1.doBid(base1, 11 * T2);
         bidder2.doBid(base2, 11 * T2);
 
+        // force expiry
+        manager.addTime(2 years);
+
         // now attempt to claim the proceedings from the first
         // auctionlet twice
-        bidder1.doClaim(1);
-        bidder1.doClaim(1);
+        bidder1.doClaim(base1);
+        bidder1.doClaim(base1);
     }
     function testBidTransfersToDistinctBeneficiary() {
         var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);

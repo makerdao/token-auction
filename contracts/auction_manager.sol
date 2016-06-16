@@ -136,6 +136,13 @@ contract AuctionDatabase is AuctionTypes, TimeUser {
         var A = _auctions[a.auction_id];
         expired = (getTime() - a.last_bid_time) > A.duration;
     }
+    function getRefundAddress(uint auction_id) returns (address) {
+        return _auctions[auction_id].refund;
+    }
+    function setRefundAddress(uint auction_id, address refund) {
+        var A = _auctions[auction_id];
+        A.refund = refund;
+    }
 }
 
 contract AuctionUser is EventfulAuction

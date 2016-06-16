@@ -307,3 +307,66 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         assertEq(balance_after - balance_before, 40 * T2);
     }
 }
+
+// two-way auction with given refund address
+contract TwoWayRefundTest is AuctionTest, EventfulAuction, EventfulManager {
+    function newTwoWayAuction() returns (uint auction_id, uint base_id) {
+        (auction_id, base_id) = manager.newTwoWayAuction( seller        // beneficiary
+                                                        , t1            // selling
+                                                        , t2            // buying
+                                                        , 100 * T1      // sell_amount
+                                                        , 10 * T2       // start_bid
+                                                        , 1 * T2        // min_increase
+                                                        , 1 * T1        // min_decrease
+                                                        , 1 years       // duration
+                                                        , 100 * T2      // collection_limit
+                                                        );
+        manager.setRefundAddress(auction_id, beneficiary1);
+    }
+    function testNewTwoWayAuction() {
+        var (id, base) = newTwoWayAuction();
+        assertEq(manager.getRefundAddress(id), beneficiary1);
+    }
+    function testBidTransfersRefund() {
+        // successive bids in the reverse part of the auction should
+        // refund the `refund` address
+        var (id, base) = newTwoWayAuction();
+
+        bidder1.doBid(base, 101 * T2);
+        bidder1.doBid(base, 90 * T1);
+
+        var balance_before = t1.balanceOf(beneficiary1);
+        bidder2.doBid(base, 80 * T1);
+        var balance_after = t1.balanceOf(beneficiary1);
+
+        assertEq(balance_after - balance_before, 10 * T1);
+    }
+    function testBidNoTransferToCreator() {
+        // successive bids in the reverse part of the auction should
+        // send nothing to the creator
+        var (id, base) = newTwoWayAuction();
+
+        bidder1.doBid(base, 101 * T2);
+        bidder1.doBid(base, 90 * T1);
+
+        var balance_before = t1.balanceOf(this);
+        bidder2.doBid(base, 80 * T1);
+        var balance_after = t1.balanceOf(this);
+
+        assertEq(balance_after, balance_before);
+    }
+    function testBidNoTransferToBeneficiary() {
+        // successive bids in the reverse part of the auction should
+        // send nothing to the creator
+        var (id, base) = newTwoWayAuction();
+
+        bidder1.doBid(base, 101 * T2);
+        bidder1.doBid(base, 90 * T1);
+
+        var balance_before = t1.balanceOf(seller);
+        bidder2.doBid(base, 80 * T1);
+        var balance_after = t1.balanceOf(seller);
+
+        assertEq(balance_after, balance_before);
+    }
+}

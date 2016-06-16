@@ -14,7 +14,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
                                  , t2        // buying
                                  , 100 * T1  // sell_amount
                                  , 10 * T2   // start_bid
-                                 , 1 * T2    // min_increase
+                                 , 1         // min_increase (%)
                                  , 1 years   // duration
                                  );
     }
@@ -46,7 +46,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertTrue(buying == t2);
         assertEq(sell_amount, 100 * T1);
         assertEq(start_bid, 10 * T2);
-        assertEq(min_increase, 1 * T2);
+        assertEq(min_increase, 1);
         assertEq(duration, 1 years);
     }
     function testNewAuctionTransfersToManager() {
@@ -80,11 +80,6 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
     function testFailBidUnderMinBid() {
         var (id, base) = newAuction();
         bidder1.doBid(base, 9 * T2);
-    }
-    function testFailBidUnderMinIncrease() {
-        var (id, base) = newAuction();
-        bidder1.doBid(base, 10 * T2);
-        bidder2.doBid(base, 11 * T2);
     }
     function testBid() {
         var (id, base) = newAuction();
@@ -196,7 +191,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
 
         var (id1, base1) = newAuction();
         // flip tokens around
-        var (id2, base2) = manager.newAuction(seller, t2, t1, 100 * T2, 10 * T1, 1 * T1, 1 years);
+        var (id2, base2) = manager.newAuction(seller, t2, t1, 100 * T2, 10 * T1, 1, 1 years);
 
         assertEq(id1, 1);
         assertEq(id2, 2);
@@ -212,7 +207,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         assertTrue(buying == t1);
         assertEq(sell_amount, 100 * T2);
         assertEq(start_bid, 10 * T1);
-        assertEq(min_increase, 1 * T1);
+        assertEq(min_increase, 1);
         assertEq(duration, 1 years);
     }
     function testMultipleAuctionsBidTransferToBenefactor() {
@@ -261,13 +256,44 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         bidder1.doClaim(base1);
     }
     function testBidTransfersToDistinctBeneficiary() {
-        var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
 
         var balance_before = t2.balanceOf(bidder2);
         bidder1.doBid(base, 10 * T2);
         var balance_after = t2.balanceOf(bidder2);
 
         assertEq(balance_after - balance_before, 10 * T2);
+    }
+}
+
+contract MinBidIncreaseTest is AuctionTest, EventfulAuction, EventfulManager {
+    function newAuction() returns (uint, uint) {
+        return manager.newAuction( seller    // beneficiary
+                                 , t1        // selling
+                                 , t2        // buying
+                                 , 100 * T1  // sell_amount
+                                 , 10 * T2   // start_bid
+                                 , 20        // min_increase (%)
+                                 , 1 years   // duration
+                                 );
+    }
+    function testFailFirstBidEqualStartBid() {
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 10 * T2);
+    }
+    function testFailSubsequentBidEqualLastBid() {
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 13 * T2);
+        bidder2.doBid(base, 13 * T2);
+    }
+    function testFailFirstBidLowerThanMinIncrease() {
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 11 * T2);
+    }
+    function testFailSubsequentBidLowerThanMinIncrease() {
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 12 * T2);
+        bidder2.doBid(base, 13 * T2);
     }
 }
 
@@ -279,8 +305,8 @@ contract MultipleBeneficiariesTest is AuctionTest, EventfulAuction, EventfulMana
         uint[] memory payouts = new uint[](1);
         payouts[0] = INFINITY;
 
-        var (id1, base1) = manager.newAuction(beneficiary1, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
-        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var (id1, base1) = manager.newAuction(beneficiary1, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
+        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
 
         var (beneficiary, selling, buying,
              sell_amount, start_bid, min_increase, expiration) = manager.getAuction(id1);
@@ -299,7 +325,7 @@ contract MultipleBeneficiariesTest is AuctionTest, EventfulAuction, EventfulMana
         uint[] memory payouts = new uint[](1);
         payouts[0] = INFINITY;
 
-        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
     }
     function testFailNonSummingPayouts() {
         address[] memory beneficiaries = new address[](3);
@@ -310,7 +336,7 @@ contract MultipleBeneficiariesTest is AuctionTest, EventfulAuction, EventfulMana
         payouts[1] = 1;
         payouts[2] = 2;
 
-        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1 * T2, 1 years);
+        var (id2, base2) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
     }
     function testFailFirstPayoutLessThanStartBid() {
         address[] memory beneficiaries = new address[](2);
@@ -321,7 +347,7 @@ contract MultipleBeneficiariesTest is AuctionTest, EventfulAuction, EventfulMana
         payouts[0] = 10 * T2;
         payouts[1] = INFINITY - 10 * T2;
 
-        var (id, base) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 50 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 50 * T2, 1, 1 years);
     }
     function testPayoutFirstBeneficiary() {
         address[] memory beneficiaries = new address[](2);
@@ -332,7 +358,7 @@ contract MultipleBeneficiariesTest is AuctionTest, EventfulAuction, EventfulMana
         payouts[0] = 10 * T2;
         payouts[1] = INFINITY - 10 * T2;
 
-        var (id, base) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 5 * T2, 1 * T2, 1 years);
+        var (id, base) = manager.newAuction(beneficiaries, payouts, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
 
         var balance_before = t2.balanceOf(beneficiary1);
         bidder1.doBid(id, 30 * T2);

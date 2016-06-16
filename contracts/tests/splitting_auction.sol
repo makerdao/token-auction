@@ -13,7 +13,7 @@ contract ForwardSplittingTest is AuctionTest
                                  , t2        // buying
                                  , 100 * T1  // sell_amount
                                  , 10 * T2   // start_bid
-                                 , 1 * T2    // min_increase
+                                 , 1         // min_increase (%)
                                  , 1 years   // duration
                                  );
     }
@@ -273,7 +273,7 @@ contract ForwardSplittingTest is AuctionTest
     function testFailSplitUnderMinIncrease() {
         // Splitting bids have to increase more than the scaled minimum
         // increase
-        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 10 * T2, 1 years);
+        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 10, 1 years);
         bidder1.doBid(base, 10 * T2);
 
         bidder2.doBid(base, 6 * T2, 50 * T1);

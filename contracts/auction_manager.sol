@@ -196,10 +196,10 @@ contract AuctionUser is EventfulAuction
 
         if (A.reversed) {
             // check if reverse biddable
-            assert(bid_how_much <= (a.sell_amount - A.min_decrease));
+            assert(bid_how_much <= (a.sell_amount * (100 - A.min_decrease) / 100 ));
         } else {
             // check if forward biddable
-            assert(bid_how_much >= (a.buy_amount + A.min_increase));
+            assert(bid_how_much >= (a.buy_amount * (100 + A.min_increase) / 100 ));
         }
     }
     // Auctionlet bid logic, including transfers.

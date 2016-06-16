@@ -9,7 +9,7 @@ contract ReverseSplittingTest is AuctionTest {
                                         , t2        // buying
                                         , 100 * T1  // sell_amount
                                         , 5 * T2    // buy_amount
-                                        , 2 * T1    // min_decrease
+                                        , 2         // min_decrease (%)
                                         , 1 years   // duration
                                         );
     }

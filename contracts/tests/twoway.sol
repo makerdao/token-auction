@@ -9,8 +9,8 @@ contract TwoWayTest is AuctionTest, EventfulAuction, EventfulManager {
                                        , t2        // buying
                                        , 100 * T1  // sell_amount
                                        , 10 * T2   // start_bid
-                                       , 1 * T2    // min_increase
-                                       , 1 * T1    // min_decrease
+                                       , 1         // min_increase (%)
+                                       , 1         // min_decrease (%)
                                        , 1 years   // duration
                                        , 100 * T2  // collection_limit
                                        );
@@ -155,8 +155,8 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
                                                    , t2
                                                    , 100 * T1
                                                    , 10 * T2
-                                                   , 1 * T2
-                                                   , 1 * T1
+                                                   , 1
+                                                   , 1
                                                    , 1 years
                                                    , 100 * T2
                                                    );
@@ -166,8 +166,8 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
                                                    , t2
                                                    , 100 * T1
                                                    , 10 * T2
-                                                   , 1 * T2
-                                                   , 1 * T1
+                                                   , 1
+                                                   , 1
                                                    , 1 years
                                                    );
 
@@ -196,8 +196,8 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
                                        , t2
                                        , 100 * T1
                                        , 10 * T2
-                                       , 1 * T2
-                                       , 1 * T1
+                                       , 1
+                                       , 1
                                        , 1 years
                                        );
     }
@@ -316,8 +316,8 @@ contract TwoWayRefundTest is AuctionTest, EventfulAuction, EventfulManager {
                                                         , t2            // buying
                                                         , 100 * T1      // sell_amount
                                                         , 10 * T2       // start_bid
-                                                        , 1 * T2        // min_increase
-                                                        , 1 * T1        // min_decrease
+                                                        , 1             // min_increase (%)
+                                                        , 1             // min_decrease (%)
                                                         , 1 years       // duration
                                                         , 100 * T2      // collection_limit
                                                         );

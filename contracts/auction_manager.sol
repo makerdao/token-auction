@@ -42,6 +42,7 @@ contract AuctionTypes {
         address creator;
         address[] beneficiaries;
         uint[] payouts;
+        address refund;
         ERC20 selling;
         ERC20 buying;
         uint start_bid;
@@ -97,7 +98,7 @@ contract TransferUser is Assertive, AuctionTypes, MathUser {
         }
     }
     function settleExcessSell(Auction A, uint excess_sell) internal {
-        assert(A.selling.transfer(A.beneficiaries[0], excess_sell));
+        assert(A.selling.transfer(A.refund, excess_sell));
     }
     function settleBidderClaim(Auction A, Auctionlet a) internal {
         assert(A.selling.transfer(a.last_bidder, a.sell_amount));
@@ -134,6 +135,20 @@ contract AuctionDatabase is AuctionTypes, TimeUser {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
         expired = (getTime() - a.last_bid_time) > A.duration;
+    }
+    function getRefundAddress(uint auction_id) returns (address) {
+        return _auctions[auction_id].refund;
+    }
+    function setRefundAddress(uint auction_id, address refund)
+        only_creator(auction_id)
+    {
+        var A = _auctions[auction_id];
+        A.refund = refund;
+    }
+    modifier only_creator(uint auction_id) {
+        if (msg.sender != _auctions[auction_id].creator)
+            throw;
+        _
     }
 }
 
@@ -319,10 +334,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                         )
         returns (uint auction_id, uint base_id)
     {
-        address[] memory beneficiaries = new address[](1);
-        beneficiaries[0] = beneficiary;
-        uint[] memory payouts = new uint[](1);
-        payouts[0] = INFINITY;
+        var (beneficiaries, payouts) = makeSinglePayout(beneficiary, INFINITY);
 
         (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
                                                    beneficiaries: beneficiaries,
@@ -374,10 +386,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                               )
         returns (uint auction_id, uint base_id)
     {
-        address[] memory beneficiaries = new address[](1);
-        beneficiaries[0] = beneficiary;
-        uint[] memory payouts = new uint[](1);
-        payouts[0] = 0;
+        var (beneficiaries, payouts) = makeSinglePayout(beneficiary, 0);
 
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
@@ -408,10 +417,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                              )
         returns (uint, uint)
     {
-        address[] memory beneficiaries = new address[](1);
-        beneficiaries[0] = beneficiary;
-        uint[] memory payouts = new uint[](1);
-        payouts[0] = collection_limit;
+        var (beneficiaries, payouts) = makeSinglePayout(beneficiary, collection_limit);
 
         return _newTwoWayAuction({creator: msg.sender,
                                   beneficiaries: beneficiaries,
@@ -459,6 +465,18 @@ contract AuctionManager is AuctionUser, EventfulManager {
         if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
         assert(sum(A.payouts) == A.collection_limit);
     }
+    function makeSinglePayout(address beneficiary, uint collection_limit)
+        internal
+        returns (address[], uint[])
+    {
+        address[] memory beneficiaries = new address[](1);
+        uint[] memory payouts = new uint[](1);
+
+        beneficiaries[0] = beneficiary;
+        payouts[0] = collection_limit;
+
+        return (beneficiaries, payouts);
+    }
     function _newTwoWayAuction( address creator
                               , address[] beneficiaries
                               , uint[] payouts
@@ -479,6 +497,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.creator = creator;
         A.beneficiaries = beneficiaries;
         A.payouts = payouts;
+        A.refund = beneficiaries[0];
         A.selling = selling;
         A.buying = buying;
         A.sell_amount = sell_amount;

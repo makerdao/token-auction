@@ -60,6 +60,8 @@ contract AuctionTest is Test {
     AuctionTester seller;
     AuctionTester bidder1;
     AuctionTester bidder2;
+    AuctionTester beneficiary1;
+    AuctionTester beneficiary2;
 
     ERC20 t1;
     ERC20 t2;
@@ -67,6 +69,8 @@ contract AuctionTest is Test {
     // use prime numbers to avoid coincidental collisions
     uint constant T1 = 5 ** 12;
     uint constant T2 = 7 ** 10;
+
+    uint constant INFINITY = uint(-1);
 
     function setUp() {
         manager = new TestableManager();
@@ -99,5 +103,8 @@ contract AuctionTest is Test {
         t2.transfer(this, 1000 * T2);
         t1.approve(manager, 1000 * T1);
         t2.approve(manager, 1000 * T2);
+
+        beneficiary1 = new AuctionTester();
+        beneficiary2 = new AuctionTester();
     }
 }

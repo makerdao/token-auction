@@ -357,7 +357,7 @@ contract TwoWayRefundTest is AuctionTest, EventfulAuction, EventfulManager {
     }
     function testBidNoTransferToBeneficiary() {
         // successive bids in the reverse part of the auction should
-        // send nothing to the creator
+        // send nothing to the given beneficiary
         var (id, base) = newTwoWayAuction();
 
         bidder1.doBid(base, 101 * T2);

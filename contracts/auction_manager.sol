@@ -139,9 +139,16 @@ contract AuctionDatabase is AuctionTypes, TimeUser {
     function getRefundAddress(uint auction_id) returns (address) {
         return _auctions[auction_id].refund;
     }
-    function setRefundAddress(uint auction_id, address refund) {
+    function setRefundAddress(uint auction_id, address refund)
+        only_creator(auction_id)
+    {
         var A = _auctions[auction_id];
         A.refund = refund;
+    }
+    modifier only_creator(uint auction_id) {
+        if (msg.sender != _auctions[auction_id].creator)
+            throw;
+        _
     }
 }
 

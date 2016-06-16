@@ -81,10 +81,14 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
         var (id, base) = newAuction();
         bidder1.doBid(base, 9 * T2);
     }
-    function testFailBidUnderMinIncrease() {
+    function testFailFirstBidUnderMinIncrease() {
         var (id, base) = newAuction();
         bidder1.doBid(base, 10 * T2);
-        bidder2.doBid(base, 11 * T2);
+    }
+    function testFailSubsequentBidUnderMinIncrease() {
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 12 * T2);
+        bidder2.doBid(base, 12 * T2);
     }
     function testBid() {
         var (id, base) = newAuction();

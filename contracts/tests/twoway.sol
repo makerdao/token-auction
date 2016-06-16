@@ -143,16 +143,6 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
                                           , EventfulAuction
                                           , EventfulManager
 {
-    AuctionTester beneficiary1;
-    AuctionTester beneficiary2;
-
-    uint constant INFINITY = uint(-1);
-
-    function setUp() {
-        super.setUp();
-        beneficiary1 = new AuctionTester();
-        beneficiary2 = new AuctionTester();
-    }
     function testNewAuction() {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary1;

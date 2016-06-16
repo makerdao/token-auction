@@ -42,6 +42,7 @@ contract AuctionTypes {
         address creator;
         address[] beneficiaries;
         uint[] payouts;
+        address refund;
         ERC20 selling;
         ERC20 buying;
         uint start_bid;
@@ -97,7 +98,7 @@ contract TransferUser is Assertive, AuctionTypes, MathUser {
         }
     }
     function settleExcessSell(Auction A, uint excess_sell) internal {
-        assert(A.selling.transfer(A.beneficiaries[0], excess_sell));
+        assert(A.selling.transfer(A.refund, excess_sell));
     }
     function settleBidderClaim(Auction A, Auctionlet a) internal {
         assert(A.selling.transfer(a.last_bidder, a.sell_amount));
@@ -482,6 +483,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
         A.creator = creator;
         A.beneficiaries = beneficiaries;
         A.payouts = payouts;
+        A.refund = beneficiaries[0];
         A.selling = selling;
         A.buying = buying;
         A.sell_amount = sell_amount;

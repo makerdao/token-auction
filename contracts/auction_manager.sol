@@ -319,10 +319,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                         )
         returns (uint auction_id, uint base_id)
     {
-        address[] memory beneficiaries = new address[](1);
-        beneficiaries[0] = beneficiary;
-        uint[] memory payouts = new uint[](1);
-        payouts[0] = INFINITY;
+        var (beneficiaries, payouts) = makeSinglePayout(beneficiary, INFINITY);
 
         (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
                                                    beneficiaries: beneficiaries,
@@ -374,10 +371,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                               )
         returns (uint auction_id, uint base_id)
     {
-        address[] memory beneficiaries = new address[](1);
-        beneficiaries[0] = beneficiary;
-        uint[] memory payouts = new uint[](1);
-        payouts[0] = 0;
+        var (beneficiaries, payouts) = makeSinglePayout(beneficiary, 0);
 
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
@@ -408,10 +402,7 @@ contract AuctionManager is AuctionUser, EventfulManager {
                              )
         returns (uint, uint)
     {
-        address[] memory beneficiaries = new address[](1);
-        beneficiaries[0] = beneficiary;
-        uint[] memory payouts = new uint[](1);
-        payouts[0] = collection_limit;
+        var (beneficiaries, payouts) = makeSinglePayout(beneficiary, collection_limit);
 
         return _newTwoWayAuction({creator: msg.sender,
                                   beneficiaries: beneficiaries,
@@ -458,6 +449,18 @@ contract AuctionManager is AuctionUser, EventfulManager {
         assert(A.beneficiaries.length == A.payouts.length);
         if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
         assert(sum(A.payouts) == A.collection_limit);
+    }
+    function makeSinglePayout(address beneficiary, uint collection_limit)
+        internal
+        returns (address[], uint[])
+    {
+        address[] memory beneficiaries = new address[](1);
+        uint[] memory payouts = new uint[](1);
+
+        beneficiaries[0] = beneficiary;
+        payouts[0] = collection_limit;
+
+        return (beneficiaries, payouts);
     }
     function _newTwoWayAuction( address creator
                               , address[] beneficiaries

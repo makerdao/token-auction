@@ -107,4 +107,51 @@ contract UsingAuctionDatabase is AuctionDatabase {
             a.buy_amount = bid;
         }
     }
+    function newGenericAuction( address creator
+                              , address[] beneficiaries
+                              , uint[] payouts
+                              , ERC20 selling
+                              , ERC20 buying
+                              , uint sell_amount
+                              , uint start_bid
+                              , uint min_increase
+                              , uint min_decrease
+                              , uint duration
+                              , uint collection_limit
+                              , bool reversed
+                              )
+        internal
+        returns (uint auction_id, uint base_id)
+    {
+        Auction memory A;
+        A.creator = creator;
+        A.beneficiaries = beneficiaries;
+        A.payouts = payouts;
+        A.refund = beneficiaries[0];
+        A.selling = selling;
+        A.buying = buying;
+        A.sell_amount = sell_amount;
+        A.start_bid = start_bid;
+        A.min_increase = min_increase;
+        A.min_decrease = min_decrease;
+        A.duration = duration;
+        A.collection_limit = collection_limit;
+        A.unsold = sell_amount;
+
+        auction_id = createAuction(A);
+
+        // create the base auctionlet
+        base_id = newAuctionlet({ auction_id:  auction_id
+                                , bid:         A.start_bid
+                                , quantity:    A.sell_amount
+                                , last_bidder: A.beneficiaries[0]
+                                , base:        true
+                                });
+
+        // set reversed after newAuctionlet because of reverse specific logic
+        setReversed(auction_id, reversed);
+        // TODO: this is a code smell. There may be a way around this by
+        // rethinking the reversed logic throughout - possibly renaming
+        // a.sell_amount / a.buy_amount
+    }
 }

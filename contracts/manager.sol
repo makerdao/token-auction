@@ -53,19 +53,19 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, INFINITY);
 
-        (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
-                                                   beneficiaries: beneficiaries,
-                                                   payouts: payouts,
-                                                   selling: selling,
-                                                   buying: buying,
-                                                   sell_amount: sell_amount,
-                                                   start_bid: start_bid,
-                                                   min_increase: min_increase,
-                                                   min_decrease: 0,
-                                                   duration: duration,
-                                                   collection_limit: INFINITY,
-                                                   reversed: false
-                                                 });
+        (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
+                                                    , beneficiaries: beneficiaries
+                                                    , payouts: payouts
+                                                    , selling: selling
+                                                    , buying: buying
+                                                    , sell_amount: sell_amount
+                                                    , start_bid: start_bid
+                                                    , min_increase: min_increase
+                                                    , min_decrease: 0
+                                                    , duration: duration
+                                                    , collection_limit: INFINITY
+                                                    , reversed: false
+                                                    });
     }
     function newAuction( address[] beneficiaries
                        , uint[] payouts
@@ -78,19 +78,19 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
                        )
         returns (uint auction_id, uint base_id)
     {
-        (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
-                                                   beneficiaries: beneficiaries,
-                                                   payouts: payouts,
-                                                   selling: selling,
-                                                   buying: buying,
-                                                   sell_amount: sell_amount,
-                                                   start_bid: start_bid,
-                                                   min_increase: min_increase,
-                                                   min_decrease: 0,
-                                                   duration: duration,
-                                                   collection_limit: INFINITY,
-                                                   reversed: false
-                                                 });
+        (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
+                                                    , beneficiaries: beneficiaries
+                                                    , payouts: payouts
+                                                    , selling: selling
+                                                    , buying: buying
+                                                    , sell_amount: sell_amount
+                                                    , start_bid: start_bid
+                                                    , min_increase: min_increase
+                                                    , min_decrease: 0
+                                                    , duration: duration
+                                                    , collection_limit: INFINITY
+                                                    , reversed: false
+                                                    });
     }
     // Create a new reverse auction
     function newReverseAuction( address beneficiary
@@ -107,19 +107,19 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
 
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
-        (auction_id, base_id) = _newTwoWayAuction({creator: msg.sender,
-                                                   beneficiaries: beneficiaries,
-                                                   payouts: payouts,
-                                                   selling: selling,
-                                                   buying: buying,
-                                                   sell_amount: max_sell_amount,
-                                                   start_bid: buy_amount,
-                                                   min_increase: 0,
-                                                   min_decrease: min_decrease,
-                                                   duration: duration,
-                                                   collection_limit: 0,
-                                                   reversed: true
-                                                 });
+        (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
+                                                    , beneficiaries: beneficiaries
+                                                    , payouts: payouts
+                                                    , selling: selling
+                                                    , buying: buying
+                                                    , sell_amount: max_sell_amount
+                                                    , start_bid: buy_amount
+                                                    , min_increase: 0
+                                                    , min_decrease: min_decrease
+                                                    , duration: duration
+                                                    , collection_limit: 0
+                                                    , reversed: true
+                                                    });
     }
     // Create a new two-way auction.
     function newTwoWayAuction( address beneficiary
@@ -135,20 +135,19 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
         returns (uint, uint)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
-
-        return _newTwoWayAuction({creator: msg.sender,
-                                  beneficiaries: beneficiaries,
-                                  payouts: payouts,
-                                  selling: selling,
-                                  buying: buying,
-                                  sell_amount: sell_amount,
-                                  start_bid: start_bid,
-                                  min_increase: min_increase,
-                                  min_decrease: min_decrease,
-                                  duration: duration,
-                                  collection_limit: collection_limit,
-                                  reversed: false
-                                  });
+        return _makeGenericAuction({ creator: msg.sender
+                                   , beneficiaries: beneficiaries
+                                   , payouts: payouts
+                                   , selling: selling
+                                   , buying: buying
+                                   , sell_amount: sell_amount
+                                   , start_bid: start_bid
+                                   , min_increase: min_increase
+                                   , min_decrease: min_decrease
+                                   , duration: duration
+                                   , collection_limit: collection_limit
+                                   , reversed: false
+                                   });
     }
     function newTwoWayAuction( address[] beneficiaries
                              , uint[] payouts
@@ -163,24 +162,19 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
         returns (uint, uint)
     {
         var collection_limit = sum(payouts);
-        return _newTwoWayAuction({creator: msg.sender,
-                                  beneficiaries: beneficiaries,
-                                  payouts: payouts,
-                                  selling: selling,
-                                  buying: buying,
-                                  sell_amount: sell_amount,
-                                  start_bid: start_bid,
-                                  min_increase: min_increase,
-                                  min_decrease: min_decrease,
-                                  duration: duration,
-                                  collection_limit: collection_limit,
-                                  reversed: false
-                                  });
-    }
-    function _checkPayouts(Auction A) internal {
-        assert(A.beneficiaries.length == A.payouts.length);
-        if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
-        assert(sum(A.payouts) == A.collection_limit);
+        return _makeGenericAuction({ creator: msg.sender
+                                   , beneficiaries: beneficiaries
+                                   , payouts: payouts
+                                   , selling: selling
+                                   , buying: buying
+                                   , sell_amount: sell_amount
+                                   , start_bid: start_bid
+                                   , min_increase: min_increase
+                                   , min_decrease: min_decrease
+                                   , duration: duration
+                                   , collection_limit: collection_limit
+                                   , reversed: false
+                                   });
     }
     function _makeSinglePayout(address beneficiary, uint collection_limit)
         internal
@@ -194,58 +188,47 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
 
         return (beneficiaries, payouts);
     }
-    function _newTwoWayAuction( address creator
-                              , address[] beneficiaries
-                              , uint[] payouts
-                              , ERC20 selling
-                              , ERC20 buying
-                              , uint sell_amount
-                              , uint start_bid
-                              , uint min_increase
-                              , uint min_decrease
-                              , uint duration
-                              , uint collection_limit
-                              , bool reversed
-                              )
+    function _makeGenericAuction( address creator
+                               , address[] beneficiaries
+                               , uint[] payouts
+                               , ERC20 selling
+                               , ERC20 buying
+                               , uint sell_amount
+                               , uint start_bid
+                               , uint min_increase
+                               , uint min_decrease
+                               , uint duration
+                               , uint collection_limit
+                               , bool reversed
+                               )
         internal
         returns (uint auction_id, uint base_id)
     {
-        Auction memory A;
-        A.creator = creator;
-        A.beneficiaries = beneficiaries;
-        A.payouts = payouts;
-        A.refund = beneficiaries[0];
-        A.selling = selling;
-        A.buying = buying;
-        A.sell_amount = sell_amount;
-        A.start_bid = start_bid;
-        A.min_increase = min_increase;
-        A.min_decrease = min_decrease;
-        A.duration = duration;
-        A.collection_limit = collection_limit;
-        A.unsold = sell_amount;
+        (auction_id, base_id) = newGenericAuction({ creator: msg.sender
+                                                  , beneficiaries: beneficiaries
+                                                  , payouts: payouts
+                                                  , selling: selling
+                                                  , buying: buying
+                                                  , sell_amount: sell_amount
+                                                  , start_bid: start_bid
+                                                  , min_increase: min_increase
+                                                  , min_decrease: min_decrease
+                                                  , duration: duration
+                                                  , collection_limit: collection_limit
+                                                  , reversed: reversed
+                                                  });
 
-        auction_id = createAuction(A);
-
-        // create the base auctionlet
-        base_id = newAuctionlet({ auction_id:  auction_id
-                                , bid:         A.start_bid
-                                , quantity:    A.sell_amount
-                                , last_bidder: A.beneficiaries[0]
-                                , base:        true
-                                });
-
-        // set reversed after newAuctionlet because of reverse specific logic
-        setReversed(auction_id, reversed);
-        A.reversed = reversed;
-        // TODO: this is a code smell. There may be a way around this by
-        // rethinking the reversed logic throughout - possibly renaming
-        // a.sell_amount / a.buy_amount
+        var A = _auctions[auction_id];
 
         _checkPayouts(A);
         takeFundsIntoEscrow(A);
 
         NewAuction(auction_id, base_id);
+    }
+    function _checkPayouts(Auction A) internal {
+        assert(A.beneficiaries.length == A.payouts.length);
+        if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
+        assert(sum(A.payouts) == A.collection_limit);
     }
 }
 

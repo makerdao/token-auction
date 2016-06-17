@@ -30,7 +30,7 @@ contract MathUser {
 
 contract EventfulAuction {
     event Bid(uint indexed auctionlet_id);
-    event AuctionReversal(uint indexed auctionlet_id);
+    event AuctionReversal(uint indexed auction_id);
 }
 
 contract EventfulManager {

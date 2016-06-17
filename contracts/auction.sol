@@ -4,7 +4,10 @@ import 'types.sol';
 import 'transfer.sol';
 import 'util.sol';
 
-contract SplittingAuction is AuctionType, AuctionDatabase, EventfulAuction, TransferUser {
+contract SplittingAuction is AuctionType
+                           , UsingAuctionDatabase
+                           , EventfulAuction
+                           , TransferUser {
     // Auctionlet bid logic, including transfers.
     function doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal
@@ -107,7 +110,7 @@ contract SplittingAuction is AuctionType, AuctionDatabase, EventfulAuction, Tran
     }
 }
 
-contract AssertiveAuction is Assertive, AuctionDatabase {
+contract AssertiveAuction is Assertive, UsingAuctionDatabase {
     // Check whether an auctionlet is eligible for bidding on
     function assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];

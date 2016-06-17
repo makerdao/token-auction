@@ -220,12 +220,12 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
 
         var A = _auctions[auction_id];
 
-        _checkPayouts(A);
+        assertConsistentPayouts(A);
         takeFundsIntoEscrow(A);
 
         NewAuction(auction_id, base_id);
     }
-    function _checkPayouts(Auction A) internal {
+    function assertConsistentPayouts(Auction A) internal {
         assert(A.beneficiaries.length == A.payouts.length);
         if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
         assert(sum(A.payouts) == A.collection_limit);

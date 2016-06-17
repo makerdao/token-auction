@@ -81,7 +81,7 @@ contract SplittingAuction is AuctionType, AuctionDatabase, EventfulAuction, Tran
         newBid(new_id, a.last_bidder, new_bid);
         doBid(split_id, splitter, bid_how_much);
 
-        delete _auctionlets[auctionlet_id];
+        deleteAuctionlet(auctionlet_id);
     }
     // Work out how to split a bid into two parts
     function _calculate_split(uint auctionlet_id, uint quantity)
@@ -103,7 +103,7 @@ contract SplittingAuction is AuctionType, AuctionDatabase, EventfulAuction, Tran
         settleBidderClaim(A, a);
 
         a.unclaimed = false;
-        delete _auctionlets[auctionlet_id];
+        deleteAuctionlet(auctionlet_id);
     }
 }
 

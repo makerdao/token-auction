@@ -16,6 +16,9 @@ contract AuctionDatabase is AuctionType, UsingTime {
         id = ++_last_auction_id;
         _auctions[id] = A;
     }
+    function deleteAuctionlet(uint auctionlet_id) internal {
+        delete _auctionlets[auctionlet_id];
+    }
     function newAuctionlet(uint auction_id, uint bid,
                            uint quantity, address last_bidder, bool base)
         internal returns (uint auctionlet_id)

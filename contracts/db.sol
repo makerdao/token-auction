@@ -19,6 +19,9 @@ contract AuctionDatabase is AuctionType, UsingTime {
     function deleteAuctionlet(uint auctionlet_id) internal {
         delete _auctionlets[auctionlet_id];
     }
+    function deleteAuction(uint auction_id) internal {
+        delete _auctions[auction_id];
+    }
 }
 
 contract UsingAuctionDatabase is AuctionDatabase {

@@ -33,9 +33,9 @@ contract TestableManager is SplittingAuctionManager {
 }
 
 contract AuctionTester is Tester {
-    SplittingAuctionFrontend frontend;
+    SplittingAuctionUser frontend;
     function bindManager(address manager) {
-        frontend = SplittingAuctionFrontend(manager);
+        frontend = SplittingAuctionUser(manager);
     }
     function doApprove(address spender, uint value, ERC20 token) {
         token.approve(spender, value);

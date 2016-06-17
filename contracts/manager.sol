@@ -5,7 +5,7 @@ import 'events.sol';
 import 'types.sol';
 import 'util.sol';
 
-contract AuctionFrontend is EventfulAuction, AssertiveAuction, SplittingAuction {
+contract AuctionUser is EventfulAuction, AssertiveAuction, SplittingAuction {
     // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much) external {
         assertBiddable(auctionlet_id, bid_how_much);
@@ -21,7 +21,7 @@ contract AuctionFrontend is EventfulAuction, AssertiveAuction, SplittingAuction 
     }
 }
 
-contract SplittingAuctionFrontend is AuctionFrontend {
+contract SplittingAuctionUser is AuctionUser {
     // Place a partial bid on an auctionlet, for less than the full lot.
     // This splits the auctionlet into two, bids on one of the new
     // auctionlets and leaves the other to the previous bidder.
@@ -36,7 +36,7 @@ contract SplittingAuctionFrontend is AuctionFrontend {
     }
 }
 
-contract AuctionManager is MathUser, AuctionType, AuctionFrontend, EventfulManager {
+contract AuctionManager is MathUser, AuctionType, EventfulManager, AuctionUser {
     uint constant INFINITY = 2 ** 256 - 1;
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
@@ -249,4 +249,4 @@ contract AuctionManager is MathUser, AuctionType, AuctionFrontend, EventfulManag
     }
 }
 
-contract SplittingAuctionManager is AuctionManager, SplittingAuctionFrontend {}
+contract SplittingAuctionManager is AuctionManager, SplittingAuctionUser {}

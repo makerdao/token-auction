@@ -1,11 +1,11 @@
 import 'erc20/erc20.sol';
 
+import 'auction.sol';
 import 'events.sol';
 import 'types.sol';
-import 'user.sol';
 import 'util.sol';
 
-contract AuctionFrontend is EventfulAuction, AssertiveAuction, AuctionUser {
+contract AuctionFrontend is EventfulAuction, AssertiveAuction, SplittingAuction {
     // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much) external {
         assertBiddable(auctionlet_id, bid_how_much);

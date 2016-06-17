@@ -4,7 +4,7 @@ import 'types.sol';
 import 'transfer.sol';
 import 'util.sol';
 
-contract AuctionUser is AuctionType, AuctionDatabase, EventfulAuction, TransferUser {
+contract SplittingAuction is AuctionType, AuctionDatabase, EventfulAuction, TransferUser {
     // Auctionlet bid logic, including transfers.
     function doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal

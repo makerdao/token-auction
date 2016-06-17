@@ -33,25 +33,24 @@ contract TestableManager is SplittingAuctionManager {
 }
 
 contract AuctionTester is Tester {
-    TestableManager manager;
-    function bindManager(TestableManager _manager) {
-        _target(_manager);
-        manager = TestableManager(_t);
+    SplittingAuctionFrontend frontend;
+    function bindManager(address manager) {
+        frontend = SplittingAuctionFrontend(manager);
     }
     function doApprove(address spender, uint value, ERC20 token) {
         token.approve(spender, value);
     }
     function doBid(uint auctionlet_id, uint bid_how_much)
     {
-        return manager.bid(auctionlet_id, bid_how_much);
+        return frontend.bid(auctionlet_id, bid_how_much);
     }
     function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
         returns (uint, uint)
     {
-        return manager.bid(auctionlet_id, bid_how_much, sell_amount);
+        return frontend.bid(auctionlet_id, bid_how_much, sell_amount);
     }
     function doClaim(uint id) {
-        return manager.claim(id);
+        return frontend.claim(id);
     }
 }
 

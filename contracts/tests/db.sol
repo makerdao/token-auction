@@ -2,9 +2,13 @@ import 'tests/base.sol';
 
 import 'db.sol';
 
-contract DBTester is AuctionTester {
+contract DBTester is Tester {
+    TestableManager _manager;
+    function bindManager(address manager) {
+        _manager = TestableManager(manager);
+    }
     function doSetRefundAddress(uint id, address refund) {
-        manager.setRefundAddress(id, refund);
+        _manager.setRefundAddress(id, refund);
     }
 }
 

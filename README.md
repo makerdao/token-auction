@@ -257,3 +257,75 @@ Split(uint base_id, uint new_id, uint split_id)
   bidder retains.
 - `uint split_id` is the id of the new auctionlet that the splitter
   is now the high bidder on.
+
+
+## Advanced Usage
+
+### Multiple beneficiaries
+
+Forward and two-way auctions can be configured to have multiple
+beneficiary addresses, each of which will receive, in turn, a given
+payout of auction rewards as higher bids come in.
+
+Create a *multiple beneficiary* auction:
+
+```
+var (id, base) = manager.newAuction( beneficiaries
+                                   , payouts
+                                   , sell_token
+                                   , buy_token
+                                   , sell_amount
+                                   , start_bid
+                                   , min_increase
+                                   , duration);
+```
+
+- `address[] beneficiaries` is the array of beneficiary addresses
+- `uint[] payouts` is the array of corresponding payouts
+
+Note these constraints:
+
+- `beneficiaries` and `payouts` must be equal in length
+- `payouts[0]` must be greater than the `start_bid`
+
+The two-way auction is created similarly, with the sum of the
+payouts being taken to be the `collection_limit`:
+
+```
+var (id, base) = manager.newTwoWayAuction( beneficiaries
+                                         , payouts
+                                         , sell_token
+                                         , buy_token
+                                         , sell_amount
+                                         , start_bid
+                                         , min_increase
+                                         , min_decrease
+                                         , duration
+                                         );
+```
+
+The beneficiaries array is only used in the forward auction or in
+the forward part of the two-way auction.
+
+
+### Reverse auction refund address
+
+In the reverse auction (or the reverse part of the two-way auction),
+bidders compete to receive diminishing amounts of the `sell_token`
+in return for given `buy_token`. As bids come in, increasing
+quantities of the `sell_token` are forgone by bidders.
+
+The default behaviour is to refund this excess `sell_token` to the
+(first) beneficiary. It is possible for the auction *creator* to set
+the refund address arbitrarily.
+
+After creating an auction:
+
+```
+manager.setRefundAddress(auction_id, some_arbitrary_address);
+```
+
+Note that this address can be set any number of times to any number
+of addresses during the course of the auction. Accordingly a
+beneficiary expecting funds needs to trust, or be controlled by, the
+auction creator.

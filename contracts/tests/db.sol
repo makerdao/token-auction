@@ -1,7 +1,5 @@
 import 'tests/base.sol';
 
-import 'db.sol';
-
 contract DBTester is Tester {
     TestableManager _manager;
     function bindManager(address manager) {

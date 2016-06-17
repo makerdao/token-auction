@@ -1,9 +1,6 @@
 import 'tests/base.sol';
 
-import 'auction_manager.sol';
-
-
-contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
+contract AuctionManagerTest is AuctionTest {
     function testSetUp() {
         assertEq(t2.balanceOf(bidder1), 1000 * T2);
         assertEq(t2.allowance(bidder1, manager), 1000 * T2);
@@ -266,7 +263,7 @@ contract AuctionManagerTest is AuctionTest, EventfulAuction, EventfulManager {
     }
 }
 
-contract MinBidIncreaseTest is AuctionTest, EventfulAuction, EventfulManager {
+contract MinBidIncreaseTest is AuctionTest {
     function newAuction() returns (uint, uint) {
         return manager.newAuction( seller    // beneficiary
                                  , t1        // selling
@@ -297,7 +294,7 @@ contract MinBidIncreaseTest is AuctionTest, EventfulAuction, EventfulManager {
     }
 }
 
-contract MultipleBeneficiariesTest is AuctionTest, EventfulAuction, EventfulManager {
+contract MultipleBeneficiariesTest is AuctionTest {
     function testNewAuction() {
         address[] memory beneficiaries = new address[](1);
         beneficiaries[0] = beneficiary1;

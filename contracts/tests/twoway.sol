@@ -1,8 +1,6 @@
 import 'tests/base.sol';
 
-import 'splitting_auction.sol';
-
-contract TwoWayTest is AuctionTest, EventfulAuction, EventfulManager {
+contract TwoWayTest is AuctionTest {
     function newTwoWayAuction() returns (uint, uint) {
         return manager.newTwoWayAuction( seller    // beneficiary
                                        , t1        // selling
@@ -140,8 +138,6 @@ contract TwoWayTest is AuctionTest, EventfulAuction, EventfulManager {
 }
 
 contract TwoWayMultipleBeneficiariesTest is AuctionTest
-                                          , EventfulAuction
-                                          , EventfulManager
 {
     function testNewAuction() {
         address[] memory beneficiaries = new address[](1);
@@ -309,7 +305,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
 }
 
 // two-way auction with given refund address
-contract TwoWayRefundTest is AuctionTest, EventfulAuction, EventfulManager {
+contract TwoWayRefundTest is AuctionTest {
     function newTwoWayAuction() returns (uint auction_id, uint base_id) {
         (auction_id, base_id) = manager.newTwoWayAuction( seller        // beneficiary
                                                         , t1            // selling

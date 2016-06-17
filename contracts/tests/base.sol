@@ -1,6 +1,6 @@
 import 'dapple/test.sol';
 import 'erc20/base.sol';
-import 'splitting_auction.sol';
+import 'manager.sol';
 
 contract TestableManager is SplittingAuctionManager {
     uint public debug_timestamp;
@@ -55,7 +55,7 @@ contract AuctionTester is Tester {
     }
 }
 
-contract AuctionTest is Test {
+contract AuctionTest is EventfulAuction, EventfulManager, Test {
     TestableManager manager;
     AuctionTester seller;
     AuctionTester bidder1;

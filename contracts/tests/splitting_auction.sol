@@ -1,11 +1,6 @@
 import 'tests/base.sol';
 
-import 'splitting_auction.sol';
-
 contract ForwardSplittingTest is AuctionTest
-                               , EventfulAuction
-                               , EventfulManager
-                               , EventfulSplitter
 {
     function newAuction() returns (uint, uint) {
         return manager.newAuction( seller    // beneficiary

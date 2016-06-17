@@ -1,6 +1,6 @@
 import 'tests/base.sol';
 
-import 'auction_manager.sol';
+import 'db.sol';
 
 contract DBTester is AuctionTester {
     function doSetRefundAddress(uint id, address refund) {
@@ -8,7 +8,7 @@ contract DBTester is AuctionTester {
     }
 }
 
-contract AuctionDBTest is AuctionTest, EventfulAuction, EventfulManager {
+contract AuctionDBTest is AuctionTest {
     DBTester tester;
 
     function newAuction() returns (uint, uint) {

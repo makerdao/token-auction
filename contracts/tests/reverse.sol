@@ -1,7 +1,5 @@
 import 'tests/base.sol';
 
-import 'auction_manager.sol';
-
 contract ReverseTest is AuctionTest {
     function newReverseAuction() returns (uint, uint) {
         return manager.newReverseAuction( seller    // beneficiary
@@ -135,7 +133,7 @@ contract ReverseTest is AuctionTest {
     }
 }
 
-contract MinBidDecreaseTest is AuctionTest, EventfulAuction, EventfulManager {
+contract MinBidDecreaseTest is AuctionTest {
     function newReverseAuction() returns (uint, uint) {
         return manager.newReverseAuction( seller    // beneficiary
                                         , t1        // selling

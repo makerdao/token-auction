@@ -13,14 +13,14 @@ contract Assertive {
     }
 }
 
-contract TimeUser {
+contract UsingTime {
     // Using this allows override of the block timestamp in tests
     function getTime() public constant returns (uint) {
         return block.timestamp;
     }
 }
 
-contract MathUser {
+contract UsingMath {
     function flat(uint x, uint y) internal returns (uint) {
         if (x > y) return x - y;
         else return 0;

@@ -398,7 +398,7 @@ contract AssertionTest is Test, Assertive() {
     }
 }
 
-contract MathTest is Test, MathUser {
+contract MathTest is Test, UsingMath {
     uint[] array;
     function setUp() {
         uint[] memory _array = new uint[](3);

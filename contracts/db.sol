@@ -1,7 +1,7 @@
 import 'types.sol';
 import 'util.sol';
 
-contract AuctionDatabase is AuctionType, TimeUser {
+contract AuctionDatabase is AuctionType, UsingTime {
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
 

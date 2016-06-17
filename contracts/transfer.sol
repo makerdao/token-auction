@@ -1,7 +1,7 @@
 import 'types.sol';
 import 'util.sol';
 
-contract TransferUser is Assertive, MathUser, AuctionType {
+contract TransferUser is Assertive, UsingMath, AuctionType {
     function takeFundsIntoEscrow(Auction A) internal {
         assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
     }

@@ -36,7 +36,7 @@ contract SplittingAuctionUser is AuctionUser {
     }
 }
 
-contract AuctionManager is MathUser, AuctionType, EventfulManager, AuctionUser {
+contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser {
     uint constant INFINITY = 2 ** 256 - 1;
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,

@@ -9,7 +9,7 @@ However, the contract is generic and agnostic about its user
 provided they adhere to the [token standard][ERC20].
 
 [Maker]: https://makerdao.com
-[ERC20]: https://github.com/EIPS/issues/20
+[ERC20]: https://github.com/ethereum/EIPS/issues/20
 
 ## Description
 

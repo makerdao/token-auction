@@ -32,42 +32,67 @@ contract SplittingAuction is AuctionType
             A.collected += excess_buy;
         }
 
-        // determine if this bid causes a forward -> reverse transition
-        // (only happens in the twoway auction)
-        var transition = !A.reversed && (A.collected > A.collection_limit);
-
-        if (transition) {
-            // only take excess from the bidder up to the collect target.
-            var bid_over_target = A.collected - A.collection_limit;
-            A.collected = A.collection_limit;
-
-            settleExcessBuy(A, bidder, excess_buy - bid_over_target);
-
-            // over the target, impute how much less they would have been
-            // willing to accept, based on their bid price
-            var effective_target_bid = (a.sell_amount * A.collection_limit) / A.sell_amount;
-            var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
-            a.buy_amount = bid_how_much - bid_over_target;
-            bid_how_much = reduced_sell_amount;
-            A.reversed = true;
+        if (A.reversed) {
+            _doReverseBid(auctionlet_id, bid_how_much);
+        } else if (A.collected > A.collection_limit) {
+            bid_how_much = _doTransitionBid(auctionlet_id, bidder, bid_how_much);
             AuctionReversal(a.auction_id);
-        } else if (!A.reversed) {
-            // excess buy token is sent directly from bidder to beneficiary
-            settleExcessBuy(A, bidder, excess_buy);
         } else {
-            // excess sell token is sent from auction escrow to the beneficiary
-            var excess_sell = a.sell_amount - bid_how_much;
-            settleExcessSell(A, excess_sell);
-            A.sell_amount -= excess_sell;
+            _doForwardBid(auctionlet_id, bidder, bid_how_much);
         }
 
         // update the bid quantities - new bidder, new bid, same quantity
         newBid(auctionlet_id, bidder, bid_how_much);
         a.last_bid_time = getTime();
     }
+    function _doForwardBid(uint auctionlet_id, address bidder, uint bid_how_much)
+        private
+    {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        // excess buy token is sent directly from bidder to beneficiary
+        var excess_buy = bid_how_much - a.buy_amount;
+        settleExcessBuy(A, bidder, excess_buy);
+    }
+    function _doReverseBid(uint auctionlet_id, uint bid_how_much)
+        private
+    {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        // excess sell token is sent from auction escrow to the beneficiary
+        var excess_sell = a.sell_amount - bid_how_much;
+        A.sell_amount -= excess_sell;
+        settleExcessSell(A, excess_sell);
+    }
+    function _doTransitionBid(uint auctionlet_id, address bidder, uint bid_how_much)
+        private
+        returns (uint)
+    {
+        var a = _auctionlets[auctionlet_id];
+        var A = _auctions[a.auction_id];
+
+        var excess_buy = bid_how_much - a.buy_amount;
+
+        // only take excess from the bidder up to the collect target.
+        var bid_over_target = A.collected - A.collection_limit;
+        A.collected = A.collection_limit;
+
+        // over the target, impute how much less they would have been
+        // willing to accept, based on their bid price
+        var effective_target_bid = (a.sell_amount * A.collection_limit) / A.sell_amount;
+        var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
+        a.buy_amount = bid_how_much - bid_over_target;
+        bid_how_much = reduced_sell_amount;
+        A.reversed = true;
+
+        settleExcessBuy(A, bidder, excess_buy - bid_over_target);
+        return bid_how_much;
+    }
     // Auctionlet splitting logic.
     function doSplit(uint auctionlet_id, address splitter,
-                      uint bid_how_much, uint quantity)
+                     uint bid_how_much, uint quantity)
         internal
         returns (uint new_id, uint split_id)
     {
@@ -88,7 +113,7 @@ contract SplittingAuction is AuctionType
     }
     // Work out how to split a bid into two parts
     function _calculate_split(uint auctionlet_id, uint quantity)
-        internal
+        private
         returns (uint new_quantity, uint new_bid, uint split_bid)
     {
         var (prev_bid, prev_quantity) = getLastBid(auctionlet_id);
@@ -99,7 +124,9 @@ contract SplittingAuction is AuctionType
         split_bid = (prev_bid * quantity) / prev_quantity;
     }
     // Auctionlet claim logic, including transfers.
-    function doClaim(uint auctionlet_id) internal {
+    function doClaim(uint auctionlet_id)
+        internal
+    {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 

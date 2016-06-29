@@ -1,6 +1,13 @@
 import 'types.sol';
 import 'util.sol';
 
+// Methods for transferring funds into and out of the auction manager
+// and between bidders and beneficiaries.
+//
+// Warning: these methods call code outside of the auction, via the
+// transfer methods of the buying / selling token. Bear this in mind if
+// the auction allows arbitrary tokens to be added, as they could be
+// malicious.
 contract TransferUser is Assertive, UsingMath, AuctionType {
     function takeFundsIntoEscrow(Auction A) internal {
         assert(A.selling.transferFrom(A.creator, this, A.sell_amount));

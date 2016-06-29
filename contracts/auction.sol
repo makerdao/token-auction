@@ -119,13 +119,17 @@ contract AssertiveAuction is Assertive, UsingAuctionDatabase {
         assert(a.auction_id > 0);  // test for deleted auction
         assert(auctionlet_id > 0);  // test for deleted auctionlet
 
+        // auctionlet must not be expired, unless it is a base
+        // auctionlet (has not been bid on since auction creation)
         assert(a.base || !isExpired(auctionlet_id));
 
         if (A.reversed) {
             // check if reverse biddable
+            // bids must decrease the amount of sell token
             assert(bid_how_much <= (a.sell_amount * (100 - A.min_decrease) / 100 ));
         } else {
             // check if forward biddable
+            // bids must increase the amount of buy token
             assert(bid_how_much >= (a.buy_amount * (100 + A.min_increase) / 100 ));
         }
     }
@@ -147,8 +151,9 @@ contract AssertiveAuction is Assertive, UsingAuctionDatabase {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
+        // must be expired
         assert(isExpired(auctionlet_id));
-
+        // must be unclaimed
         assert(a.unclaimed);
     }
 }

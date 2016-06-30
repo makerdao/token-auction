@@ -226,9 +226,12 @@ contract AuctionFrontend is AuctionFrontendType
                           , EventfulAuction
                           , AssertiveAuction
                           , TwoWayAuction
+                          , MutexUser
 {
     // Place a new bid on a specific auctionlet.
-    function bid(uint auctionlet_id, uint bid_how_much) {
+    function bid(uint auctionlet_id, uint bid_how_much)
+        exclusive
+    {
         assertBiddable(auctionlet_id, bid_how_much);
         doBid(auctionlet_id, msg.sender, bid_how_much);
         Bid(auctionlet_id);
@@ -236,7 +239,9 @@ contract AuctionFrontend is AuctionFrontendType
     // Allow parties to an auction to claim their take.
     // If the auction has expired, individual auctionlet high bidders
     // can claim their winnings.
-    function claim(uint auctionlet_id) {
+    function claim(uint auctionlet_id)
+        exclusive
+    {
         assertClaimable(auctionlet_id);
         doClaim(auctionlet_id);
     }
@@ -247,6 +252,7 @@ contract SplittingAuctionFrontend is SplittingAuctionFrontendType
                                    , EventfulAuction
                                    , AssertiveAuction
                                    , SplittingAuction
+                                   , MutexUser
 {
     // Place a partial bid on an auctionlet, for less than the full lot.
     // This splits the auctionlet into two, bids on one of the new
@@ -254,6 +260,7 @@ contract SplittingAuctionFrontend is SplittingAuctionFrontendType
     // The new auctionlet ids are returned, corresponding to the new
     // auctionlets owned by (prev_bidder, new_bidder).
     function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
+        exclusive
         returns (uint new_id, uint split_id)
     {
         var (, prev_quantity) = getLastBid(auctionlet_id);

@@ -1,6 +1,6 @@
 import 'dapple/test.sol';
 import 'erc20/base.sol';
-import 'splitting_auction.sol';
+import 'manager.sol';
 
 contract TestableManager is SplittingAuctionManager {
     uint public debug_timestamp;
@@ -33,29 +33,28 @@ contract TestableManager is SplittingAuctionManager {
 }
 
 contract AuctionTester is Tester {
-    TestableManager manager;
-    function bindManager(TestableManager _manager) {
-        _target(_manager);
-        manager = TestableManager(_t);
+    SplittingAuctionUser frontend;
+    function bindManager(address manager) {
+        frontend = SplittingAuctionUser(manager);
     }
     function doApprove(address spender, uint value, ERC20 token) {
         token.approve(spender, value);
     }
     function doBid(uint auctionlet_id, uint bid_how_much)
     {
-        return manager.bid(auctionlet_id, bid_how_much);
+        return frontend.bid(auctionlet_id, bid_how_much);
     }
     function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
         returns (uint, uint)
     {
-        return manager.bid(auctionlet_id, bid_how_much, sell_amount);
+        return frontend.bid(auctionlet_id, bid_how_much, sell_amount);
     }
     function doClaim(uint id) {
-        return manager.claim(id);
+        return frontend.claim(id);
     }
 }
 
-contract AuctionTest is Test {
+contract AuctionTest is EventfulAuction, EventfulManager, Test {
     TestableManager manager;
     AuctionTester seller;
     AuctionTester bidder1;

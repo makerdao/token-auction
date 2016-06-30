@@ -1,7 +1,5 @@
 import 'tests/base.sol';
 
-import 'splitting_auction.sol';
-
 contract ReverseSplittingTest is AuctionTest {
     function newReverseAuction() returns (uint, uint) {
         return manager.newReverseAuction( seller    // beneficiary

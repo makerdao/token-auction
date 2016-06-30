@@ -71,7 +71,7 @@ contract AuctionController is MathUser
     }
 }
 
-contract AuctionManagerFrontend is AuctionController {
+contract AuctionManagerFrontend is AuctionController, MutexUser {
     uint constant INFINITY = 2 ** 256 - 1;
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
@@ -84,6 +84,7 @@ contract AuctionManagerFrontend is AuctionController {
                        , uint min_increase
                        , uint duration
                        )
+        exclusive
         returns (uint auction_id, uint base_id)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, INFINITY);
@@ -111,6 +112,7 @@ contract AuctionManagerFrontend is AuctionController {
                        , uint min_increase
                        , uint duration
                        )
+        exclusive
         returns (uint auction_id, uint base_id)
     {
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
@@ -136,6 +138,7 @@ contract AuctionManagerFrontend is AuctionController {
                               , uint min_decrease
                               , uint duration
                               )
+        exclusive
         returns (uint auction_id, uint base_id)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, 0);
@@ -166,6 +169,7 @@ contract AuctionManagerFrontend is AuctionController {
                               , uint min_decrease
                               , uint duration
                               )
+        exclusive
         returns (uint auction_id, uint base_id)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, 0);
@@ -198,6 +202,7 @@ contract AuctionManagerFrontend is AuctionController {
                              , uint duration
                              , uint collection_limit
                              )
+        exclusive
         returns (uint auction_id, uint base_id)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
@@ -226,6 +231,7 @@ contract AuctionManagerFrontend is AuctionController {
                              , uint duration
                              , uint collection_limit
                              )
+        exclusive
         returns (uint auction_id, uint base_id)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
@@ -254,6 +260,7 @@ contract AuctionManagerFrontend is AuctionController {
                              , uint min_decrease
                              , uint duration
                              )
+        exclusive
         returns (uint auction_id, uint base_id)
     {
         var collection_limit = sum(payouts);
@@ -282,6 +289,7 @@ contract AuctionManagerFrontend is AuctionController {
                              , uint min_decrease
                              , uint duration
                              )
+        exclusive
         returns (uint auction_id, uint base_id)
     {
         var collection_limit = sum(payouts);

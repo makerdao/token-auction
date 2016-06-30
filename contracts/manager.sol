@@ -5,7 +5,11 @@ import 'events.sol';
 import 'types.sol';
 import 'util.sol';
 
-contract AuctionUser is EventfulAuction, AssertiveAuction, SplittingAuction {
+contract AuctionUser is EventfulAuction
+                      , AssertiveAuction
+                      , SplittingAuction
+                      , FallbackFailer
+{
     // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much) external {
         assertBiddable(auctionlet_id, bid_how_much);

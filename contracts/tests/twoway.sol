@@ -308,6 +308,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
 contract TwoWayRefundTest is AuctionTest {
     function newTwoWayAuction() returns (uint auction_id, uint base_id) {
         (auction_id, base_id) = manager.newTwoWayAuction( seller        // beneficiary
+                                                        , beneficiary1  // refund
                                                         , t1            // selling
                                                         , t2            // buying
                                                         , 100 * T1      // sell_amount
@@ -317,7 +318,6 @@ contract TwoWayRefundTest is AuctionTest {
                                                         , 1 years       // duration
                                                         , 100 * T2      // collection_limit
                                                         );
-        manager.setRefundAddress(auction_id, beneficiary1);
     }
     function testNewTwoWayAuction() {
         var (id, base) = newTwoWayAuction();

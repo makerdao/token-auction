@@ -163,3 +163,21 @@ contract MinBidDecreaseTest is AuctionTest {
         bidder2.doBid(base, 70 * T1);
     }
 }
+
+contract ReverseRefundTest is AuctionTest {
+    function newTwoWayAuction() returns (uint, uint) {
+        return manager.newReverseAuction( seller        // beneficiary
+                                        , beneficiary1  // refund
+                                        , t1            // selling
+                                        , t2            // buying
+                                        , 100 * T1      // max_sell_amount
+                                        , 5 * T2        // buy_amount
+                                        , 20            // min_decrease (%)
+                                        , 1 years       // duration
+                                        );
+    }
+    function testNewReverseAuction() {
+        var (id, base) = newTwoWayAuction();
+        assertEq(manager.getRefundAddress(id), beneficiary1);
+    }
+}

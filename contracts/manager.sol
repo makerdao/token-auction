@@ -121,6 +121,37 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
                                                     , reversed: true
                                                     });
     }
+    // Create a new reverse auction
+    function newReverseAuction( address beneficiary
+                              , address refund
+                              , ERC20 selling
+                              , ERC20 buying
+                              , uint max_sell_amount
+                              , uint buy_amount
+                              , uint min_decrease
+                              , uint duration
+                              )
+        returns (uint auction_id, uint base_id)
+    {
+        var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, 0);
+
+        // the Reverse Auction is the limit of the two way auction
+        // where the maximum collected buying token is zero.
+        (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
+                                                    , beneficiaries: beneficiaries
+                                                    , payouts: payouts
+                                                    , selling: selling
+                                                    , buying: buying
+                                                    , sell_amount: max_sell_amount
+                                                    , start_bid: buy_amount
+                                                    , min_increase: 0
+                                                    , min_decrease: min_decrease
+                                                    , duration: duration
+                                                    , collection_limit: 0
+                                                    , reversed: true
+                                                    });
+        setRefundAddress(auction_id, refund);
+    }
     // Create a new two-way auction.
     function newTwoWayAuction( address beneficiary
                              , ERC20 selling
@@ -132,22 +163,51 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
                              , uint duration
                              , uint collection_limit
                              )
-        returns (uint, uint)
+        returns (uint auction_id, uint base_id)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
-        return _makeGenericAuction({ creator: msg.sender
-                                   , beneficiaries: beneficiaries
-                                   , payouts: payouts
-                                   , selling: selling
-                                   , buying: buying
-                                   , sell_amount: sell_amount
-                                   , start_bid: start_bid
-                                   , min_increase: min_increase
-                                   , min_decrease: min_decrease
-                                   , duration: duration
-                                   , collection_limit: collection_limit
-                                   , reversed: false
-                                   });
+        (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
+                                                    , beneficiaries: beneficiaries
+                                                    , payouts: payouts
+                                                    , selling: selling
+                                                    , buying: buying
+                                                    , sell_amount: sell_amount
+                                                    , start_bid: start_bid
+                                                    , min_increase: min_increase
+                                                    , min_decrease: min_decrease
+                                                    , duration: duration
+                                                    , collection_limit: collection_limit
+                                                    , reversed: false
+                                                    });
+    }
+    function newTwoWayAuction( address beneficiary
+                             , address refund
+                             , ERC20 selling
+                             , ERC20 buying
+                             , uint sell_amount
+                             , uint start_bid
+                             , uint min_increase
+                             , uint min_decrease
+                             , uint duration
+                             , uint collection_limit
+                             )
+        returns (uint auction_id, uint base_id)
+    {
+        var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
+        (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
+                                                     , beneficiaries: beneficiaries
+                                                     , payouts: payouts
+                                                     , selling: selling
+                                                     , buying: buying
+                                                     , sell_amount: sell_amount
+                                                     , start_bid: start_bid
+                                                     , min_increase: min_increase
+                                                     , min_decrease: min_decrease
+                                                     , duration: duration
+                                                     , collection_limit: collection_limit
+                                                     , reversed: false
+                                                     });
+        setRefundAddress(auction_id, refund);
     }
     function newTwoWayAuction( address[] beneficiaries
                              , uint[] payouts
@@ -159,10 +219,38 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
                              , uint min_decrease
                              , uint duration
                              )
-        returns (uint, uint)
+        returns (uint auction_id, uint base_id)
     {
         var collection_limit = sum(payouts);
-        return _makeGenericAuction({ creator: msg.sender
+        (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
+                                                     , beneficiaries: beneficiaries
+                                                     , payouts: payouts
+                                                     , selling: selling
+                                                     , buying: buying
+                                                     , sell_amount: sell_amount
+                                                     , start_bid: start_bid
+                                                     , min_increase: min_increase
+                                                     , min_decrease: min_decrease
+                                                     , duration: duration
+                                                     , collection_limit: collection_limit
+                                                     , reversed: false
+                                                     });
+    }
+    function newTwoWayAuction( address[] beneficiaries
+                             , uint[] payouts
+                             , address refund
+                             , ERC20 selling
+                             , ERC20 buying
+                             , uint sell_amount
+                             , uint start_bid
+                             , uint min_increase
+                             , uint min_decrease
+                             , uint duration
+                             )
+        returns (uint auction_id, uint base_id)
+    {
+        var collection_limit = sum(payouts);
+        (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                    , beneficiaries: beneficiaries
                                    , payouts: payouts
                                    , selling: selling
@@ -175,6 +263,7 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
                                    , collection_limit: collection_limit
                                    , reversed: false
                                    });
+        setRefundAddress(auction_id, refund);
     }
     function _makeSinglePayout(address beneficiary, uint collection_limit)
         internal

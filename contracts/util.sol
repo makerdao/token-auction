@@ -13,6 +13,12 @@ contract Assertive {
     }
 }
 
+contract FallbackFailer {
+    function () {
+        throw;
+    }
+}
+
 contract UsingTime {
     // Using this allows override of the block timestamp in tests
     function getTime() public constant returns (uint) {

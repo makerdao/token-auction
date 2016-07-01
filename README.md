@@ -317,15 +317,53 @@ quantities of the `sell_token` are forgone by bidders.
 
 The default behaviour is to refund this excess `sell_token` to the
 (first) beneficiary. It is possible for the auction *creator* to set
-the refund address arbitrarily.
+the refund address arbitrarily when creating the auction.
 
-After creating an auction:
+Reverse auction:
 
 ```
-manager.setRefundAddress(auction_id, some_arbitrary_address);
+var (id, base) = manager.newReverseAuction( beneficiary
+                                          , refund
+                                          , sell_token
+                                          , buy_token
+                                          , max_sell_amount
+                                          , buy_amount
+                                          , min_decrease
+                                          , duration
+                                          )
 ```
 
-Note that this address can be set any number of times to any number
-of addresses during the course of the auction. Accordingly a
-beneficiary expecting funds needs to trust, or be controlled by, the
-auction creator.
+Single beneficiary two-way auction:
+
+```
+var (id, base) = manager.newTwoWayAuction( beneficiary
+                                         , refund
+                                         , sell_token
+                                         , buy_token
+                                         , sell_amount
+                                         , start_bid
+                                         , min_increase
+                                         , min_decrease
+                                         , duration
+                                         , collection_limit
+                                         )
+```
+
+Multi beneficiary two-way auction:
+
+```
+var (id, base) = manager.newTwoWayAuction( beneficiaries
+                                         , payouts
+                                         , refund
+                                         , sell_token
+                                         , buy_token
+                                         , sell_amount
+                                         , start_bid
+                                         , min_increase
+                                         , min_decrease
+                                         , duration
+                                         );
+```
+
+- `address refund` is the address that forgone `sell_token` will be
+  sent to, continuously.

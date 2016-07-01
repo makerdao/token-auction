@@ -5,9 +5,6 @@ contract DBTester is Tester {
     function bindManager(address manager) {
         _manager = TestableManager(manager);
     }
-    function doSetRefundAddress(uint id, address refund) {
-        _manager.setRefundAddress(id, refund);
-    }
 }
 
 contract AuctionDBTest is AuctionTest {
@@ -27,19 +24,5 @@ contract AuctionDBTest is AuctionTest {
         var (id, base) = newAuction();
 
         assertEq(manager.getRefundAddress(id), seller);
-    }
-    function testSetRefund() {
-        var (id, base) = newAuction();
-
-        manager.setRefundAddress(id, beneficiary2);
-        assertEq(manager.getRefundAddress(id), beneficiary2);
-    }
-    function testFailSetRefundNotCreator() {
-        var (id, base) = newAuction();
-
-        tester = new DBTester();
-        tester.bindManager(manager);
-
-        tester.doSetRefundAddress(id, beneficiary2);
     }
 }

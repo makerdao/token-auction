@@ -57,15 +57,10 @@ contract UsingAuctionDatabase is AuctionDatabase {
         return _auctions[auction_id].refund;
     }
     function setRefundAddress(uint auction_id, address refund)
-        only_creator(auction_id)
+        internal
     {
         var A = _auctions[auction_id];
         A.refund = refund;
-    }
-    modifier only_creator(uint auction_id) {
-        if (msg.sender != _auctions[auction_id].creator)
-            throw;
-        _
     }
     // Auctionlet bid update logic.
     function newBid(uint auctionlet_id, address bidder, uint bid_how_much) {

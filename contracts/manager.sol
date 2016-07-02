@@ -5,10 +5,10 @@ import 'events.sol';
 import 'types.sol';
 import 'util.sol';
 
-contract AuctionUser is EventfulAuction
-                      , AssertiveAuction
-                      , SplittingAuction
-                      , FallbackFailer
+contract AuctionFrontend is EventfulAuction
+                          , AssertiveAuction
+                          , SplittingAuction
+                          , FallbackFailer
 {
     // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much) external {
@@ -25,7 +25,7 @@ contract AuctionUser is EventfulAuction
     }
 }
 
-contract SplittingAuctionUser is AuctionUser {
+contract SplittingAuctionFrontend is AuctionFrontend {
     // Place a partial bid on an auctionlet, for less than the full lot.
     // This splits the auctionlet into two, bids on one of the new
     // auctionlets and leaves the other to the previous bidder.
@@ -40,7 +40,7 @@ contract SplittingAuctionUser is AuctionUser {
     }
 }
 
-contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser {
+contract AuctionManager is MathUser, AuctionType, EventfulManager, AuctionFrontend {
     uint constant INFINITY = 2 ** 256 - 1;
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
@@ -325,4 +325,4 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
     }
 }
 
-contract SplittingAuctionManager is AuctionManager, SplittingAuctionUser {}
+contract SplittingAuctionManager is AuctionManager, SplittingAuctionFrontend {}

@@ -8,7 +8,7 @@ import 'util.sol';
 // transfer methods of the buying / selling token. Bear this in mind if
 // the auction allows arbitrary tokens to be added, as they could be
 // malicious.
-contract TransferUser is Assertive, UsingMath, AuctionType {
+contract TransferUser is Assertive, MathUser, AuctionType {
     function takeFundsIntoEscrow(Auction A) internal {
         assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
     }

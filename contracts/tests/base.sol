@@ -1,6 +1,7 @@
 import 'dapple/test.sol';
 import 'erc20/base.sol';
 import 'manager.sol';
+import 'types.sol';
 
 contract TestableManager is SplittingAuctionManager {
     uint public debug_timestamp;
@@ -33,9 +34,9 @@ contract TestableManager is SplittingAuctionManager {
 }
 
 contract AuctionTester is Tester {
-    SplittingAuctionFrontend frontend;
+    SplittingAuctionFrontendType frontend;
     function bindManager(address manager) {
-        frontend = SplittingAuctionFrontend(manager);
+        frontend = SplittingAuctionFrontendType(manager);
     }
     function doApprove(address spender, uint value, ERC20 token) {
         token.approve(spender, value);

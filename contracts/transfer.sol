@@ -12,8 +12,11 @@ contract TransferUser is Assertive, MathUser, AuctionType {
     function takeFundsIntoEscrow(Auction A) internal {
         assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
     }
-    function payOffLastBidder(Auction A, Auctionlet a, address bidder) internal {
-        assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
+    function payOffLastBidder(Auction A, Auctionlet a,
+                              address new_bidder, address prev_bidder, uint how_much)
+        internal
+    {
+        assert(A.buying.transferFrom(new_bidder, prev_bidder, how_much));
     }
     function settleExcessBuy(Auction A, address bidder, uint excess_buy) internal {
         if (A.beneficiaries.length == 1) {

@@ -15,10 +15,6 @@ contract SplittingAuction is AuctionType
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        // new bidder pays off the old bidder directly. For the first
-        // bid this is the seller, so they receive their minimum bid.
-        payOffLastBidder(A, a, bidder);
-
         // if the auctionlet has not been bid on before we need to
         // do some extra accounting
         if (a.base) {
@@ -33,62 +29,91 @@ contract SplittingAuction is AuctionType
         }
 
         if (A.reversed) {
-            _doReverseBid(auctionlet_id, bid_how_much);
+            _doReverseBid(auctionlet_id, bidder, bid_how_much);
         } else if (A.collected > A.collection_limit) {
-            bid_how_much = _doTransitionBid(auctionlet_id, bidder, bid_how_much);
+            _doTransitionBid(auctionlet_id, bidder, bid_how_much);
             AuctionReversal(a.auction_id);
         } else {
             _doForwardBid(auctionlet_id, bidder, bid_how_much);
         }
-
-        // update the bid quantities - new bidder, new bid, same quantity
-        newBid(auctionlet_id, bidder, bid_how_much);
-        a.last_bid_time = getTime();
     }
-    function _doForwardBid(uint auctionlet_id, address bidder, uint bid_how_much)
+    function _doForwardBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        // excess buy token is sent directly from bidder to beneficiary
+        var previous_buy = a.buy_amount;
+        var previous_bidder = a.last_bidder;
+
         var excess_buy = bid_how_much - a.buy_amount;
-        settleExcessBuy(A, bidder, excess_buy);
+
+        a.buy_amount = bid_how_much;  // forward bids compete on buy token
+        a.last_bidder = new_bidder;
+        a.last_bid_time = getTime();
+
+        // new bidder pays off the old bidder directly. For the first
+        // bid this is the seller, so they receive their minimum bid.
+        payOffLastBidder(A, a, new_bidder, previous_bidder, previous_buy);
+        // excess buy token is sent directly from bidder to beneficiary
+        settleExcessBuy(A, new_bidder, excess_buy);
     }
-    function _doReverseBid(uint auctionlet_id, uint bid_how_much)
+    function _doReverseBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 
-        // excess sell token is sent from auction escrow to the beneficiary
+        var previous_bidder = a.last_bidder;
+        var previous_buy = a.buy_amount;
+
         var excess_sell = a.sell_amount - bid_how_much;
+
         A.sell_amount -= excess_sell;
+
+        a.sell_amount = bid_how_much;  // reverse bids compete on sell token
+        a.last_bidder = new_bidder;
+        a.last_bid_time = getTime();
+
+        // new bidder pays off the old bidder directly. For the first
+        // bid this is the seller, so they receive their minimum bid.
+        payOffLastBidder(A, a, new_bidder, previous_bidder, previous_buy);
+        // excess sell token is sent from auction escrow to the refund address
         settleExcessSell(A, excess_sell);
     }
-    function _doTransitionBid(uint auctionlet_id, address bidder, uint bid_how_much)
+    function _doTransitionBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
-        returns (uint)
     {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
+
+        var previous_bidder = a.last_bidder;
+        var previous_buy = a.buy_amount;
 
         var excess_buy = bid_how_much - a.buy_amount;
 
         // only take excess from the bidder up to the collect target.
         var bid_over_target = A.collected - A.collection_limit;
-        A.collected = A.collection_limit;
 
-        // over the target, impute how much less they would have been
+        // over the target, infer how much less they would have been
         // willing to accept, based on their bid price
         var effective_target_bid = (a.sell_amount * A.collection_limit) / A.sell_amount;
-        var reduced_sell_amount = (a.sell_amount * effective_target_bid) / bid_how_much;
-        a.buy_amount = bid_how_much - bid_over_target;
-        bid_how_much = reduced_sell_amount;
+        var inferred_reverse_bid = (a.sell_amount * effective_target_bid) / bid_how_much;
+
+        A.collected = A.collection_limit;
         A.reversed = true;
 
-        settleExcessBuy(A, bidder, excess_buy - bid_over_target);
-        return bid_how_much;
+        a.buy_amount = bid_how_much - bid_over_target;
+        a.sell_amount = inferred_reverse_bid;
+        a.last_bidder = new_bidder;
+        a.last_bid_time = getTime();
+
+        // new bidder pays off the old bidder directly. For the first
+        // bid this is the seller, so they receive their minimum bid.
+        payOffLastBidder(A, a, new_bidder, previous_bidder, previous_buy);
+        // excess buy token (up to the target) is sent directly
+        // from bidder to beneficiary
+        settleExcessBuy(A, new_bidder, excess_buy - bid_over_target);
     }
     // Auctionlet splitting logic.
     function doSplit(uint auctionlet_id, address splitter,

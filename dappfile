@@ -6,4 +6,11 @@ layout:
 dependencies:
   erc20: 1.0.0
 ignore: []
-name: auctions
+name: token-auction
+environments:
+  default: morden
+  morden:
+    objects:
+      auction:
+        class: SplittingAuctionManager
+        address: '0xabf6d2c952ed07e3eec0a9587f72ad47af67c68d'

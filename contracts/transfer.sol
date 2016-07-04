@@ -8,21 +8,39 @@ import 'util.sol';
 // transfer methods of the buying / selling token. Bear this in mind if
 // the auction allows arbitrary tokens to be added, as they could be
 // malicious.
+//
+// These methods take Auction(lets) as arguments to allow them to do
+// complex settlement logic. However, their access to the auction is
+// read-only - they cannot write to storage.
 contract TransferUser is Assertive, MathUser, AuctionType {
     function takeFundsIntoEscrow(Auction A) internal {
         assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
     }
-    function payOffLastBidder(Auction A, Auctionlet a, address bidder) internal {
-        assert(A.buying.transferFrom(bidder, a.last_bidder, a.buy_amount));
+    function payOffLastBidder(Auction A, Auctionlet a,
+                              address new_bidder, address prev_bidder, uint how_much)
+        internal
+    {
+        assert(A.buying.transferFrom(new_bidder, prev_bidder, how_much));
     }
     function settleExcessBuy(Auction A, address bidder, uint excess_buy) internal {
+        // if there is only a single beneficiary, they get all of the
+        // settlement.
         if (A.beneficiaries.length == 1) {
             assert(A.buying.transferFrom(bidder, A.beneficiaries[0], excess_buy));
             return;
         }
 
-        var prev_collected = A.collected - excess_buy;
+        // If there are multiple beneficiaries, the settlement must be
+        // shared out. Each beneficiary has an associated payout, which
+        // is the maximum they can receive from the auction. As the
+        // auction collects more funds, beneficiaries receive their
+        // payouts in turn. The per bid settlement could span multiple
+        // payouts - the logic below partitions the settlement as
+        // needed.
 
+        // collection state prior to this bid
+        var prev_collected = A.collected - excess_buy;
+        // payout transition limits
         var limits = cumsum(A.payouts);
 
         for (uint i = 0; i < limits.length; i++) {

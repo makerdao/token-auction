@@ -124,7 +124,7 @@ contract SplittingAuction is AuctionType
         internal
         returns (uint new_id, uint split_id)
     {
-        var a = _auctionlets[auctionlet_id];
+        var a = readAuctionlet(auctionlet_id);
 
         var (new_quantity, new_bid, split_bid) = _calculate_split(auctionlet_id, quantity);
 
@@ -155,8 +155,8 @@ contract SplittingAuction is AuctionType
     function doClaim(uint auctionlet_id)
         internal
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var a = readAuctionlet(auctionlet_id);
+        var A = readAuction(a.auction_id);
 
         settleBidderClaim(A, a);
 
@@ -168,8 +168,8 @@ contract SplittingAuction is AuctionType
 contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     // Check whether an auctionlet is eligible for bidding on
     function assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var a = readAuctionlet(auctionlet_id);
+        var A = readAuction(a.auction_id);
 
         assert(a.auction_id > 0);  // test for deleted auction
         assert(auctionlet_id > 0);  // test for deleted auctionlet
@@ -203,8 +203,8 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     }
     // Check whether an auctionlet can be claimed.
     function assertClaimable(uint auctionlet_id) internal {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var a = readAuctionlet(auctionlet_id);
+        var A = readAuction(a.auction_id);
 
         // must be expired
         assert(isExpired(auctionlet_id));

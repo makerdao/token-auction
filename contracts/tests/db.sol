@@ -1,9 +1,38 @@
 import 'tests/base.sol';
+import 'db.sol';
 
 contract DBTester is Tester {
     TestableManager _manager;
     function bindManager(address manager) {
         _manager = TestableManager(manager);
+    }
+}
+
+contract CRUDTest is AuctionTest, AuctionDatabase {
+    AuctionDatabase _db;
+
+    function setUp() {
+        _db = new AuctionDatabase();
+
+        Auction memory auction;
+        createAuction(auction);
+
+        Auctionlet memory auctionlet;
+        createAuctionlet(auctionlet);
+    }
+    function testReadOnlyAuction() {
+        var A = readAuction(1);
+
+        assertEq(_auctions[1].duration, 0);
+        A.duration = 100 years;
+        assertEq(_auctions[1].duration, 0);
+    }
+    function testReadOnlyAuctionlet() {
+        var a = readAuctionlet(1);
+
+        assertEq(_auctionlets[1].base, false);
+        a.base = true;
+        assertEq(_auctionlets[1].base, false);
     }
 }
 

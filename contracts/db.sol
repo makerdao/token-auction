@@ -1,6 +1,9 @@
 import 'types.sol';
 import 'util.sol';
 
+// CRUD database for auctions and auctionlets. Create, Read(only) and
+// Delete are done with methods here. For gas reasons, Update is done by
+// explicitly modifiying storage (i.e. accessing _auctions / _auctionlets).
 contract AuctionDatabase is AuctionType {
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
@@ -15,6 +18,20 @@ contract AuctionDatabase is AuctionType {
     function createAuction(Auction A) internal returns (uint id) {
         id = ++_last_auction_id;
         _auctions[id] = A;
+    }
+    function readAuctionlet(uint auctionlet_id)
+        internal
+        constant
+        returns (Auctionlet memory a)
+    {
+        a = _auctionlets[auctionlet_id];
+    }
+    function readAuction(uint auction_id)
+        internal
+        constant
+        returns (Auction memory A)
+    {
+        A = _auctions[auction_id];
     }
     function deleteAuctionlet(uint auctionlet_id) internal {
         delete _auctionlets[auctionlet_id];
@@ -77,8 +94,8 @@ contract AuctionDatabaseUser is AuctionDatabase, TimeUser {
         constant
         returns (uint prev_bid, uint prev_quantity)
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var a = readAuctionlet(auctionlet_id);
+        var A = readAuction(a.auction_id);
 
         if (A.reversed) {
             prev_bid = a.sell_amount;

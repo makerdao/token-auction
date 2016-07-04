@@ -283,7 +283,7 @@ contract AuctionManager is MathUser
                                                   , reversed: reversed
                                                   });
 
-        var A = _auctions[auction_id];
+        var A = readAuction(auction_id);
 
         assertConsistentPayouts(A);
         takeFundsIntoEscrow(A);

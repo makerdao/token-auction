@@ -1,7 +1,7 @@
 import 'types.sol';
 import 'util.sol';
 
-contract AuctionDatabase is AuctionType, UsingTime {
+contract AuctionDatabase is AuctionType {
     mapping(uint => Auction) _auctions;
     uint _last_auction_id;
 
@@ -24,7 +24,7 @@ contract AuctionDatabase is AuctionType, UsingTime {
     }
 }
 
-contract UsingAuctionDatabase is AuctionDatabase {
+contract AuctionDatabaseUser is AuctionDatabase, TimeUser {
     function newAuctionlet(uint auction_id, uint bid,
                            uint quantity, address last_bidder, bool base)
         internal returns (uint auctionlet_id)

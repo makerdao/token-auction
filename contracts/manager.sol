@@ -1,46 +1,18 @@
 import 'erc20/erc20.sol';
 
 import 'auction.sol';
+import 'db.sol';
 import 'events.sol';
+import 'transfer.sol';
 import 'types.sol';
 import 'util.sol';
 
-contract AuctionUser is EventfulAuction
-                      , AssertiveAuction
-                      , SplittingAuction
-                      , FallbackFailer
+contract AuctionManager is MathUser
+                         , AuctionType
+                         , AuctionDatabaseUser
+                         , EventfulManager
+                         , AuctionFrontend
 {
-    // Place a new bid on a specific auctionlet.
-    function bid(uint auctionlet_id, uint bid_how_much) external {
-        assertBiddable(auctionlet_id, bid_how_much);
-        doBid(auctionlet_id, msg.sender, bid_how_much);
-        Bid(auctionlet_id);
-    }
-    // Allow parties to an auction to claim their take.
-    // If the auction has expired, individual auctionlet high bidders
-    // can claim their winnings.
-    function claim(uint auctionlet_id) external {
-        assertClaimable(auctionlet_id);
-        doClaim(auctionlet_id);
-    }
-}
-
-contract SplittingAuctionUser is AuctionUser {
-    // Place a partial bid on an auctionlet, for less than the full lot.
-    // This splits the auctionlet into two, bids on one of the new
-    // auctionlets and leaves the other to the previous bidder.
-    // The new auctionlet ids are returned, corresponding to the new
-    // auctionlets owned by (prev_bidder, new_bidder).
-    function bid(uint auctionlet_id, uint bid_how_much, uint quantity) external
-        returns (uint new_id, uint split_id)
-    {
-        assertSplittable(auctionlet_id, bid_how_much, quantity);
-        (new_id, split_id) = doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
-        Split(auctionlet_id, new_id, split_id);
-    }
-}
-
-contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser {
     uint constant INFINITY = 2 ** 256 - 1;
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
@@ -325,4 +297,4 @@ contract AuctionManager is UsingMath, AuctionType, EventfulManager, AuctionUser 
     }
 }
 
-contract SplittingAuctionManager is AuctionManager, SplittingAuctionUser {}
+contract SplittingAuctionManager is AuctionManager, SplittingAuctionFrontend {}

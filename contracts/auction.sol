@@ -5,7 +5,7 @@ import 'transfer.sol';
 import 'util.sol';
 
 contract SplittingAuction is AuctionType
-                           , UsingAuctionDatabase
+                           , AuctionDatabaseUser
                            , EventfulAuction
                            , TransferUser {
     // Auctionlet bid logic, including transfers.
@@ -110,7 +110,7 @@ contract SplittingAuction is AuctionType
     }
 }
 
-contract AssertiveAuction is Assertive, UsingAuctionDatabase {
+contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     // Check whether an auctionlet is eligible for bidding on
     function assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
         var a = _auctionlets[auctionlet_id];
@@ -155,6 +155,44 @@ contract AssertiveAuction is Assertive, UsingAuctionDatabase {
         assert(isExpired(auctionlet_id));
         // must be unclaimed
         assert(a.unclaimed);
+    }
+}
+
+contract AuctionFrontend is EventfulAuction
+                          , AssertiveAuction
+                          , SplittingAuction
+                          , FallbackFailer
+                          , AuctionFrontendType
+{
+    // Place a new bid on a specific auctionlet.
+    function bid(uint auctionlet_id, uint bid_how_much) {
+        assertBiddable(auctionlet_id, bid_how_much);
+        doBid(auctionlet_id, msg.sender, bid_how_much);
+        Bid(auctionlet_id);
+    }
+    // Allow parties to an auction to claim their take.
+    // If the auction has expired, individual auctionlet high bidders
+    // can claim their winnings.
+    function claim(uint auctionlet_id) {
+        assertClaimable(auctionlet_id);
+        doClaim(auctionlet_id);
+    }
+}
+
+contract SplittingAuctionFrontend is AuctionFrontend
+                                   , SplittingAuctionFrontendType
+{
+    // Place a partial bid on an auctionlet, for less than the full lot.
+    // This splits the auctionlet into two, bids on one of the new
+    // auctionlets and leaves the other to the previous bidder.
+    // The new auctionlet ids are returned, corresponding to the new
+    // auctionlets owned by (prev_bidder, new_bidder).
+    function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
+        returns (uint new_id, uint split_id)
+    {
+        assertSplittable(auctionlet_id, bid_how_much, quantity);
+        (new_id, split_id) = doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
+        Split(auctionlet_id, new_id, split_id);
     }
 }
 

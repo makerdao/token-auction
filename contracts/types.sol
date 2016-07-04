@@ -29,3 +29,12 @@ contract AuctionType {
     }
 }
 
+contract AuctionFrontendType {
+    function bid(uint auctionlet_id, uint bid_how_much);
+    function claim(uint auctionlet_id);
+}
+
+contract SplittingAuctionFrontendType is AuctionFrontendType {
+    function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
+        returns (uint new_id, uint split_id);
+}

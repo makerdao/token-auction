@@ -134,10 +134,9 @@ contract SplittingAuction is AuctionType
         split_id = newAuctionlet(a.auction_id, split_bid, quantity,
                                  a.last_bidder, a.base);
 
+        deleteAuctionlet(auctionlet_id);
         newBid(new_id, a.last_bidder, new_bid);
         doBid(split_id, splitter, bid_how_much);
-
-        deleteAuctionlet(auctionlet_id);
     }
     // Work out how to split a bid into two parts
     function _calculate_split(uint auctionlet_id, uint quantity)
@@ -158,10 +157,10 @@ contract SplittingAuction is AuctionType
         var a = readAuctionlet(auctionlet_id);
         var A = readAuction(a.auction_id);
 
-        settleBidderClaim(A, a);
-
         a.unclaimed = false;
         deleteAuctionlet(auctionlet_id);
+
+        settleBidderClaim(A, a);
     }
 }
 

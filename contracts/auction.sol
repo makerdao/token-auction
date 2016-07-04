@@ -23,6 +23,9 @@ contract SplittingAuction is AuctionType
             a.base = false;
         }
 
+        // Forward auctions increment the total auction collection on
+        // each bid. In reverse auctions this is unchanged per bid as
+        // bids compete on the sell side.
         if (!A.reversed) {
             var excess_buy = bid_how_much - a.buy_amount;
             A.collected += excess_buy;

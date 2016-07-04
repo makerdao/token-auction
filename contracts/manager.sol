@@ -1,12 +1,15 @@
 import 'erc20/erc20.sol';
 
 import 'auction.sol';
+import 'db.sol';
 import 'events.sol';
+import 'transfer.sol';
 import 'types.sol';
 import 'util.sol';
 
 contract AuctionManager is MathUser
                          , AuctionType
+                         , AuctionDatabaseUser
                          , EventfulManager
                          , AuctionFrontend
 {

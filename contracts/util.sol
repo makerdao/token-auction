@@ -48,7 +48,7 @@ contract MathUser {
 }
 
 contract MutexUser {
-    bool mutex_lock;
+    bool private mutex_lock;
     modifier exclusive {
         if (mutex_lock) throw;
         mutex_lock = true;

@@ -1,3 +1,7 @@
+**warning: this contract is still at an early stage and is provided
+for reference only. DO NOT use it with real tokens as they may be
+permanently lost or stolen.**
+
 # Continuous Splitting Token Auction
 
 This Ethereum contract provides a set of auctions for use with
@@ -37,7 +41,7 @@ the number of times an auction can be split.
 The splittable unit of an auction is an **auctionlet**. Each auction
 initially has a single auctionlet. Auctionlets are the object on
 which bidders place bids. Splitting an auctionlet produces two new
-auctionlets and deletes the old one.
+auctionlets (both of reduced quantity) and deletes the old one.
 
 The auctions are **continuous**. The auction beneficiaries are
 continually rewarded as new bids are made: by increasing amounts of
@@ -57,13 +61,14 @@ There are three ways of interacting with the auction contract:
 [management](#management), [auction creation](#auction-creation),
 and [bidding](#bidding). Auction users should subscribe to the
 [auction events](#events) to be kept aware of auction creation, new
-bids, splits and reversals.
+bids, splits, and reversals.
 
 ### Management
 
 Create a new splitting auction manager:
 
 ```
+import 'token-auction/manager.sol';
 manager = new SplittingAuctionManager();
 ```
 
@@ -73,13 +78,22 @@ Create a new non-splitting auction manager:
 manager = new AuctionManager();
 ```
 
-In a non-splitting auction bidders must bid on the full lot.
+In a non-splitting auction bidders must always bid on the full lot -
+they cannot split and bid on a sub-division. The base auctionlet is
+the only possible auctionlet, and all bids will happen on this.
 
 The creator of the manager has no special permissions - they
 cannot shutdown or withdraw funds from the manager.
 
 
 ### Auction creation
+
+Auction creators connect to an active manager:
+
+```
+import 'token-auction/manager.sol';
+manager = SplittingAuctionManager(know_manager_address);
+```
 
 All created auctions return a pair of `uint (id , base)` that
 uniquely identify the new auction and its base auctionlet. These
@@ -167,17 +181,31 @@ following extras:
 - `uint collection_limit` is the total bid quantity of `buy_token`
   at which the auction will reverse.
 
-
+Auctions creators also have access to the [bidding](#bidding) functions
+below.
 
 ### Bidding
+
+Auction users connect to an active manager either as a
+[creator](#auction-creation) or as a user:
+
+```
+import 'token-auction/types.sol';
+manager = SplittingAuctionFrontendType(known_manager_address);
+```
+
+Users interact with active auctions via `bid` and `claim`. The `bid`
+function can be called in two different ways - regular *bids* and
+*splits*.
+
 
 **Bid** on an auctionlet:
 
 ```
-manager.bid(base, bid_amount)
+manager.bid(id, bid_amount)
 ```
 
-- `uint base` is the bid identifier described above.
+- `uint id` is the auctionlet identifier described above.
 - `uint bid_amount`
 
 This will throw if the `bid_amount` is not greater than the last bid
@@ -189,7 +217,7 @@ bid (over the last) is sent directly to the `beneficiary`.
 **Split** an auctionlet:
 
 ```
-var (new_id, split_id) = manager.bid(base, bid_amount, split_amount)
+var (new_id, split_id) = manager.bid(id, bid_amount, split_amount)
 ```
 
 - `uint split_amount` is the reduced quantity of `sell_token` on
@@ -207,12 +235,12 @@ Splitting returns a pair of identifiers:
 **Claim** an elapsed auctionlet:
 
 ```
-manager.claim(base)
+manager.claim(id)
 ```
 
-This will send the `sell_token` associated with `base` to the
+This will send the `sell_token` associated with `id` to the
 highest bidder. `claim` will throw if `duration` has not elapsed
-since the last high bid on `base`.
+since the last high bid on `id`.
 
 
 ### Events
@@ -220,12 +248,12 @@ since the last high bid on `base`.
 **Creation** of a new auction:
 
 ```
-NewAuction(uint indexed id, uint base_id)
+NewAuction(uint indexed auction_id, uint base_auctionlet_id)
 ```
 
-- `uint id` is the auction id.
-- `uint base_id` is the base auctionlet_id (on which bidding should
-  start)
+- `uint auction_id` is the auction id.
+- `uint base_auctionlet_id` is the id of the base auctionlet (on
+  which bidding should start)
 
 **Reversal** of a two-way auction:
 

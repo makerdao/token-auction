@@ -18,8 +18,8 @@ contract AuctionManager is MathUser
     // Bidding is done through the auctions associated auctionlets,
     // of which there is one initially.
     function newAuction( address beneficiary
-                        , ERC20 selling
-                        , ERC20 buying
+                        , address selling
+                        , address buying
                         , uint sell_amount
                         , uint start_bid
                         , uint min_increase
@@ -32,8 +32,8 @@ contract AuctionManager is MathUser
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
                                                     , payouts: payouts
-                                                    , selling: selling
-                                                    , buying: buying
+                                                    , selling: ERC20(selling)
+                                                    , buying: ERC20(buying)
                                                     , sell_amount: sell_amount
                                                     , start_bid: start_bid
                                                     , min_increase: min_increase
@@ -130,8 +130,8 @@ contract AuctionManager is MathUser
     }
     // Create a new two-way auction.
     function newTwoWayAuction( address beneficiary
-                             , ERC20 selling
-                             , ERC20 buying
+                             , address selling
+                             , address buying
                              , uint sell_amount
                              , uint start_bid
                              , uint min_increase
@@ -145,8 +145,8 @@ contract AuctionManager is MathUser
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
                                                     , payouts: payouts
-                                                    , selling: selling
-                                                    , buying: buying
+                                                    , selling: ERC20(selling)
+                                                    , buying: ERC20(buying)
                                                     , sell_amount: sell_amount
                                                     , start_bid: start_bid
                                                     , min_increase: min_increase

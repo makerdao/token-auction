@@ -45,8 +45,8 @@ contract AuctionManager is MathUser
     }
     function newAuction( address[] beneficiaries
                        , uint[] payouts
-                       , ERC20 selling
-                       , ERC20 buying
+                       , address selling
+                       , address buying
                        , uint sell_amount
                        , uint start_bid
                        , uint min_increase
@@ -57,8 +57,8 @@ contract AuctionManager is MathUser
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
                                                     , payouts: payouts
-                                                    , selling: selling
-                                                    , buying: buying
+                                                    , selling: ERC20(selling)
+                                                    , buying: ERC20(buying)
                                                     , sell_amount: sell_amount
                                                     , start_bid: start_bid
                                                     , min_increase: min_increase
@@ -70,8 +70,8 @@ contract AuctionManager is MathUser
     }
     // Create a new reverse auction
     function newReverseAuction( address beneficiary
-                              , ERC20 selling
-                              , ERC20 buying
+                              , address selling
+                              , address buying
                               , uint max_sell_amount
                               , uint buy_amount
                               , uint min_decrease
@@ -86,8 +86,8 @@ contract AuctionManager is MathUser
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
                                                     , payouts: payouts
-                                                    , selling: selling
-                                                    , buying: buying
+                                                    , selling: ERC20(selling)
+                                                    , buying: ERC20(buying)
                                                     , sell_amount: max_sell_amount
                                                     , start_bid: buy_amount
                                                     , min_increase: 0
@@ -100,8 +100,8 @@ contract AuctionManager is MathUser
     // Create a new reverse auction
     function newReverseAuction( address beneficiary
                               , address refund
-                              , ERC20 selling
-                              , ERC20 buying
+                              , address selling
+                              , address buying
                               , uint max_sell_amount
                               , uint buy_amount
                               , uint min_decrease
@@ -116,8 +116,8 @@ contract AuctionManager is MathUser
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
                                                     , payouts: payouts
-                                                    , selling: selling
-                                                    , buying: buying
+                                                    , selling: ERC20(selling)
+                                                    , buying: ERC20(buying)
                                                     , sell_amount: max_sell_amount
                                                     , start_bid: buy_amount
                                                     , min_increase: 0
@@ -158,8 +158,8 @@ contract AuctionManager is MathUser
     }
     function newTwoWayAuction( address beneficiary
                              , address refund
-                             , ERC20 selling
-                             , ERC20 buying
+                             , address selling
+                             , address buying
                              , uint sell_amount
                              , uint start_bid
                              , uint min_increase
@@ -173,8 +173,8 @@ contract AuctionManager is MathUser
         (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
                                                      , beneficiaries: beneficiaries
                                                      , payouts: payouts
-                                                     , selling: selling
-                                                     , buying: buying
+                                                     , selling: ERC20(selling)
+                                                     , buying: ERC20(buying)
                                                      , sell_amount: sell_amount
                                                      , start_bid: start_bid
                                                      , min_increase: min_increase
@@ -187,8 +187,8 @@ contract AuctionManager is MathUser
     }
     function newTwoWayAuction( address[] beneficiaries
                              , uint[] payouts
-                             , ERC20 selling
-                             , ERC20 buying
+                             , address selling
+                             , address buying
                              , uint sell_amount
                              , uint start_bid
                              , uint min_increase
@@ -201,8 +201,8 @@ contract AuctionManager is MathUser
         (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
                                                      , beneficiaries: beneficiaries
                                                      , payouts: payouts
-                                                     , selling: selling
-                                                     , buying: buying
+                                                     , selling: ERC20(selling)
+                                                     , buying: ERC20(buying)
                                                      , sell_amount: sell_amount
                                                      , start_bid: start_bid
                                                      , min_increase: min_increase
@@ -215,8 +215,8 @@ contract AuctionManager is MathUser
     function newTwoWayAuction( address[] beneficiaries
                              , uint[] payouts
                              , address refund
-                             , ERC20 selling
-                             , ERC20 buying
+                             , address selling
+                             , address buying
                              , uint sell_amount
                              , uint start_bid
                              , uint min_increase
@@ -229,8 +229,8 @@ contract AuctionManager is MathUser
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                    , beneficiaries: beneficiaries
                                    , payouts: payouts
-                                   , selling: selling
-                                   , buying: buying
+                                   , selling: ERC20(selling)
+                                   , buying: ERC20(buying)
                                    , sell_amount: sell_amount
                                    , start_bid: start_bid
                                    , min_increase: min_increase

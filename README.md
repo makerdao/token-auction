@@ -395,3 +395,18 @@ var (id, base) = manager.newTwoWayAuction( beneficiaries
 
 - `address refund` is the address that forgone `sell_token` will be
   sent to, continuously.
+
+
+## Gas costs
+
+Approximate and subject to change.
+
+- new SplittingAuctionManager: ~4.3M
+- create an auction:           ~500k
+- base bid:                    ~130k
+- subsequent bids:             ~70k
+- base split:                  ~450k
+- claim:                       ~75k
+- subsequent splits:           ~420k
+- bid transition (two-way):    100-150k
+- split transition (two-way):  450-470k

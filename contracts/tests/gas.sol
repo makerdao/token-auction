@@ -130,3 +130,47 @@ contract ReverseGasTest is AuctionTest {
         new SplittingAuctionManager();
     }
 }
+
+contract TwoWayGasTest is AuctionTest {
+    uint id;
+    uint base;
+
+    modifier pre_create {
+        (id, base) = newAuction();
+        _
+    }
+    modifier pre_bid(uint how_much) {
+        bidder1.doBid(base, how_much);
+        _
+    }
+    function newAuction() returns (uint, uint) {
+        return manager.newTwoWayAuction(beneficiary1, t1, t2, 100 * T1, 10 * T2, 1, 1, 1 hours, 50 * T2);
+
+    }
+    function testTransitionFromBase()
+        pre_create
+        logs_gas
+    {
+        bidder1.doBid(base, 60 * T2);
+    }
+    function testTransitionAfterBid()
+        pre_create
+        pre_bid(40 * T2)
+        logs_gas
+    {
+        bidder1.doBid(base, 60 * T2);
+    }
+    function testSplitTransitionFromBase()
+        pre_create
+        logs_gas
+    {
+        bidder1.doBid(base, 50 * T1, 60 * T2);
+    }
+    function testSplitTransitionAfterBid()
+        pre_create
+        pre_bid(40 * T2)
+        logs_gas
+    {
+        bidder1.doBid(base, 50 * T1, 60 * T2);
+    }
+}

@@ -435,4 +435,21 @@ contract ClaimTest is AuctionTest {
         bidder1.doClaim(base1);
         bidder1.doClaim(base1);
     }
+    function testFailClaimBase() {
+        // base auctionlets should not be claimable
+        var (id, base) = newAuction();
+        manager.addTime(2 years);
+
+        // The beneficiary is set as the last bidder on the base auctionlet,
+        // so that they get transferred the start bid. They should not be able
+        // to claim the base auctionlet.
+        beneficiary1.doClaim(base);
+    }
+    function testFailClaimBaseNonParty() {
+        // base auctionlets should not be claimable
+        var (id, base) = newAuction();
+        manager.addTime(2 years);
+
+        manager.claim(base);  // doesn't matter who calls claim
+    }
 }

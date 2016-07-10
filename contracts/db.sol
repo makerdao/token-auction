@@ -65,10 +65,11 @@ contract AuctionDatabaseUser is AuctionDatabase, TimeUser {
         return _auctions[auction_id].reversed;
     }
     // check if an auctionlet is expired
+    // N.B. base auctionlets cannot expire
     function isExpired(uint auctionlet_id) constant returns (bool expired) {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
-        expired = (getTime() - a.last_bid_time) > A.duration;
+        expired = ((getTime() - a.last_bid_time) > A.duration) && !a.base;
     }
     function getRefundAddress(uint auction_id) returns (address) {
         return _auctions[auction_id].refund;

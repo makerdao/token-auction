@@ -105,6 +105,8 @@ contract AuctionTest is EventfulAuction, EventfulManager, Test {
         t2.approve(manager, 1000 * T2);
 
         beneficiary1 = new AuctionTester();
+        beneficiary1.bindManager(manager);
         beneficiary2 = new AuctionTester();
+        beneficiary2.bindManager(manager);
     }
 }

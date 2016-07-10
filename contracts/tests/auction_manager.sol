@@ -386,46 +386,39 @@ contract ClaimTest is AuctionTest {
                                  );
     }
     function testClaimTransfersBidder() {
-        var bidder_t2_balance_before = t2.balanceOf(bidder1);
-        var bidder_t1_balance_before = t1.balanceOf(bidder1);
-
         var (id, base) = newAuction();
         bidder1.doBid(base, 11 * T2);
-
         // force expiry
         manager.addTime(2 years);
 
+        var balance_before = t1.balanceOf(bidder1);
         // n.b. anyone can force claim, not just the bidder
-        manager.claim(1);
+        bidder1.doClaim(base);
+        var balance_after = t1.balanceOf(bidder1);
 
-        var bidder_t2_balance_after = t2.balanceOf(bidder1);
-        var bidder_t1_balance_after = t1.balanceOf(bidder1);
-
-        var diff_t1 = bidder_t1_balance_after - bidder_t1_balance_before;
-        var diff_t2 = bidder_t2_balance_before - bidder_t2_balance_after;
-
-        assertEq(diff_t2, 11 * T2);
-        assertEq(diff_t1, 100 * T1);
+        assertEq(balance_after - balance_before, 100 * T1);
     }
     function testClaimNonParty() {
         var (id, base) = newAuction();
         bidder1.doBid(base, 11 * T2);
         manager.addTime(2 years);
 
-        // anyone can initiate a claim
+        var balance_before = t1.balanceOf(bidder1);
+        // n.b. anyone can force claim, not just the bidder
         bidder2.doClaim(base);
+        var balance_after = t1.balanceOf(bidder1);
+
+        assertEq(balance_after - balance_before, 100 * T1);
     }
     function testFailClaimProceedingsPreExpiration() {
         // bidders cannot claim their auctionlet until the auction has
         // expired.
         var (id, base) = newAuction();
         bidder1.doBid(base, 11 * T2);
-        bidder1.doClaim(1);
+        bidder1.doClaim(base);
     }
     function testFailBidderClaimAgain() {
         // bidders should not be able to claim their auctionlet more than once
-
-        // create an auction that expires immediately
         var (id1, base1) = newAuction();
         var (id2, base2) = newAuction();
 

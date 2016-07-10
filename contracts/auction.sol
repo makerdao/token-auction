@@ -176,6 +176,8 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
         // auctionlet must not be expired
         // (N.B. base auctionlets never expire)
         assert(!isExpired(auctionlet_id));
+        // must be unclaimed
+        assert(a.unclaimed);
 
         if (A.reversed) {
             // check if reverse biddable

@@ -142,42 +142,6 @@ contract AuctionManagerTest is AuctionTest {
 
         assertEq(balance_after - balance_before, 40 * T2);
     }
-    function testClaimTransfersBidder() {
-        var bidder_t2_balance_before = t2.balanceOf(bidder1);
-        var bidder_t1_balance_before = t1.balanceOf(bidder1);
-
-        var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
-
-        // force expiry
-        manager.addTime(2 years);
-
-        // n.b. anyone can force claim, not just the bidder
-        manager.claim(1);
-
-        var bidder_t2_balance_after = t2.balanceOf(bidder1);
-        var bidder_t1_balance_after = t1.balanceOf(bidder1);
-
-        var diff_t1 = bidder_t1_balance_after - bidder_t1_balance_before;
-        var diff_t2 = bidder_t2_balance_before - bidder_t2_balance_after;
-
-        assertEq(diff_t2, 11 * T2);
-        assertEq(diff_t1, 100 * T1);
-    }
-    function testFailClaimNonParty() {
-        var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
-        // bidder2 is not party to the auction and should not be able to
-        // initiate a claim
-        bidder2.doClaim(1);
-    }
-    function testFailClaimProceedingsPreExpiration() {
-        // bidders cannot claim their auctionlet until the auction has
-        // expired.
-        var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
-        bidder1.doClaim(1);
-    }
     function testMultipleNewAuctions() {
         // auction manager should be able to manage multiple auctions
         t2.transfer(seller, 200 * T2);
@@ -231,26 +195,6 @@ contract AuctionManagerTest is AuctionTest {
         var balance_after = t1.balanceOf(this);
 
         assertEq(balance_before - balance_after, 200 * T1);
-    }
-    function testFailBidderClaimAgain() {
-        // bidders should not be able to claim their auctionlet more than once
-
-        // create an auction that expires immediately
-        var (id1, base1) = newAuction();
-        var (id2, base2) = newAuction();
-
-        // create bids on two different auctions so that the manager has
-        // enough funds for us to attempt to withdraw all at once
-        bidder1.doBid(base1, 11 * T2);
-        bidder2.doBid(base2, 11 * T2);
-
-        // force expiry
-        manager.addTime(2 years);
-
-        // now attempt to claim the proceedings from the first
-        // auctionlet twice
-        bidder1.doClaim(base1);
-        bidder1.doClaim(base1);
     }
     function testBidTransfersToDistinctBeneficiary() {
         var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
@@ -427,5 +371,85 @@ contract MathTest is Test, MathUser {
     }
     function testSumEquivalentCumSum() {
         assertEq(cumsum(array)[2], sum(array));
+    }
+}
+
+contract ClaimTest is AuctionTest {
+    function newAuction() returns (uint, uint) {
+        return manager.newAuction( beneficiary1  // beneficiary
+                                 , t1            // selling
+                                 , t2            // buying
+                                 , 100 * T1      // sell_amount
+                                 , 10 * T2       // start_bid
+                                 , 1             // min_increase (%)
+                                 , 1 years       // duration
+                                 );
+    }
+    function testClaimTransfersBidder() {
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 11 * T2);
+        // force expiry
+        manager.addTime(2 years);
+
+        var balance_before = t1.balanceOf(bidder1);
+        // n.b. anyone can force claim, not just the bidder
+        bidder1.doClaim(base);
+        var balance_after = t1.balanceOf(bidder1);
+
+        assertEq(balance_after - balance_before, 100 * T1);
+    }
+    function testClaimNonParty() {
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 11 * T2);
+        manager.addTime(2 years);
+
+        var balance_before = t1.balanceOf(bidder1);
+        // n.b. anyone can force claim, not just the bidder
+        bidder2.doClaim(base);
+        var balance_after = t1.balanceOf(bidder1);
+
+        assertEq(balance_after - balance_before, 100 * T1);
+    }
+    function testFailClaimProceedingsPreExpiration() {
+        // bidders cannot claim their auctionlet until the auction has
+        // expired.
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 11 * T2);
+        bidder1.doClaim(base);
+    }
+    function testFailBidderClaimAgain() {
+        // bidders should not be able to claim their auctionlet more than once
+        var (id1, base1) = newAuction();
+        var (id2, base2) = newAuction();
+
+        // create bids on two different auctions so that the manager has
+        // enough funds for us to attempt to withdraw all at once
+        bidder1.doBid(base1, 11 * T2);
+        bidder2.doBid(base2, 11 * T2);
+
+        // force expiry
+        manager.addTime(2 years);
+
+        // now attempt to claim the proceedings from the first
+        // auctionlet twice
+        bidder1.doClaim(base1);
+        bidder1.doClaim(base1);
+    }
+    function testFailClaimBase() {
+        // base auctionlets should not be claimable
+        var (id, base) = newAuction();
+        manager.addTime(2 years);
+
+        // The beneficiary is set as the last bidder on the base auctionlet,
+        // so that they get transferred the start bid. They should not be able
+        // to claim the base auctionlet.
+        beneficiary1.doClaim(base);
+    }
+    function testFailClaimBaseNonParty() {
+        // base auctionlets should not be claimable
+        var (id, base) = newAuction();
+        manager.addTime(2 years);
+
+        manager.claim(base);  // doesn't matter who calls claim
     }
 }

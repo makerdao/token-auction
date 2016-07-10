@@ -407,12 +407,13 @@ contract ClaimTest is AuctionTest {
         assertEq(diff_t2, 11 * T2);
         assertEq(diff_t1, 100 * T1);
     }
-    function testFailClaimNonParty() {
+    function testClaimNonParty() {
         var (id, base) = newAuction();
         bidder1.doBid(base, 11 * T2);
-        // bidder2 is not party to the auction and should not be able to
-        // initiate a claim
-        bidder2.doClaim(1);
+        manager.addTime(2 years);
+
+        // anyone can initiate a claim
+        bidder2.doClaim(base);
     }
     function testFailClaimProceedingsPreExpiration() {
         // bidders cannot claim their auctionlet until the auction has

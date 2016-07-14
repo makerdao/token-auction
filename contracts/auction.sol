@@ -124,18 +124,18 @@ contract SplittingAuction is AuctionType
         internal
         returns (uint new_id, uint split_id)
     {
-        var a = readAuctionlet(auctionlet_id);
+        var a = _auctionlets[auctionlet_id];
 
         var (new_quantity, new_bid, split_bid) = _calculate_split(auctionlet_id, quantity);
 
-        // create two new auctionlets and bid on them
-        new_id = newAuctionlet(a.auction_id, new_bid, new_quantity,
-                               a.last_bidder, a.base);
+        // modify the old auctionlet
+        setLastBid(auctionlet_id, new_bid, new_quantity);
+        newBid(auctionlet_id, a.last_bidder, new_bid);
+        new_id = auctionlet_id;
+
+        // create a new auctionlet with the split quantity
         split_id = newAuctionlet(a.auction_id, split_bid, quantity,
                                  a.last_bidder, a.base);
-
-        deleteAuctionlet(auctionlet_id);
-        newBid(new_id, a.last_bidder, new_bid);
         doBid(split_id, splitter, bid_how_much);
     }
     // Work out how to split a bid into two parts

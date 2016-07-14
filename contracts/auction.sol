@@ -130,7 +130,6 @@ contract SplittingAuction is AuctionType
 
         // modify the old auctionlet
         setLastBid(auctionlet_id, new_bid, new_quantity);
-        newBid(auctionlet_id, a.last_bidder, new_bid);
         new_id = auctionlet_id;
 
         // create a new auctionlet with the split quantity

@@ -1,5 +1,6 @@
 import 'types.sol';
 import 'util.sol';
+import 'erc20/erc20.sol';
 
 // CRUD database for auctions and auctionlets. Create, Read(only) and
 // Delete are done with methods here. For gas reasons, Update is done by
@@ -57,6 +58,33 @@ contract AuctionDatabaseUser is AuctionDatabase, TimeUser {
 
         setLastBid(auctionlet_id, bid, quantity);
     }
+
+    function getAuctionInfo(uint auction_id) constant returns (address creator,
+        ERC20 selling,
+        ERC20 buying,
+        uint start_bid,
+        uint min_increase,
+        uint min_decrease,
+        uint sell_amount,
+        uint duration,
+        bool reversed,
+        uint unsold) {
+      var a = _auctions[auction_id];
+      return (a.creator, a.selling, a.buying, a.start_bid, a.min_increase,
+      a.min_decrease, a.sell_amount, a.duration, a.reversed, a.unsold);
+    }
+
+    function getAuctionletInfo(uint auctionlet_id) constant returns (uint auction_id,
+        address last_bidder,
+        uint last_bid_time,
+        uint buy_amount,
+        uint sell_amount,
+        bool unclaimed,
+        bool base) {
+        var a = _auctionlets[auctionlet_id];
+        return (a.auction_id, a.last_bidder, a.last_bid_time, a.buy_amount, a.sell_amount, a.unclaimed, a.base);
+    }
+
     function setReversed(uint auction_id, bool reversed) internal {
         _auctions[auction_id].reversed = reversed;
     }

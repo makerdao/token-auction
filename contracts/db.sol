@@ -63,7 +63,6 @@ contract AuctionDatabaseUser is AuctionDatabase, TimeUser {
         auctionlet.unclaimed = true;
         auctionlet.last_bidder = last_bidder;
         auctionlet.base = base;
-        auctionlet.last_bid_time = getTime();
 
         auctionlet_id = createAuctionlet(auctionlet);
 

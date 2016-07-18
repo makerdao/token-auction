@@ -139,7 +139,9 @@ contract AuctionDatabaseUser is AuctionDatabase, TimeUser {
         A.refund = refund;
     }
     // Auctionlet bid update logic.
-    function newBid(uint auctionlet_id, address bidder, uint bid_how_much) {
+    function newBid(uint auctionlet_id, address bidder, uint bid_how_much)
+        internal
+    {
         var a = _auctionlets[auctionlet_id];
         var A = _auctions[a.auction_id];
 

@@ -18,13 +18,13 @@ contract AuctionManager is MathUser
     // Bidding is done through the auctions associated auctionlets,
     // of which there is one initially.
     function newAuction( address beneficiary
-                        , address selling
-                        , address buying
-                        , uint sell_amount
-                        , uint start_bid
-                        , uint min_increase
-                        , uint duration
-                        )
+                       , address selling
+                       , address buying
+                       , uint sell_amount
+                       , uint start_bid
+                       , uint min_increase
+                       , uint duration
+                       )
         returns (uint auction_id, uint base_id)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, INFINITY);
@@ -254,18 +254,18 @@ contract AuctionManager is MathUser
         return (beneficiaries, payouts);
     }
     function _makeGenericAuction( address creator
-                               , address[] beneficiaries
-                               , uint[] payouts
-                               , ERC20 selling
-                               , ERC20 buying
-                               , uint sell_amount
-                               , uint start_bid
-                               , uint min_increase
-                               , uint min_decrease
-                               , uint duration
-                               , uint collection_limit
-                               , bool reversed
-                               )
+                                , address[] beneficiaries
+                                , uint[] payouts
+                                , ERC20 selling
+                                , ERC20 buying
+                                , uint sell_amount
+                                , uint start_bid
+                                , uint min_increase
+                                , uint min_decrease
+                                , uint duration
+                                , uint collection_limit
+                                , bool reversed
+                                )
         internal
         returns (uint auction_id, uint base_id)
     {
@@ -290,7 +290,9 @@ contract AuctionManager is MathUser
 
         NewAuction(auction_id, base_id);
     }
-    function assertConsistentPayouts(Auction A) internal {
+    function assertConsistentPayouts(Auction A)
+        internal
+    {
         assert(A.beneficiaries.length == A.payouts.length);
         if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
         assert(sum(A.payouts) == A.collection_limit);

@@ -1,10 +1,10 @@
 contract Assertive {
-    function assert(bool what) returns (bool) {
+    function assert(bool what) internal {
         if (!what) {
             throw;
         }
     }
-    function assertIncreasing(uint[] array) {
+    function assertIncreasing(uint[] array) internal {
         if (array.length < 2) return;
 
         for (uint i = 1; i < array.length; i ++) {

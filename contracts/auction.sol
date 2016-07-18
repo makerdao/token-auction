@@ -166,7 +166,9 @@ contract SplittingAuction is AuctionType
 
 contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     // Check whether an auctionlet is eligible for bidding on
-    function assertBiddable(uint auctionlet_id, uint bid_how_much) internal {
+    function assertBiddable(uint auctionlet_id, uint bid_how_much)
+        internal
+    {
         var a = readAuctionlet(auctionlet_id);
         var A = readAuction(a.auction_id);
 
@@ -190,7 +192,9 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
         }
     }
     // Check that an auctionlet can be split by the new bid.
-    function assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity) internal {
+    function assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
+        internal
+    {
         var (_, prev_quantity) = getLastBid(auctionlet_id);
 
         // splits have to reduce the quantity being bid on
@@ -203,7 +207,9 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
         assertBiddable(auctionlet_id, valuation);
     }
     // Check whether an auctionlet can be claimed.
-    function assertClaimable(uint auctionlet_id) internal {
+    function assertClaimable(uint auctionlet_id)
+        internal
+    {
         var a = readAuctionlet(auctionlet_id);
         var A = readAuction(a.auction_id);
 

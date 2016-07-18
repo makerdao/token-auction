@@ -13,7 +13,9 @@ import 'util.sol';
 // complex settlement logic. However, their access to the auction is
 // read-only - they cannot write to storage.
 contract TransferUser is Assertive, MathUser, AuctionType {
-    function takeFundsIntoEscrow(Auction A) internal {
+    function takeFundsIntoEscrow(Auction A)
+        internal
+    {
         assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
     }
     function payOffLastBidder(Auction A, Auctionlet a,
@@ -22,7 +24,9 @@ contract TransferUser is Assertive, MathUser, AuctionType {
     {
         assert(A.buying.transferFrom(new_bidder, prev_bidder, how_much));
     }
-    function settleExcessBuy(Auction A, address bidder, uint excess_buy) internal {
+    function settleExcessBuy(Auction A, address bidder, uint excess_buy)
+        internal
+    {
         // if there is only a single beneficiary, they get all of the
         // settlement.
         if (A.beneficiaries.length == 1) {
@@ -57,13 +61,19 @@ contract TransferUser is Assertive, MathUser, AuctionType {
             assert(A.buying.transferFrom(bidder, A.beneficiaries[i], payout));
         }
     }
-    function settleExcessSell(Auction A, uint excess_sell) internal {
+    function settleExcessSell(Auction A, uint excess_sell)
+        internal
+    {
         assert(A.selling.transfer(A.refund, excess_sell));
     }
-    function settleBidderClaim(Auction A, Auctionlet a) internal {
+    function settleBidderClaim(Auction A, Auctionlet a)
+        internal
+    {
         assert(A.selling.transfer(a.last_bidder, a.sell_amount));
     }
-    function settleReclaim(Auction A) internal {
+    function settleReclaim(Auction A)
+        internal
+    {
         assert(A.selling.transfer(A.creator, A.unsold));
     }
 }

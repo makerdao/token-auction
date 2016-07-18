@@ -7,10 +7,10 @@ import 'erc20/erc20.sol';
 // explicitly modifiying storage (i.e. accessing _auctions / _auctionlets).
 contract AuctionDatabase is AuctionType {
     mapping(uint => Auction) _auctions;
-    uint _last_auction_id;
+    uint private _last_auction_id;
 
     mapping(uint => Auctionlet) _auctionlets;
-    uint _last_auctionlet_id;
+    uint private _last_auctionlet_id;
 
     function createAuctionlet(Auctionlet a)
         internal

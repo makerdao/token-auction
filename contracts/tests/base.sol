@@ -35,15 +35,18 @@ contract TestableManager is SplittingAuctionManager {
 
 contract AuctionTester is Tester {
     SplittingAuctionFrontendType frontend;
+    AuctionDatabaseUser db;
     function bindManager(address manager) {
         frontend = SplittingAuctionFrontendType(manager);
+        db = AuctionDatabaseUser(manager);
     }
     function doApprove(address spender, uint value, ERC20 token) {
         token.approve(spender, value);
     }
     function doBid(uint auctionlet_id, uint bid_how_much)
     {
-        return frontend.bid(auctionlet_id, bid_how_much);
+        var (, quantity) = db.getLastBid(auctionlet_id);
+        frontend.bid(auctionlet_id, bid_how_much, quantity);
     }
     function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
         returns (uint, uint)

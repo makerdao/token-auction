@@ -2,12 +2,12 @@ import 'db.sol';
 import 'events.sol';
 import 'types.sol';
 import 'transfer.sol';
-import 'util.sol';
 
-contract SplittingAuction is AuctionType
-                           , AuctionDatabaseUser
-                           , EventfulAuction
-                           , TransferUser {
+contract TwoWayAuction is AuctionType
+                        , AuctionDatabaseUser
+                        , EventfulAuction
+                        , TransferUser
+{
     // Auctionlet bid logic, including transfers.
     function doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal
@@ -118,6 +118,21 @@ contract SplittingAuction is AuctionType
         // from bidder to beneficiary
         settleExcessBuy(A, new_bidder, excess_buy - bid_over_target);
     }
+    // Auctionlet claim logic, including transfers.
+    function doClaim(uint auctionlet_id)
+        internal
+    {
+        var a = readAuctionlet(auctionlet_id);
+        var A = readAuction(a.auction_id);
+
+        a.unclaimed = false;
+        deleteAuctionlet(auctionlet_id);
+
+        settleBidderClaim(A, a);
+    }
+}
+
+contract SplittingAuction is TwoWayAuction {
     // Auctionlet splitting logic.
     function doSplit(uint auctionlet_id, address splitter,
                      uint bid_how_much, uint quantity)
@@ -148,18 +163,6 @@ contract SplittingAuction is AuctionType
         // n.b. associativity important because of truncating division
         new_bid = (prev_bid * new_quantity) / prev_quantity;
         split_bid = (prev_bid * quantity) / prev_quantity;
-    }
-    // Auctionlet claim logic, including transfers.
-    function doClaim(uint auctionlet_id)
-        internal
-    {
-        var a = readAuctionlet(auctionlet_id);
-        var A = readAuction(a.auction_id);
-
-        a.unclaimed = false;
-        deleteAuctionlet(auctionlet_id);
-
-        settleBidderClaim(A, a);
     }
 }
 
@@ -219,11 +222,10 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     }
 }
 
-contract AuctionFrontend is EventfulAuction
+contract AuctionFrontend is AuctionFrontendType
+                          , EventfulAuction
                           , AssertiveAuction
-                          , SplittingAuction
-                          , FallbackFailer
-                          , AuctionFrontendType
+                          , TwoWayAuction
 {
     // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much) {
@@ -240,9 +242,18 @@ contract AuctionFrontend is EventfulAuction
     }
 }
 
-contract SplittingAuctionFrontend is AuctionFrontend
-                                   , SplittingAuctionFrontendType
+
+contract SplittingAuctionFrontend is SplittingAuctionFrontendType
+                                   , EventfulAuction
+                                   , AssertiveAuction
+                                   , SplittingAuction
 {
+    // Place a new bid on a specific auctionlet.
+    function bid(uint auctionlet_id, uint bid_how_much) {
+        assertBiddable(auctionlet_id, bid_how_much);
+        doBid(auctionlet_id, msg.sender, bid_how_much);
+        Bid(auctionlet_id);
+    }
     // Place a partial bid on an auctionlet, for less than the full lot.
     // This splits the auctionlet into two, bids on one of the new
     // auctionlets and leaves the other to the previous bidder.
@@ -254,6 +265,13 @@ contract SplittingAuctionFrontend is AuctionFrontend
         assertSplittable(auctionlet_id, bid_how_much, quantity);
         (new_id, split_id) = doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
         Split(auctionlet_id, new_id, split_id);
+    }
+    // Allow parties to an auction to claim their take.
+    // If the auction has expired, individual auctionlet high bidders
+    // can claim their winnings.
+    function claim(uint auctionlet_id) {
+        assertClaimable(auctionlet_id);
+        doClaim(auctionlet_id);
     }
 }
 

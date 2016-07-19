@@ -138,7 +138,6 @@ contract AuctionDatabaseUser is AuctionDatabase, TimeUser {
         A.refund = refund;
     }
     function getLastBid(uint auctionlet_id)
-        internal
         constant
         returns (uint prev_bid, uint prev_quantity)
     {

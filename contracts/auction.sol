@@ -260,6 +260,7 @@ contract SplittingAuctionFrontend is SplittingAuctionFrontendType
         if (quantity == prev_quantity) {
             assertBiddable(auctionlet_id, bid_how_much);
             doBid(auctionlet_id, msg.sender, bid_how_much);
+            new_id = auctionlet_id;
             Bid(auctionlet_id);
         } else {
             assertSplittable(auctionlet_id, bid_how_much, quantity);

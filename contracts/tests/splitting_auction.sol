@@ -314,13 +314,6 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 50 * T2);
     }
-    function testFailBidAfterSplit() {
-        // splitting deletes the old auctionlet_id
-        // bidding on this id should error
-        var (id, base) = newAuction();
-        var (nid, sid) = bidder2.doBid(base, 12 * T2, 60 * T1);
-        bidder1.doBid(base, 11 * T2);
-    }
     function testFailSplitAfterSplit() {
         // splitting deletes the old auctionlet_id
         // splitting on this id should error

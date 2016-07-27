@@ -7,12 +7,71 @@ import 'transfer.sol';
 import 'types.sol';
 import 'util.sol';
 
-contract AuctionManager is MathUser
-                         , AuctionType
-                         , AuctionDatabaseUser
-                         , EventfulManager
-                         , AuctionFrontend
+contract AuctionController is MathUser
+                            , AuctionType
+                            , AuctionDatabaseUser
+                            , EventfulManager
+                            , TransferUser
 {
+    function _makeSinglePayout(address beneficiary, uint collection_limit)
+        internal
+        returns (address[], uint[])
+    {
+        address[] memory beneficiaries = new address[](1);
+        uint[] memory payouts = new uint[](1);
+
+        beneficiaries[0] = beneficiary;
+        payouts[0] = collection_limit;
+
+        return (beneficiaries, payouts);
+    }
+    function _makeGenericAuction( address creator
+                                , address[] beneficiaries
+                                , uint[] payouts
+                                , ERC20 selling
+                                , ERC20 buying
+                                , uint sell_amount
+                                , uint start_bid
+                                , uint min_increase
+                                , uint min_decrease
+                                , uint duration
+                                , uint collection_limit
+                                , bool reversed
+                                )
+        internal
+        returns (uint auction_id, uint base_id)
+    {
+        (auction_id, base_id) = newGenericAuction({ creator: msg.sender
+                                                  , beneficiaries: beneficiaries
+                                                  , payouts: payouts
+                                                  , selling: selling
+                                                  , buying: buying
+                                                  , sell_amount: sell_amount
+                                                  , start_bid: start_bid
+                                                  , min_increase: min_increase
+                                                  , min_decrease: min_decrease
+                                                  , duration: duration
+                                                  , collection_limit: collection_limit
+                                                  , reversed: reversed
+                                                  });
+
+        var A = readAuction(auction_id);
+
+        assertConsistentPayouts(A);
+        takeFundsIntoEscrow(A);
+
+        NewAuction(auction_id, base_id);
+    }
+    function assertConsistentPayouts(Auction A)
+        internal
+    {
+        assert(A.beneficiaries.length == A.payouts.length);
+        if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
+        assert(sum(A.payouts) == A.collection_limit);
+    }
+}
+
+contract AuctionManagerFrontend is AuctionController {
     uint constant INFINITY = 2 ** 256 - 1;
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
@@ -241,62 +300,7 @@ contract AuctionManager is MathUser
                                    });
         setRefundAddress(auction_id, refund);
     }
-    function _makeSinglePayout(address beneficiary, uint collection_limit)
-        internal
-        returns (address[], uint[])
-    {
-        address[] memory beneficiaries = new address[](1);
-        uint[] memory payouts = new uint[](1);
-
-        beneficiaries[0] = beneficiary;
-        payouts[0] = collection_limit;
-
-        return (beneficiaries, payouts);
-    }
-    function _makeGenericAuction( address creator
-                                , address[] beneficiaries
-                                , uint[] payouts
-                                , ERC20 selling
-                                , ERC20 buying
-                                , uint sell_amount
-                                , uint start_bid
-                                , uint min_increase
-                                , uint min_decrease
-                                , uint duration
-                                , uint collection_limit
-                                , bool reversed
-                                )
-        internal
-        returns (uint auction_id, uint base_id)
-    {
-        (auction_id, base_id) = newGenericAuction({ creator: msg.sender
-                                                  , beneficiaries: beneficiaries
-                                                  , payouts: payouts
-                                                  , selling: selling
-                                                  , buying: buying
-                                                  , sell_amount: sell_amount
-                                                  , start_bid: start_bid
-                                                  , min_increase: min_increase
-                                                  , min_decrease: min_decrease
-                                                  , duration: duration
-                                                  , collection_limit: collection_limit
-                                                  , reversed: reversed
-                                                  });
-
-        var A = readAuction(auction_id);
-
-        assertConsistentPayouts(A);
-        takeFundsIntoEscrow(A);
-
-        NewAuction(auction_id, base_id);
-    }
-    function assertConsistentPayouts(Auction A)
-        internal
-    {
-        assert(A.beneficiaries.length == A.payouts.length);
-        if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
-        assert(sum(A.payouts) == A.collection_limit);
-    }
 }
 
-contract SplittingAuctionManager is AuctionManager, SplittingAuctionFrontend {}
+contract AuctionManager is AuctionManagerFrontend , AuctionFrontend {}
+contract SplittingAuctionManager is AuctionManagerFrontend, SplittingAuctionFrontend {}

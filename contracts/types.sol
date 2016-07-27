@@ -34,7 +34,8 @@ contract AuctionFrontendType {
     function claim(uint auctionlet_id);
 }
 
-contract SplittingAuctionFrontendType is AuctionFrontendType {
+contract SplittingAuctionFrontendType {
     function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
         returns (uint new_id, uint split_id);
+    function claim(uint auctionlet_id);
 }

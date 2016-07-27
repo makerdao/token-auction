@@ -41,8 +41,9 @@ the number of times an auction can be split.
 
 The splittable unit of an auction is an **auctionlet**. Each auction
 initially has a single auctionlet. Auctionlets are the object on
-which bidders place bids. Splitting an auctionlet produces two new
-auctionlets (both of reduced quantity) and deletes the old one.
+which bidders place bids. Splitting an auctionlet produces a new
+auctionlet of reduced quantity and reduces the available quantity in
+the original auctionlet.
 
 The auctions are **continuous**. The auction beneficiaries are
 continually rewarded as new bids are made: by increasing amounts of
@@ -195,12 +196,10 @@ import 'token-auction/types.sol';
 manager = SplittingAuctionFrontendType(known_manager_address);
 ```
 
-Users interact with active auctions via `bid` and `claim`. The `bid`
-function can be called in two different ways - regular *bids* and
-*splits*.
+Users interact with active auctions via `bid` and `claim`.
 
 
-**Bid** on an auctionlet:
+**Bid** on a non splitting auction:
 
 ```
 manager.bid(id, bid_amount)
@@ -215,16 +214,18 @@ so they must `approve` it first. The excess `buy_token` given by the
 bid (over the last) is sent directly to the `beneficiary`.
 
 
-**Split** an auctionlet:
+**Bid** on a splitting auction:
 
 ```
 var (new_id, split_id) = manager.bid(id, bid_amount, split_amount)
 ```
 
-- `uint split_amount` is the reduced quantity of `sell_token` on
-  which the new bid is being made.
+- `uint split_amount` is the quantity of `sell_token` on which the
+  new bid is being made. If the amount is equal to the existing
+  quantity, then a regular bid is performed; if it is less, then a
+  split bid is performed.
 
-Splitting returns a pair of identifiers:
+Bidding on a splitting auction returns a pair of identifiers:
 
 - `uint split_id` refers to the auctionlet on which the caller is
   now the highest bidder.
@@ -281,12 +282,14 @@ Split(uint base_id, uint new_id, uint split_id)
 ```
 
 - `uint base_id` is the id of the auctionlet that has been split
-  (and deleted).
-- `uint new_id` is the id of the new auctionlet that the previous
+- `uint new_id` is the id of the auctionlet that the previous
   bidder retains.
 - `uint split_id` is the id of the new auctionlet that the splitter
   is now the high bidder on.
 
+Note that while `new_id == base_id` at present, this isn't
+guaranteed to be the case in the future and you should use `new_id`
+as the new identifier.
 
 ## Advanced Usage
 

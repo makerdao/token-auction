@@ -45,7 +45,7 @@ contract AuctionDBTest is AuctionTest {
                                  , t2        // buying
                                  , 100 * T1  // sell_amount
                                  , 10 * T2   // start_bid
-                                 , 1 * T2    // min_increase
+                                 , 1         // min_increase
                                  , 1 years   // duration
                                  );
     }

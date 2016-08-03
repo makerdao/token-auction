@@ -27,7 +27,7 @@ contract TwoWayAuction is AuctionType
         // each bid. In reverse auctions this is unchanged per bid as
         // bids compete on the sell side.
         if (!A.reversed) {
-            var excess_buy = bid_how_much - a.buy_amount;
+            var excess_buy = safeSub(bid_how_much, a.buy_amount);
             A.collected += excess_buy;
         }
 
@@ -49,7 +49,7 @@ contract TwoWayAuction is AuctionType
         var previous_buy = a.buy_amount;
         var previous_bidder = a.last_bidder;
 
-        var excess_buy = bid_how_much - a.buy_amount;
+        var excess_buy = safeSub(bid_how_much, a.buy_amount);
 
         a.buy_amount = bid_how_much;  // forward bids compete on buy token
         a.last_bidder = new_bidder;
@@ -70,7 +70,7 @@ contract TwoWayAuction is AuctionType
         var previous_bidder = a.last_bidder;
         var previous_buy = a.buy_amount;
 
-        var excess_sell = a.sell_amount - bid_how_much;
+        var excess_sell = safeSub(a.sell_amount, bid_how_much);
 
         A.sell_amount -= excess_sell;
 
@@ -93,20 +93,20 @@ contract TwoWayAuction is AuctionType
         var previous_bidder = a.last_bidder;
         var previous_buy = a.buy_amount;
 
-        var excess_buy = bid_how_much - a.buy_amount;
+        var excess_buy = safeSub(bid_how_much, a.buy_amount);
 
         // only take excess from the bidder up to the collect target.
-        var bid_over_target = A.collected - A.collection_limit;
+        var bid_over_target = safeSub(A.collected, A.collection_limit);
 
         // over the target, infer how much less they would have been
         // willing to accept, based on their bid price
-        var effective_target_bid = (a.sell_amount * A.collection_limit) / A.sell_amount;
-        var inferred_reverse_bid = (a.sell_amount * effective_target_bid) / bid_how_much;
+        var effective_target_bid = safeMul(a.sell_amount, A.collection_limit) / A.sell_amount;
+        var inferred_reverse_bid = safeMul(a.sell_amount, effective_target_bid) / bid_how_much;
 
         A.collected = A.collection_limit;
         A.reversed = true;
 
-        a.buy_amount = bid_how_much - bid_over_target;
+        a.buy_amount = safeSub(bid_how_much, bid_over_target);
         a.sell_amount = inferred_reverse_bid;
         a.last_bidder = new_bidder;
         a.last_bid_time = getTime();
@@ -116,7 +116,7 @@ contract TwoWayAuction is AuctionType
         payOffLastBidder(A, a, new_bidder, previous_bidder, previous_buy);
         // excess buy token (up to the target) is sent directly
         // from bidder to beneficiary
-        settleExcessBuy(A, new_bidder, excess_buy - bid_over_target);
+        settleExcessBuy(A, new_bidder, safeSub(excess_buy, bid_over_target));
     }
     // Auctionlet claim logic, including transfers.
     function doClaim(uint auctionlet_id)
@@ -158,11 +158,11 @@ contract SplittingAuction is TwoWayAuction {
         returns (uint new_quantity, uint new_bid, uint split_bid)
     {
         var (prev_bid, prev_quantity) = getLastBid(auctionlet_id);
-        new_quantity = prev_quantity - quantity;
+        new_quantity = safeSub(prev_quantity, quantity);
 
         // n.b. associativity important because of truncating division
-        new_bid = (prev_bid * new_quantity) / prev_quantity;
-        split_bid = (prev_bid * quantity) / prev_quantity;
+        new_bid = safeMul(prev_bid, new_quantity) / prev_quantity;
+        split_bid = safeMul(prev_bid, quantity) / prev_quantity;
     }
 }
 
@@ -186,11 +186,11 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
         if (A.reversed) {
             // check if reverse biddable
             // bids must decrease the amount of sell token
-            assert(bid_how_much <= (a.sell_amount * (100 - A.min_decrease) / 100 ));
+            assert(bid_how_much < (safeMul(a.sell_amount, 100 - A.min_decrease) / 100 ));
         } else {
             // check if forward biddable
             // bids must increase the amount of buy token
-            assert(bid_how_much >= (a.buy_amount * (100 + A.min_increase) / 100 ));
+            assert(bid_how_much > (safeMul(a.buy_amount, 100 + A.min_increase) / 100 ));
         }
     }
     // Check that an auctionlet can be split by the new bid.
@@ -204,7 +204,7 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
 
         // splits must have a relative increase in value
         // ('valuation' is the bid scaled up to the full lot)
-        var valuation = (bid_how_much * prev_quantity) / quantity;
+        var valuation = safeMul(bid_how_much, prev_quantity) / quantity;
 
         assertBiddable(auctionlet_id, valuation);
     }

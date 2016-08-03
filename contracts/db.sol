@@ -52,7 +52,7 @@ contract AuctionDatabase is AuctionType {
     }
 }
 
-contract AuctionDatabaseUser is AuctionDatabase, TimeUser {
+contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     function newAuctionlet(uint auction_id, uint bid,
                            uint quantity, address last_bidder, bool base)
         internal

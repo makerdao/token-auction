@@ -27,7 +27,7 @@ contract TimeUser {
 }
 
 contract MathUser {
-    function flat(uint x, uint y) internal returns (uint) {
+    function zeroSub(uint x, uint y) internal returns (uint) {
         if (x > y) return x - y;
         else return 0;
     }
@@ -44,6 +44,23 @@ contract MathUser {
         for (uint i = 0; i < array.length; i++) {
             total += array[i];
         }
+    }
+}
+
+contract SafeMathUser {
+    // Safe math functions that throw on overflow.
+    // These should be used anywhere that user input flows to.
+    function safeMul(uint a, uint b) internal returns (uint c) {
+        c = a * b;
+        if (a != 0 && c / a != b) throw;
+    }
+    function safeAdd(uint a, uint b) internal returns (uint c) {
+        c = a + b;
+        if (c < a) throw;
+    }
+    function safeSub(uint a, uint b) internal returns (uint c) {
+        if (b > a) throw;
+        c = a - b;
     }
 }
 

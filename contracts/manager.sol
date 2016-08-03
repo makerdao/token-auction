@@ -58,6 +58,8 @@ contract AuctionController is MathUser
         var A = readAuction(auction_id);
 
         assertConsistentPayouts(A);
+        assertSafePercentages(A);
+
         takeFundsIntoEscrow(A);
 
         NewAuction(auction_id, base_id);
@@ -68,6 +70,13 @@ contract AuctionController is MathUser
         assert(A.beneficiaries.length == A.payouts.length);
         if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
         assert(sum(A.payouts) == A.collection_limit);
+    }
+    function assertSafePercentages(Auction A)
+        internal
+    {
+        // risk of overflow in assertBiddable if these aren't constrained
+        assert(A.min_increase < 100);
+        assert(A.min_decrease < 100);
     }
 }
 

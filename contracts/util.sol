@@ -27,7 +27,7 @@ contract TimeUser {
 }
 
 contract MathUser {
-    function flat(uint x, uint y) internal returns (uint) {
+    function zeroSub(uint x, uint y) internal returns (uint) {
         if (x > y) return x - y;
         else return 0;
     }

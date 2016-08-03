@@ -55,8 +55,8 @@ contract TransferUser is Assertive, MathUser, AuctionType {
             if (limit < prev_collected) continue;
 
             var payout = excess_buy
-                       - flat(prev_limit, prev_collected)
-                       - flat(A.collected, limit);
+                       - zeroSub(prev_limit, prev_collected)
+                       - zeroSub(A.collected, limit);
 
             assert(A.buying.transferFrom(bidder, A.beneficiaries[i], payout));
         }

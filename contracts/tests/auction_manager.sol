@@ -352,8 +352,8 @@ contract MathTest is Test, MathUser {
         array = _array;
     }
     function testFlat() {
-        assertEq(0, flat(1, 2));
-        assertEq(1, flat(2, 1));
+        assertEq(0, zeroSub(1, 2));
+        assertEq(1, zeroSub(2, 1));
     }
     function testCumSum() {
         uint[] memory expected = new uint[](3);

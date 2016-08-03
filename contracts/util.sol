@@ -47,6 +47,23 @@ contract MathUser {
     }
 }
 
+contract SafeMathUser {
+    // Safe math functions that throw on overflow.
+    // These should be used anywhere that user input flows to.
+    function safeMul(uint a, uint b) internal returns (uint c) {
+        c = a * b;
+        if (a != 0 && c / a != b) throw;
+    }
+    function safeAdd(uint a, uint b) internal returns (uint c) {
+        c = a + b;
+        if (c < a) throw;
+    }
+    function safeSub(uint a, uint b) internal returns (uint c) {
+        if (b > a) throw;
+        c = a - b;
+    }
+}
+
 contract MutexUser {
     bool private mutex_lock;
     modifier exclusive {

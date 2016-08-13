@@ -20,7 +20,7 @@ contract TwoWayTest is AuctionTest {
         expectEventsExact(manager);
         NewAuction(id, base);
         AuctionReversal(id);
-        Bid(base);
+        Bid(base, 101 * T2);
     }
     function testNewTwoWayAuction() {
         var (id, base) = newTwoWayAuction();
@@ -204,7 +204,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         expectEventsExact(manager);
         NewAuction(id, base);
         AuctionReversal(id);
-        Bid(base);
+        Bid(base, 101 * T2);
 
         assertEq(manager.isReversed(id), true);
     }

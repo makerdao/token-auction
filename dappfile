@@ -14,3 +14,8 @@ environments:
       auction:
         class: SplittingAuctionManager
         address: '0xeb2d00a547288a81ac6ceaaf73c34eba11325c51'
+  live:
+    objects:
+      auction:
+        class: SplittingAuctionManager
+        address: '0x7f6eccbca710e8b5af7d837c7e2e406844538e10'

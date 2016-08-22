@@ -13,7 +13,7 @@ environments:
     objects:
       auction:
         class: SplittingAuctionManager
-        address: '0xeb2d00a547288a81ac6ceaaf73c34eba11325c51'
+        address: '0x6b4ae8fa2fd6cbe715e89b1f0df9d952ea97d7a9'
   live:
     objects:
       auction:

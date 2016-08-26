@@ -234,7 +234,7 @@ contract AuctionFrontend is AuctionFrontendType
     {
         assertBiddable(auctionlet_id, bid_how_much);
         doBid(auctionlet_id, msg.sender, bid_how_much);
-        Bid(auctionlet_id);
+        Bid(auctionlet_id, bid_how_much);
     }
     // Allow parties to an auction to claim their take.
     // If the auction has expired, individual auctionlet high bidders
@@ -268,7 +268,7 @@ contract SplittingAuctionFrontend is SplittingAuctionFrontendType
             assertBiddable(auctionlet_id, bid_how_much);
             doBid(auctionlet_id, msg.sender, bid_how_much);
             new_id = auctionlet_id;
-            Bid(auctionlet_id);
+            Bid(auctionlet_id, bid_how_much);
         } else {
             assertSplittable(auctionlet_id, bid_how_much, quantity);
             (new_id, split_id) = doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);

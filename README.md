@@ -269,11 +269,12 @@ AuctionReversal(uint indexed auction_id)
 Successful new **bid** on an auctionlet:
 
 ```
-Bid(uint indexed auctionlet_id)
+Bid(uint indexed auctionlet_id, uint bid_price)
 ```
 
 - `uint auctionlet_id` is the id of the auctionlet that has been bid
   on.
+- `uint bid_price` is the price of the bid.
 
 Successful **split** of an auctionlet:
 

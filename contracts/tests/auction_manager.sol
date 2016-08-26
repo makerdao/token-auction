@@ -28,8 +28,8 @@ contract AuctionManagerTest is AuctionTest {
 
         expectEventsExact(manager);
         NewAuction(id, base);
-        Bid(base);
-        Bid(base);
+        Bid(base, 11 * T2);
+        Bid(base, 12 * T2);
     }
     function testNewAuction() {
         var (id, base) = newAuction();

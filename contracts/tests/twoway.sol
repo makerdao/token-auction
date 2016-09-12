@@ -9,7 +9,7 @@ contract TwoWayTest is AuctionTest {
                                        , 10 * T2   // start_bid
                                        , 1         // min_increase (%)
                                        , 1         // min_decrease (%)
-                                       , 1 years   // duration
+                                       , 1 years   // ttl
                                        , 100 * T2  // collection_limit
                                        );
     }
@@ -315,7 +315,7 @@ contract TwoWayRefundTest is AuctionTest {
                                                         , 10 * T2       // start_bid
                                                         , 1             // min_increase (%)
                                                         , 1             // min_decrease (%)
-                                                        , 1 years       // duration
+                                                        , 1 years       // ttl
                                                         , 100 * T2      // collection_limit
                                                         );
     }

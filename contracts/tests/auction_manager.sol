@@ -12,7 +12,7 @@ contract AuctionManagerTest is AuctionTest {
                                  , 100 * T1  // sell_amount
                                  , 10 * T2   // start_bid
                                  , 1         // min_increase (%)
-                                 , 1 years   // duration
+                                 , 1 years   // ttl
                                  );
     }
     function testNewAuctionEvent() {
@@ -36,7 +36,7 @@ contract AuctionManagerTest is AuctionTest {
         assertEq(id, 1);
 
         var (beneficiary, selling, buying,
-             sell_amount, start_bid, min_increase, duration) = manager.getAuction(id);
+             sell_amount, start_bid, min_increase, ttl) = manager.getAuction(id);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == t1);
@@ -44,7 +44,7 @@ contract AuctionManagerTest is AuctionTest {
         assertEq(sell_amount, 100 * T1);
         assertEq(start_bid, 10 * T2);
         assertEq(min_increase, 1);
-        assertEq(duration, 1 years);
+        assertEq(ttl, 1 years);
     }
     function testNewAuctionTransfersToManager() {
         var balance_before = t1.balanceOf(manager);
@@ -127,7 +127,7 @@ contract AuctionManagerTest is AuctionTest {
     function testBaseDoesNotExpire() {
         var (id, base) = newAuction();
 
-        // push past the base auction duration
+        // push past the base auction ttl
         manager.addTime(2 years);
 
         // this should succeed as there are no real bidders
@@ -161,7 +161,7 @@ contract AuctionManagerTest is AuctionTest {
         assertEq(t2_balance_before - t2.balanceOf(this), 100 * T2);
 
         var (beneficiary, selling, buying,
-             sell_amount, start_bid, min_increase, duration) = manager.getAuction(id2);
+             sell_amount, start_bid, min_increase, ttl) = manager.getAuction(id2);
 
         assertEq(beneficiary, seller);
         assertTrue(selling == t2);
@@ -169,7 +169,7 @@ contract AuctionManagerTest is AuctionTest {
         assertEq(sell_amount, 100 * T2);
         assertEq(start_bid, 10 * T1);
         assertEq(min_increase, 1);
-        assertEq(duration, 1 years);
+        assertEq(ttl, 1 years);
     }
     function testMultipleAuctionsBidTransferToBenefactor() {
         var (id1, base1) = newAuction();
@@ -215,7 +215,7 @@ contract MinBidIncreaseTest is AuctionTest {
                                  , 100 * T1  // sell_amount
                                  , 10 * T2   // start_bid
                                  , 20        // min_increase (%)
-                                 , 1 years   // duration
+                                 , 1 years   // ttl
                                  );
     }
     function testFailFirstBidEqualStartBid() {
@@ -382,7 +382,7 @@ contract ClaimTest is AuctionTest {
                                  , 100 * T1      // sell_amount
                                  , 10 * T2       // start_bid
                                  , 1             // min_increase (%)
-                                 , 1 years       // duration
+                                 , 1 years       // ttl
                                  );
     }
     function testClaimTransfersBidder() {
@@ -451,5 +451,116 @@ contract ClaimTest is AuctionTest {
         manager.addTime(2 years);
 
         manager.claim(base);  // doesn't matter who calls claim
+    }
+}
+
+// New auctions have an optional ttl parameter that sets a global
+// auction expiry (across all of its auctionlets). After this expiry, no
+// more bids can be placed and bid winners can claim their bids. In
+// contrast to the per-auctionlet expiry (which does not apply to unbid
+// collateral), following the auction expiry the collateral can be
+// claimed (and sent to the beneficiary) even if there have been no bids.
+contract ExpiryTest is AuctionTest {
+    function newAuction(uint ttl, uint expiration)
+        returns (uint, uint)
+    {
+        return manager.newAuction( beneficiary1  // beneficiary
+                                 , t1            // selling
+                                 , t2            // buying
+                                 , 100 * T1      // sell_amount
+                                 , 0             // start_bid
+                                 , 0             // min_increase (%)
+                                 , ttl
+                                 , expiration
+                                 );
+    }
+    function testExpiryTimes() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        assertFalse(manager.isExpired(base));
+        manager.addTime(8 days);
+        assertFalse(manager.isExpired(base));
+        manager.addTime(8 days);
+        assertTrue(manager.isExpired(base));
+        manager.addTime(8 days);
+        assertTrue(manager.isExpired(base));
+    }
+    function testFailBidPostAuctionExpiryPreAuctionletExpiry() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        manager.addTime(15 days);
+
+        // fails because auction has expired
+        bidder1.doBid(base, 1 * T2);
+    }
+    function testFailBidPostAuctionletExpiryPostAuctionExpiry() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        bidder1.doBid(base, 1 * T2);
+        manager.addTime(25 days);
+
+        bidder2.doBid(base, 2 * T2);
+    }
+    function testFailSplitPostAuctionExpiryPreAuctionletExpiry() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        manager.addTime(15 days);
+
+        bidder1.doBid(base, 1 * T2, 50 * T1);
+    }
+    function testFailSplitPostAuctionletExpiryPostAuctionExpiry() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        bidder1.doBid(base, 1 * T2);
+        manager.addTime(25 days);
+
+        bidder2.doBid(base, 1 * T2, 50 * T1);
+    }
+    function testClaimBasePostAuctionExpiryPreAuctionletExpiry() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        manager.addTime(15 days);
+
+        var balance_before = t1.balanceOf(beneficiary1);
+        manager.claim(base);
+        assertEq(t1.balanceOf(beneficiary1) - balance_before, 100 * T1);
+    }
+    function testClaimBasePostAuctionExpiryPostAuctionletExpiry() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        manager.addTime(25 days);
+
+        var balance_before = t1.balanceOf(beneficiary1);
+        manager.claim(base);
+        assertEq(t1.balanceOf(beneficiary1) - balance_before, 100 * T1);
+    }
+    function testClaimPostAuctionExpiryPostAuctionletExpiry() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        bidder1.doBid(base, 1 * T2);
+        manager.addTime(15 days);
+
+        var balance_before = t1.balanceOf(bidder1);
+        manager.claim(base);
+        assertEq(t1.balanceOf(bidder1) - balance_before, 100 * T1);
+    }
+    function testClaimPostAuctionExpiryPreAuctionletExpiry() {
+        var (id, base) = newAuction({ ttl:        20 days
+                                    , expiration: now + 10 days });
+
+        bidder1.doBid(base, 1 * T2);
+        manager.addTime(25 days);
+
+        var balance_before = t1.balanceOf(bidder1);
+        manager.claim(base);
+        assertEq(t1.balanceOf(bidder1) - balance_before, 100 * T1);
     }
 }

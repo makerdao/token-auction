@@ -8,7 +8,7 @@ contract ReverseTest is AuctionTest {
                                         , 100 * T1  // max_sell_amount
                                         , 5 * T2    // buy_amount
                                         , 2         // min_decrease (%)
-                                        , 1 years   // duration
+                                        , 1 years   // ttl
                                         );
     }
     function testNewReverseAuction() {
@@ -141,7 +141,7 @@ contract MinBidDecreaseTest is AuctionTest {
                                         , 100 * T1  // max_sell_amount
                                         , 5 * T2    // buy_amount
                                         , 20        // min_decrease (%)
-                                        , 1 years   // duration
+                                        , 1 years   // ttl
                                         );
     }
     function testFailFirstBidEqualStartBid() {
@@ -173,7 +173,7 @@ contract ReverseRefundTest is AuctionTest {
                                         , 100 * T1      // max_sell_amount
                                         , 5 * T2        // buy_amount
                                         , 20            // min_decrease (%)
-                                        , 1 years       // duration
+                                        , 1 years       // ttl
                                         );
     }
     function testNewReverseAuction() {

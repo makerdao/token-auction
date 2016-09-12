@@ -9,7 +9,7 @@ contract ForwardSplittingTest is AuctionTest
                                  , 100 * T1  // sell_amount
                                  , 10 * T2   // start_bid
                                  , 1         // min_increase (%)
-                                 , 1 years   // duration
+                                 , 1 years   // ttl
                                  );
     }
     function testSplitEvent() {
@@ -326,7 +326,7 @@ contract ForwardSplittingTest is AuctionTest
 
         var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
 
-        // push past the base auction duration
+        // push past the base auction ttl
         manager.addTime(2 years);
 
         // this should succeed as there are no real bidders
@@ -337,7 +337,7 @@ contract ForwardSplittingTest is AuctionTest
 
         var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1);
 
-        // push past the base auction duration
+        // push past the base auction ttl
         manager.addTime(2 years);
 
         // this should succeed as there are no real bidders

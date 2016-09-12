@@ -19,7 +19,7 @@ contract AuctionManagerTest is AuctionTest {
         var (id, base) = newAuction();
 
         expectEventsExact(manager);
-        NewAuction(id, base);
+        LogNewAuction(id, base);
     }
     function testBidEvent() {
         var (id, base) = newAuction();
@@ -27,9 +27,9 @@ contract AuctionManagerTest is AuctionTest {
         bidder2.doBid(base, 12 * T2);
 
         expectEventsExact(manager);
-        NewAuction(id, base);
-        Bid(base);
-        Bid(base);
+        LogNewAuction(id, base);
+        LogBid(base);
+        LogBid(base);
     }
     function testNewAuction() {
         var (id, base) = newAuction();

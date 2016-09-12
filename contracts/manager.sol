@@ -62,7 +62,7 @@ contract AuctionController is MathUser
 
         takeFundsIntoEscrow(A);
 
-        NewAuction(auction_id, base_id);
+        LogNewAuction(auction_id, base_id);
     }
     function assertConsistentPayouts(Auction A)
         internal

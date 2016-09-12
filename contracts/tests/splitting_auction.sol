@@ -20,10 +20,10 @@ contract ForwardSplittingTest is AuctionTest
         var (nid3, sid3) = bidder1.doBid(sid1, 6 * T2, 30 * T1);
 
         expectEventsExact(manager);
-        NewAuction(id, base);
-        Split(base, nid1, sid1);
-        Split(nid1, nid2, sid2);
-        Split(sid1, nid3, sid3);
+        LogNewAuction(id, base);
+        LogSplit(base, nid1, sid1);
+        LogSplit(nid1, nid2, sid2);
+        LogSplit(sid1, nid3, sid3);
     }
     function testSplitBase() {
         var (id, base) = newAuction();

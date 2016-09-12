@@ -12,33 +12,33 @@ contract AuctionDatabase is AuctionType {
     mapping(uint => Auctionlet) _auctionlets;
     uint private _last_auctionlet_id;
 
-    function createAuctionlet(Auctionlet a)
+    function createAuctionlet(Auctionlet auctionlet)
         internal
         returns (uint id)
     {
         id = ++_last_auctionlet_id;
-        _auctionlets[id] = a;
+        _auctionlets[id] = auctionlet;
     }
-    function createAuction(Auction A)
+    function createAuction(Auction auction)
         internal
         returns (uint id)
     {
         id = ++_last_auction_id;
-        _auctions[id] = A;
+        _auctions[id] = auction;
     }
     function readAuctionlet(uint auctionlet_id)
         internal
         constant
-        returns (Auctionlet memory a)
+        returns (Auctionlet memory auctionlet)
     {
-        a = _auctionlets[auctionlet_id];
+        auctionlet = _auctionlets[auctionlet_id];
     }
     function readAuction(uint auction_id)
         internal
         constant
-        returns (Auction memory A)
+        returns (Auction memory auction)
     {
-        A = _auctions[auction_id];
+        auction = _auctions[auction_id];
     }
     function deleteAuctionlet(uint auctionlet_id)
         internal
@@ -83,9 +83,9 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                 , uint unsold
                 )
     {
-      var a = _auctions[auction_id];
-      return (a.creator, a.selling, a.buying, a.start_bid, a.min_increase,
-              a.min_decrease, a.sell_amount, a.duration, a.reversed, a.unsold);
+      var auctionlet = _auctions[auction_id];
+      return (auctionlet.creator, auctionlet.selling, auctionlet.buying, auctionlet.start_bid, auctionlet.min_increase,
+              auctionlet.min_decrease, auctionlet.sell_amount, auctionlet.duration, auctionlet.reversed, auctionlet.unsold);
     }
 
     function getAuctionletInfo(uint auctionlet_id)
@@ -99,9 +99,9 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                 , bool base
                 )
     {
-        var a = _auctionlets[auctionlet_id];
-        return (a.auction_id, a.last_bidder, a.last_bid_time,
-                a.buy_amount, a.sell_amount, a.unclaimed, a.base);
+        var auctionlet = _auctionlets[auctionlet_id];
+        return (auctionlet.auction_id, auctionlet.last_bidder, auctionlet.last_bid_time,
+                auctionlet.buy_amount, auctionlet.sell_amount, auctionlet.unclaimed, auctionlet.base);
     }
 
     function setReversed(uint auction_id, bool reversed)
@@ -122,9 +122,9 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         constant
         returns (bool expired)
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
-        expired = ((getTime() - a.last_bid_time) > A.duration) && !a.base;
+        var auctionlet = _auctionlets[auctionlet_id];
+        var auction = _auctions[auctionlet.auction_id];
+        expired = ((getTime() - auctionlet.last_bid_time) > auction.duration) && !auctionlet.base;
     }
     function getRefundAddress(uint auction_id)
         returns (address)
@@ -134,36 +134,36 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     function setRefundAddress(uint auction_id, address refund)
         internal
     {
-        var A = _auctions[auction_id];
-        A.refund = refund;
+        var auction = _auctions[auction_id];
+        auction.refund = refund;
     }
     function getLastBid(uint auctionlet_id)
         constant
         returns (uint prev_bid, uint prev_quantity)
     {
-        var a = readAuctionlet(auctionlet_id);
-        var A = readAuction(a.auction_id);
+        var auctionlet = readAuctionlet(auctionlet_id);
+        var auction = readAuction(auctionlet.auction_id);
 
-        if (A.reversed) {
-            prev_bid = a.sell_amount;
-            prev_quantity = a.buy_amount;
+        if (auction.reversed) {
+            prev_bid = auctionlet.sell_amount;
+            prev_quantity = auctionlet.buy_amount;
         } else {
-            prev_bid = a.buy_amount;
-            prev_quantity = a.sell_amount;
+            prev_bid = auctionlet.buy_amount;
+            prev_quantity = auctionlet.sell_amount;
         }
     }
     function setLastBid(uint auctionlet_id, uint bid, uint quantity)
         internal
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var auctionlet = _auctionlets[auctionlet_id];
+        var auction = _auctions[auctionlet.auction_id];
 
-        if (A.reversed) {
-            a.sell_amount = bid;
-            a.buy_amount = quantity;
+        if (auction.reversed) {
+            auctionlet.sell_amount = bid;
+            auctionlet.buy_amount = quantity;
         } else {
-            a.sell_amount = quantity;
-            a.buy_amount = bid;
+            auctionlet.sell_amount = quantity;
+            auctionlet.buy_amount = bid;
         }
     }
     function newGenericAuction( address creator
@@ -182,28 +182,28 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         internal
         returns (uint auction_id, uint base_id)
     {
-        Auction memory A;
-        A.creator = creator;
-        A.beneficiaries = beneficiaries;
-        A.payouts = payouts;
-        A.refund = beneficiaries[0];
-        A.selling = selling;
-        A.buying = buying;
-        A.sell_amount = sell_amount;
-        A.start_bid = start_bid;
-        A.min_increase = min_increase;
-        A.min_decrease = min_decrease;
-        A.duration = duration;
-        A.collection_limit = collection_limit;
-        A.unsold = sell_amount;
+        Auction memory auction;
+        auction.creator = creator;
+        auction.beneficiaries = beneficiaries;
+        auction.payouts = payouts;
+        auction.refund = beneficiaries[0];
+        auction.selling = selling;
+        auction.buying = buying;
+        auction.sell_amount = sell_amount;
+        auction.start_bid = start_bid;
+        auction.min_increase = min_increase;
+        auction.min_decrease = min_decrease;
+        auction.duration = duration;
+        auction.collection_limit = collection_limit;
+        auction.unsold = sell_amount;
 
-        auction_id = createAuction(A);
+        auction_id = createAuction(auction);
 
         // create the base auctionlet
         base_id = newAuctionlet({ auction_id:  auction_id
-                                , bid:         A.start_bid
-                                , quantity:    A.sell_amount
-                                , last_bidder: A.beneficiaries[0]
+                                , bid:         auction.start_bid
+                                , quantity:    auction.sell_amount
+                                , last_bidder: auction.beneficiaries[0]
                                 , base:        true
                                 });
 
@@ -211,6 +211,6 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         setReversed(auction_id, reversed);
         // TODO: this is a code smell. There may be a way around this by
         // rethinking the reversed logic throughout - possibly renaming
-        // a.sell_amount / a.buy_amount
+        // auctionlet.sell_amount / auctionlet.buy_amount
     }
 }

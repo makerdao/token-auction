@@ -12,30 +12,30 @@ contract TwoWayAuction is AuctionType
     function doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var auctionlet = _auctionlets[auctionlet_id];
+        var auction = _auctions[auctionlet.auction_id];
 
         // if the auctionlet has not been bid on before we need to
         // do some extra accounting
-        if (a.base) {
-            A.collected += a.buy_amount;
-            A.unsold -= a.sell_amount;
-            a.base = false;
+        if (auctionlet.base) {
+            auction.collected += auctionlet.buy_amount;
+            auction.unsold -= auctionlet.sell_amount;
+            auctionlet.base = false;
         }
 
         // Forward auctions increment the total auction collection on
         // each bid. In reverse auctions this is unchanged per bid as
         // bids compete on the sell side.
-        if (!A.reversed) {
-            var excess_buy = safeSub(bid_how_much, a.buy_amount);
-            A.collected += excess_buy;
+        if (!auction.reversed) {
+            var excess_buy = safeSub(bid_how_much, auctionlet.buy_amount);
+            auction.collected += excess_buy;
         }
 
-        if (A.reversed) {
+        if (auction.reversed) {
             _doReverseBid(auctionlet_id, bidder, bid_how_much);
-        } else if (A.collected > A.collection_limit) {
+        } else if (auction.collected > auction.collection_limit) {
             _doTransitionBid(auctionlet_id, bidder, bid_how_much);
-            LogAuctionReversal(a.auction_id);
+            LogAuctionReversal(auctionlet.auction_id);
         } else {
             _doForwardBid(auctionlet_id, bidder, bid_how_much);
         }
@@ -43,92 +43,92 @@ contract TwoWayAuction is AuctionType
     function _doForwardBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var auctionlet = _auctionlets[auctionlet_id];
+        var auction = _auctions[auctionlet.auction_id];
 
-        var previous_buy = a.buy_amount;
-        var previous_bidder = a.last_bidder;
+        var previous_buy = auctionlet.buy_amount;
+        var previous_bidder = auctionlet.last_bidder;
 
-        var excess_buy = safeSub(bid_how_much, a.buy_amount);
+        var excess_buy = safeSub(bid_how_much, auctionlet.buy_amount);
 
-        a.buy_amount = bid_how_much;  // forward bids compete on buy token
-        a.last_bidder = new_bidder;
-        a.last_bid_time = getTime();
+        auctionlet.buy_amount = bid_how_much;  // forward bids compete on buy token
+        auctionlet.last_bidder = new_bidder;
+        auctionlet.last_bid_time = getTime();
 
         // new bidder pays off the old bidder directly. For the first
         // bid this is the seller, so they receive their minimum bid.
-        payOffLastBidder(A, a, new_bidder, previous_bidder, previous_buy);
+        payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, previous_buy);
         // excess buy token is sent directly from bidder to beneficiary
-        settleExcessBuy(A, new_bidder, excess_buy);
+        settleExcessBuy(auction, new_bidder, excess_buy);
     }
     function _doReverseBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var auctionlet = _auctionlets[auctionlet_id];
+        var auction = _auctions[auctionlet.auction_id];
 
-        var previous_bidder = a.last_bidder;
-        var previous_buy = a.buy_amount;
+        var previous_bidder = auctionlet.last_bidder;
+        var previous_buy = auctionlet.buy_amount;
 
-        var excess_sell = safeSub(a.sell_amount, bid_how_much);
+        var excess_sell = safeSub(auctionlet.sell_amount, bid_how_much);
 
-        A.sell_amount -= excess_sell;
+        auction.sell_amount -= excess_sell;
 
-        a.sell_amount = bid_how_much;  // reverse bids compete on sell token
-        a.last_bidder = new_bidder;
-        a.last_bid_time = getTime();
+        auctionlet.sell_amount = bid_how_much;  // reverse bids compete on sell token
+        auctionlet.last_bidder = new_bidder;
+        auctionlet.last_bid_time = getTime();
 
         // new bidder pays off the old bidder directly. For the first
         // bid this is the seller, so they receive their minimum bid.
-        payOffLastBidder(A, a, new_bidder, previous_bidder, previous_buy);
+        payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, previous_buy);
         // excess sell token is sent from auction escrow to the refund address
-        settleExcessSell(A, excess_sell);
+        settleExcessSell(auction, excess_sell);
     }
     function _doTransitionBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
-        var a = _auctionlets[auctionlet_id];
-        var A = _auctions[a.auction_id];
+        var auctionlet = _auctionlets[auctionlet_id];
+        var auction = _auctions[auctionlet.auction_id];
 
-        var previous_bidder = a.last_bidder;
-        var previous_buy = a.buy_amount;
+        var previous_bidder = auctionlet.last_bidder;
+        var previous_buy = auctionlet.buy_amount;
 
-        var excess_buy = safeSub(bid_how_much, a.buy_amount);
+        var excess_buy = safeSub(bid_how_much, auctionlet.buy_amount);
 
         // only take excess from the bidder up to the collect target.
-        var bid_over_target = safeSub(A.collected, A.collection_limit);
+        var bid_over_target = safeSub(auction.collected, auction.collection_limit);
 
         // over the target, infer how much less they would have been
         // willing to accept, based on their bid price
-        var effective_target_bid = safeMul(a.sell_amount, A.collection_limit) / A.sell_amount;
-        var inferred_reverse_bid = safeMul(a.sell_amount, effective_target_bid) / bid_how_much;
+        var effective_target_bid = safeMul(auctionlet.sell_amount, auction.collection_limit) / auction.sell_amount;
+        var inferred_reverse_bid = safeMul(auctionlet.sell_amount, effective_target_bid) / bid_how_much;
 
-        A.collected = A.collection_limit;
-        A.reversed = true;
+        auction.collected = auction.collection_limit;
+        auction.reversed = true;
 
-        a.buy_amount = safeSub(bid_how_much, bid_over_target);
-        a.sell_amount = inferred_reverse_bid;
-        a.last_bidder = new_bidder;
-        a.last_bid_time = getTime();
+        auctionlet.buy_amount = safeSub(bid_how_much, bid_over_target);
+        auctionlet.sell_amount = inferred_reverse_bid;
+        auctionlet.last_bidder = new_bidder;
+        auctionlet.last_bid_time = getTime();
 
         // new bidder pays off the old bidder directly. For the first
         // bid this is the seller, so they receive their minimum bid.
-        payOffLastBidder(A, a, new_bidder, previous_bidder, previous_buy);
+        payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, previous_buy);
         // excess buy token (up to the target) is sent directly
         // from bidder to beneficiary
-        settleExcessBuy(A, new_bidder, safeSub(excess_buy, bid_over_target));
+        settleExcessBuy(auction, new_bidder, safeSub(excess_buy, bid_over_target));
     }
     // Auctionlet claim logic, including transfers.
     function doClaim(uint auctionlet_id)
         internal
     {
-        var a = readAuctionlet(auctionlet_id);
-        var A = readAuction(a.auction_id);
+        var auctionlet = readAuctionlet(auctionlet_id);
+        var auction = readAuction(auctionlet.auction_id);
 
-        a.unclaimed = false;
+        auctionlet.unclaimed = false;
         deleteAuctionlet(auctionlet_id);
 
-        settleBidderClaim(A, a);
+        settleBidderClaim(auction, auctionlet);
     }
 }
 
@@ -139,7 +139,7 @@ contract SplittingAuction is TwoWayAuction {
         internal
         returns (uint new_id, uint split_id)
     {
-        var a = _auctionlets[auctionlet_id];
+        var auctionlet = _auctionlets[auctionlet_id];
 
         var (new_quantity, new_bid, split_bid) = _calculate_split(auctionlet_id, quantity);
 
@@ -148,8 +148,8 @@ contract SplittingAuction is TwoWayAuction {
         new_id = auctionlet_id;
 
         // create a new auctionlet with the split quantity
-        split_id = newAuctionlet(a.auction_id, split_bid, quantity,
-                                 a.last_bidder, a.base);
+        split_id = newAuctionlet(auctionlet.auction_id, split_bid, quantity,
+                                 auctionlet.last_bidder, auctionlet.base);
         doBid(split_id, splitter, bid_how_much);
     }
     // Work out how to split a bid into two parts
@@ -171,26 +171,26 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     function assertBiddable(uint auctionlet_id, uint bid_how_much)
         internal
     {
-        var a = readAuctionlet(auctionlet_id);
-        var A = readAuction(a.auction_id);
+        var auctionlet = readAuctionlet(auctionlet_id);
+        var auction = readAuction(auctionlet.auction_id);
 
-        assert(a.auction_id > 0);  // test for deleted auction
+        assert(auctionlet.auction_id > 0);  // test for deleted auction
         assert(auctionlet_id > 0);  // test for deleted auctionlet
 
         // auctionlet must not be expired
         // (N.B. base auctionlets never expire)
         assert(!isExpired(auctionlet_id));
         // must be unclaimed
-        assert(a.unclaimed);
+        assert(auctionlet.unclaimed);
 
-        if (A.reversed) {
+        if (auction.reversed) {
             // check if reverse biddable
             // bids must decrease the amount of sell token
-            assert(bid_how_much < (safeMul(a.sell_amount, 100 - A.min_decrease) / 100 ));
+            assert(bid_how_much < (safeMul(auctionlet.sell_amount, 100 - auction.min_decrease) / 100 ));
         } else {
             // check if forward biddable
             // bids must increase the amount of buy token
-            assert(bid_how_much > (safeMul(a.buy_amount, 100 + A.min_increase) / 100 ));
+            assert(bid_how_much > (safeMul(auctionlet.buy_amount, 100 + auction.min_increase) / 100 ));
         }
     }
     // Check that an auctionlet can be split by the new bid.
@@ -212,13 +212,13 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     function assertClaimable(uint auctionlet_id)
         internal
     {
-        var a = readAuctionlet(auctionlet_id);
-        var A = readAuction(a.auction_id);
+        var auctionlet = readAuctionlet(auctionlet_id);
+        var auction = readAuction(auctionlet.auction_id);
 
         // must be expired
         assert(isExpired(auctionlet_id));
         // must be unclaimed
-        assert(a.unclaimed);
+        assert(auctionlet.unclaimed);
     }
 }
 

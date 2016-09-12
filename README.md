@@ -131,8 +131,8 @@ var (id, base) = manager.newAuction( beneficiary
   must be at least this much plus the minimum increase.
 - `uint min_increase` is the integer percentage amount that each bid
   must increase on the last by (in terms of `buy_token`).
-- `uint ttl` is the time after which a bid will be locked and
-  claimable by its highest bidder.
+- `uint ttl` is the time after the previous bid when a bid will be
+  locked and claimable by its highest bidder.
 
 
 Create a new **reverse** auction:
@@ -399,6 +399,38 @@ var (id, base) = manager.newTwoWayAuction( beneficiaries
 
 - `address refund` is the address that forgone `sell_token` will be
   sent to, continuously.
+
+
+### Finite duration auction
+
+The default behaviour is for a new auction to persist indefinitely,
+until bids have been made for all of the collateral. If there are no
+bids then the collateral will remain locked forever.
+
+The forward auction can take an extra argument that determines when
+the auction as a whole will expire. After this time, bids will be
+rejected and all collateral will be claimable by its last bidder. In
+the case of unbid collateral the last bidder is taken to be the
+first beneficiary, who will receive the collateral after a call to
+`claim`.
+
+Creating a finite-duration auction:
+
+```
+var (id, base) = manager.newAuction( beneficiary
+                                   , sell_token
+                                   , buy_token
+                                   , sell_amount
+                                   , start_bid
+                                   , min_increase
+                                   , ttl
+                                   , expiration
+                                   );
+```
+
+- `uint expiration` is the *absolute* time after which the auction
+  will be expired, i.e. not relative to the block timestamp on
+  creation.
 
 
 ## Gas costs

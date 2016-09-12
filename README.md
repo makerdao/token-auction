@@ -104,7 +104,7 @@ identifiers are used when bidding and claiming.
 Note: you will not be able to use named arguments on auction
 creation due to an upstream [solidity issue][name-args-issue].
 
-[named-args-issue]: TODO
+[named-args-issue]: https://github.com/ethereum/solidity/issues/637
 
 Create a new **forward** auction:
 

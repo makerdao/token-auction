@@ -185,12 +185,18 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
 
         if (auction.reversed) {
             // check if reverse biddable
-            // bids must decrease the amount of sell token
-            assert(bid_how_much < (safeMul(auctionlet.sell_amount, 100 - auction.min_decrease) / 100 ));
+            // bids strictly decrease the amount of sell token
+            assert(bid_how_much < auctionlet.sell_amount);
+            // bids must decrease by at least the minimum decrease (%)
+            var max_bid = safeMul(auctionlet.sell_amount, 100 - auction.min_decrease) / 100;
+            assert(bid_how_much <= max_bid);
         } else {
             // check if forward biddable
-            // bids must increase the amount of buy token
-            assert(bid_how_much > (safeMul(auctionlet.buy_amount, 100 + auction.min_increase) / 100 ));
+            // bids strictly increase the amount of buy token
+            assert(bid_how_much > auctionlet.buy_amount);
+            // bids must increase by at least the minimum increase (%)
+            var min_bid = safeMul(auctionlet.buy_amount, 100 + auction.min_increase) / 100;
+            assert(bid_how_much >= min_bid);
         }
     }
     // Check that an auctionlet can be split by the new bid.

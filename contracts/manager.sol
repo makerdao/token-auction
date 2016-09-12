@@ -55,28 +55,28 @@ contract AuctionController is MathUser
                                                   , reversed: reversed
                                                   });
 
-        var A = readAuction(auction_id);
+        var auction = readAuction(auction_id);
 
-        assertConsistentPayouts(A);
-        assertSafePercentages(A);
+        assertConsistentPayouts(auction);
+        assertSafePercentages(auction);
 
-        takeFundsIntoEscrow(A);
+        takeFundsIntoEscrow(auction);
 
         LogNewAuction(auction_id, base_id);
     }
-    function assertConsistentPayouts(Auction A)
+    function assertConsistentPayouts(Auction auction)
         internal
     {
-        assert(A.beneficiaries.length == A.payouts.length);
-        if (!A.reversed) assert(A.payouts[0] >= A.start_bid);
-        assert(sum(A.payouts) == A.collection_limit);
+        assert(auction.beneficiaries.length == auction.payouts.length);
+        if (!auction.reversed) assert(auction.payouts[0] >= auction.start_bid);
+        assert(sum(auction.payouts) == auction.collection_limit);
     }
-    function assertSafePercentages(Auction A)
+    function assertSafePercentages(Auction auction)
         internal
     {
         // risk of overflow in assertBiddable if these aren't constrained
-        assert(A.min_increase < 100);
-        assert(A.min_decrease < 100);
+        assert(auction.min_increase < 100);
+        assert(auction.min_decrease < 100);
     }
 }
 

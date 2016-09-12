@@ -13,24 +13,24 @@ import 'util.sol';
 // complex settlement logic. However, their access to the auction is
 // read-only - they cannot write to storage.
 contract TransferUser is Assertive, MathUser, AuctionType {
-    function takeFundsIntoEscrow(Auction A)
+    function takeFundsIntoEscrow(Auction auction)
         internal
     {
-        assert(A.selling.transferFrom(A.creator, this, A.sell_amount));
+        assert(auction.selling.transferFrom(auction.creator, this, auction.sell_amount));
     }
-    function payOffLastBidder(Auction A, Auctionlet a,
+    function payOffLastBidder(Auction auction, Auctionlet auctionlet,
                               address new_bidder, address prev_bidder, uint how_much)
         internal
     {
-        assert(A.buying.transferFrom(new_bidder, prev_bidder, how_much));
+        assert(auction.buying.transferFrom(new_bidder, prev_bidder, how_much));
     }
-    function settleExcessBuy(Auction A, address bidder, uint excess_buy)
+    function settleExcessBuy(Auction auction, address bidder, uint excess_buy)
         internal
     {
         // if there is only a single beneficiary, they get all of the
         // settlement.
-        if (A.beneficiaries.length == 1) {
-            assert(A.buying.transferFrom(bidder, A.beneficiaries[0], excess_buy));
+        if (auction.beneficiaries.length == 1) {
+            assert(auction.buying.transferFrom(bidder, auction.beneficiaries[0], excess_buy));
             return;
         }
 
@@ -43,38 +43,38 @@ contract TransferUser is Assertive, MathUser, AuctionType {
         // needed.
 
         // collection state prior to this bid
-        var prev_collected = A.collected - excess_buy;
+        var prev_collected = auction.collected - excess_buy;
         // payout transition limits
-        var limits = cumsum(A.payouts);
+        var limits = cumsum(auction.payouts);
 
         for (uint i = 0; i < limits.length; i++) {
             var prev_limit = (i == 0) ? 0 : limits[i - 1];
-            if (prev_limit > A.collected) break;
+            if (prev_limit > auction.collected) break;
 
             var limit = limits[i];
             if (limit < prev_collected) continue;
 
             var payout = excess_buy
                        - zeroSub(prev_limit, prev_collected)
-                       - zeroSub(A.collected, limit);
+                       - zeroSub(auction.collected, limit);
 
-            assert(A.buying.transferFrom(bidder, A.beneficiaries[i], payout));
+            assert(auction.buying.transferFrom(bidder, auction.beneficiaries[i], payout));
         }
     }
-    function settleExcessSell(Auction A, uint excess_sell)
+    function settleExcessSell(Auction auction, uint excess_sell)
         internal
     {
-        assert(A.selling.transfer(A.refund, excess_sell));
+        assert(auction.selling.transfer(auction.refund, excess_sell));
     }
-    function settleBidderClaim(Auction A, Auctionlet a)
+    function settleBidderClaim(Auction auction, Auctionlet auctionlet)
         internal
     {
-        assert(A.selling.transfer(a.last_bidder, a.sell_amount));
+        assert(auction.selling.transfer(auctionlet.last_bidder, auctionlet.sell_amount));
     }
-    function settleReclaim(Auction A)
+    function settleReclaim(Auction auction)
         internal
     {
-        assert(A.selling.transfer(A.creator, A.unsold));
+        assert(auction.selling.transfer(auction.creator, auction.unsold));
     }
 }
 

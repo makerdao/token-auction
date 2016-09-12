@@ -21,17 +21,17 @@ contract CRUDTest is AuctionTest, AuctionDatabase {
         createAuctionlet(auctionlet);
     }
     function testReadOnlyAuction() {
-        var A = readAuction(1);
+        var auction = readAuction(1);
 
         assertEq(_auctions[1].duration, 0);
-        A.duration = 100 years;
+        auction.duration = 100 years;
         assertEq(_auctions[1].duration, 0);
     }
     function testReadOnlyAuctionlet() {
-        var a = readAuctionlet(1);
+        var auctionlet = readAuctionlet(1);
 
         assertEq(_auctionlets[1].base, false);
-        a.base = true;
+        auctionlet.base = true;
         assertEq(_auctionlets[1].base, false);
     }
 }

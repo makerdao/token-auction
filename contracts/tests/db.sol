@@ -23,9 +23,9 @@ contract CRUDTest is AuctionTest, AuctionDatabase {
     function testReadOnlyAuction() {
         var auction = readAuction(1);
 
-        assertEq(_auctions[1].duration, 0);
-        auction.duration = 100 years;
-        assertEq(_auctions[1].duration, 0);
+        assertEq(_auctions[1].ttl, 0);
+        auction.ttl = 100 years;
+        assertEq(_auctions[1].ttl, 0);
     }
     function testReadOnlyAuctionlet() {
         var auctionlet = readAuctionlet(1);
@@ -46,7 +46,7 @@ contract AuctionDBTest is AuctionTest {
                                  , 100 * T1  // sell_amount
                                  , 10 * T2   // start_bid
                                  , 1         // min_increase
-                                 , 1 years   // duration
+                                 , 1 years   // ttl
                                  );
     }
     function testDefaultRefund() {

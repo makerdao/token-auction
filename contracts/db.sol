@@ -78,14 +78,14 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                 , uint min_increase
                 , uint min_decrease
                 , uint sell_amount
-                , uint duration
+                , uint ttl
                 , bool reversed
                 , uint unsold
                 )
     {
       var auctionlet = _auctions[auction_id];
       return (auctionlet.creator, auctionlet.selling, auctionlet.buying, auctionlet.start_bid, auctionlet.min_increase,
-              auctionlet.min_decrease, auctionlet.sell_amount, auctionlet.duration, auctionlet.reversed, auctionlet.unsold);
+              auctionlet.min_decrease, auctionlet.sell_amount, auctionlet.ttl, auctionlet.reversed, auctionlet.unsold);
     }
 
     function getAuctionletInfo(uint auctionlet_id)
@@ -124,7 +124,13 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     {
         var auctionlet = _auctionlets[auctionlet_id];
         var auction = _auctions[auctionlet.auction_id];
-        expired = ((getTime() - auctionlet.last_bid_time) > auction.duration) && !auctionlet.base;
+
+        var auctionlet_expired = !auctionlet.base
+                && ((getTime() - auctionlet.last_bid_time) > auction.ttl);
+
+        var auction_expired = getTime() > auction.expiration;
+
+        expired = auctionlet_expired || auction_expired;
     }
     function getRefundAddress(uint auction_id)
         returns (address)
@@ -136,6 +142,12 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     {
         var auction = _auctions[auction_id];
         auction.refund = refund;
+    }
+    function setExpiration(uint auction_id, uint expiration)
+        internal
+    {
+        var auction = _auctions[auction_id];
+        auction.expiration = expiration;
     }
     function getLastBid(uint auctionlet_id)
         constant
@@ -175,7 +187,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                               , uint start_bid
                               , uint min_increase
                               , uint min_decrease
-                              , uint duration
+                              , uint ttl
                               , uint collection_limit
                               , bool reversed
                               )
@@ -193,7 +205,8 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         auction.start_bid = start_bid;
         auction.min_increase = min_increase;
         auction.min_decrease = min_decrease;
-        auction.duration = duration;
+        auction.ttl = ttl;
+        auction.expiration = uint(-1);  // infinity
         auction.collection_limit = collection_limit;
         auction.unsold = sell_amount;
 

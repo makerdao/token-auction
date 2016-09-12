@@ -8,7 +8,7 @@ contract ReverseSplittingTest is AuctionTest {
                                         , 100 * T1  // sell_amount
                                         , 5 * T2    // buy_amount
                                         , 2         // min_decrease (%)
-                                        , 1 years   // duration
+                                        , 1 years   // ttl
                                         );
     }
     function testNewReverseAuction() {

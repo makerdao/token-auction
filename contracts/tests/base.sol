@@ -23,7 +23,7 @@ contract TestableManager is SplittingAuctionManager {
     {
         Auction auction = _auctions[id];
         return (auction.beneficiaries[0], auction.selling, auction.buying,
-                auction.sell_amount, auction.start_bid, auction.min_increase, auction.duration);
+                auction.sell_amount, auction.start_bid, auction.min_increase, auction.ttl);
     }
     function getAuctionlet(uint id) constant
         returns (uint, address, uint, uint)

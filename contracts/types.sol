@@ -14,7 +14,8 @@ contract AuctionType {
         uint sell_amount;
         uint collected;
         uint collection_limit;
-        uint duration;
+        uint ttl;
+        uint expiration;
         bool reversed;
         uint unsold;
     }

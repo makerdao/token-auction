@@ -35,7 +35,7 @@ contract TwoWayAuction is AuctionType
             _doReverseBid(auctionlet_id, bidder, bid_how_much);
         } else if (A.collected > A.collection_limit) {
             _doTransitionBid(auctionlet_id, bidder, bid_how_much);
-            AuctionReversal(a.auction_id);
+            LogAuctionReversal(a.auction_id);
         } else {
             _doForwardBid(auctionlet_id, bidder, bid_how_much);
         }
@@ -234,7 +234,7 @@ contract AuctionFrontend is AuctionFrontendType
     {
         assertBiddable(auctionlet_id, bid_how_much);
         doBid(auctionlet_id, msg.sender, bid_how_much);
-        Bid(auctionlet_id);
+        LogBid(auctionlet_id);
     }
     // Allow parties to an auction to claim their take.
     // If the auction has expired, individual auctionlet high bidders
@@ -268,11 +268,11 @@ contract SplittingAuctionFrontend is SplittingAuctionFrontendType
             assertBiddable(auctionlet_id, bid_how_much);
             doBid(auctionlet_id, msg.sender, bid_how_much);
             new_id = auctionlet_id;
-            Bid(auctionlet_id);
+            LogBid(auctionlet_id);
         } else {
             assertSplittable(auctionlet_id, bid_how_much, quantity);
             (new_id, split_id) = doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
-            Split(auctionlet_id, new_id, split_id);
+            LogSplit(auctionlet_id, new_id, split_id);
         }
     }
     // Allow parties to an auction to claim their take.

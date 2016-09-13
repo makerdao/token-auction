@@ -16,19 +16,19 @@ contract TestableManager is SplittingAuctionManager {
         setTime(getTime() + time);
     }
     function getCollectMax(uint auction_id) returns (uint) {
-        return _auctions[auction_id].collection_limit;
+        return auctions(auction_id).collection_limit;
     }
     function getAuction(uint id) constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)
     {
-        Auction auction = _auctions[id];
+        Auction auction = auctions(id);
         return (auction.beneficiaries[0], auction.selling, auction.buying,
                 auction.sell_amount, auction.start_bid, auction.min_increase, auction.ttl);
     }
     function getAuctionlet(uint id) constant
         returns (uint, address, uint, uint)
     {
-        Auctionlet auctionlet = _auctionlets[id];
+        Auctionlet auctionlet = auctionlets(id);
         return (auctionlet.auction_id, auctionlet.last_bidder, auctionlet.buy_amount, auctionlet.sell_amount);
     }
 }

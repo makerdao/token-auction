@@ -55,7 +55,7 @@ contract AuctionController is MathUser
                                                   , reversed: reversed
                                                   });
 
-        var auction = readAuction(auction_id);
+        var auction = auctions(auction_id);
 
         assertConsistentPayouts(auction);
         assertSafePercentages(auction);

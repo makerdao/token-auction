@@ -2,14 +2,11 @@ import 'types.sol';
 import 'util.sol';
 import 'erc20/erc20.sol';
 
-// CRUD database for auctions and auctionlets. Create, Read(only) and
-// Delete are done with methods here. For gas reasons, Update is done by
-// explicitly modifiying storage (i.e. accessing _auctions / _auctionlets).
-contract AuctionDatabase is AuctionType {
-    mapping(uint => Auction) _auctions;
+contract AuctionDatabase is Assertive, AuctionType {
+    mapping(uint => Auction) private _auctions;
     uint private _last_auction_id;
 
-    mapping(uint => Auctionlet) _auctionlets;
+    mapping(uint => Auctionlet) private _auctionlets;
     uint private _last_auctionlet_id;
 
     function createAuctionlet(Auctionlet auctionlet)
@@ -26,19 +23,21 @@ contract AuctionDatabase is AuctionType {
         id = ++_last_auction_id;
         _auctions[id] = auction;
     }
-    function readAuctionlet(uint auctionlet_id)
+    function auctionlets(uint id)
         internal
-        constant
-        returns (Auctionlet memory auctionlet)
+        returns (Auctionlet storage auctionlet)
     {
-        auctionlet = _auctionlets[auctionlet_id];
+        assert(id != 0);
+        auctionlet = _auctionlets[id];
+        assert(auctionlet.auction_id != 0);
     }
-    function readAuction(uint auction_id)
+    function auctions(uint id)
         internal
-        constant
-        returns (Auction memory auction)
+        returns (Auction storage auction)
     {
-        auction = _auctions[auction_id];
+        assert(id != 0);
+        auction = _auctions[id];
+        assert(auction.creator != 0);
     }
     function deleteAuctionlet(uint auctionlet_id)
         internal
@@ -83,7 +82,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                 , uint unsold
                 )
     {
-      var auctionlet = _auctions[auction_id];
+      var auctionlet = auctions(auction_id);
       return (auctionlet.creator, auctionlet.selling, auctionlet.buying, auctionlet.start_bid, auctionlet.min_increase,
               auctionlet.min_decrease, auctionlet.sell_amount, auctionlet.ttl, auctionlet.reversed, auctionlet.unsold);
     }
@@ -99,7 +98,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                 , bool base
                 )
     {
-        var auctionlet = _auctionlets[auctionlet_id];
+        var auctionlet = auctionlets(auctionlet_id);
         return (auctionlet.auction_id, auctionlet.last_bidder, auctionlet.last_bid_time,
                 auctionlet.buy_amount, auctionlet.sell_amount, auctionlet.unclaimed, auctionlet.base);
     }
@@ -107,14 +106,14 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     function setReversed(uint auction_id, bool reversed)
         internal
     {
-        _auctions[auction_id].reversed = reversed;
+        auctions(auction_id).reversed = reversed;
     }
     // check if an auction is reversed
     function isReversed(uint auction_id)
         constant
         returns (bool reversed)
     {
-        return _auctions[auction_id].reversed;
+        return auctions(auction_id).reversed;
     }
     // check if an auctionlet is expired
     // N.B. base auctionlets cannot expire
@@ -122,8 +121,8 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         constant
         returns (bool expired)
     {
-        var auctionlet = _auctionlets[auctionlet_id];
-        var auction = _auctions[auctionlet.auction_id];
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         var auctionlet_expired = !auctionlet.base
                 && ((getTime() - auctionlet.last_bid_time) > auction.ttl);
@@ -135,26 +134,26 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     function getRefundAddress(uint auction_id)
         returns (address)
     {
-        return _auctions[auction_id].refund;
+        return auctions(auction_id).refund;
     }
     function setRefundAddress(uint auction_id, address refund)
         internal
     {
-        var auction = _auctions[auction_id];
+        var auction = auctions(auction_id);
         auction.refund = refund;
     }
     function setExpiration(uint auction_id, uint expiration)
         internal
     {
-        var auction = _auctions[auction_id];
+        var auction = auctions(auction_id);
         auction.expiration = expiration;
     }
     function getLastBid(uint auctionlet_id)
         constant
         returns (uint prev_bid, uint prev_quantity)
     {
-        var auctionlet = readAuctionlet(auctionlet_id);
-        var auction = readAuction(auctionlet.auction_id);
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         if (auction.reversed) {
             prev_bid = auctionlet.sell_amount;
@@ -167,8 +166,8 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     function setLastBid(uint auctionlet_id, uint bid, uint quantity)
         internal
     {
-        var auctionlet = _auctionlets[auctionlet_id];
-        var auction = _auctions[auctionlet.auction_id];
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         if (auction.reversed) {
             auctionlet.sell_amount = bid;

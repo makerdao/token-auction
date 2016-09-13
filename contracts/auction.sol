@@ -12,8 +12,8 @@ contract TwoWayAuction is AuctionType
     function doBid(uint auctionlet_id, address bidder, uint bid_how_much)
         internal
     {
-        var auctionlet = _auctionlets[auctionlet_id];
-        var auction = _auctions[auctionlet.auction_id];
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         // if the auctionlet has not been bid on before we need to
         // do some extra accounting
@@ -43,8 +43,8 @@ contract TwoWayAuction is AuctionType
     function _doForwardBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
-        var auctionlet = _auctionlets[auctionlet_id];
-        var auction = _auctions[auctionlet.auction_id];
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         var previous_buy = auctionlet.buy_amount;
         var previous_bidder = auctionlet.last_bidder;
@@ -64,8 +64,8 @@ contract TwoWayAuction is AuctionType
     function _doReverseBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
-        var auctionlet = _auctionlets[auctionlet_id];
-        var auction = _auctions[auctionlet.auction_id];
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         var previous_bidder = auctionlet.last_bidder;
         var previous_buy = auctionlet.buy_amount;
@@ -87,8 +87,8 @@ contract TwoWayAuction is AuctionType
     function _doTransitionBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
-        var auctionlet = _auctionlets[auctionlet_id];
-        var auction = _auctions[auctionlet.auction_id];
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         var previous_bidder = auctionlet.last_bidder;
         var previous_buy = auctionlet.buy_amount;
@@ -122,12 +122,10 @@ contract TwoWayAuction is AuctionType
     function doClaim(uint auctionlet_id)
         internal
     {
-        var auctionlet = readAuctionlet(auctionlet_id);
-        var auction = readAuction(auctionlet.auction_id);
+        Auctionlet memory auctionlet = auctionlets(auctionlet_id);
+        Auction memory auction = auctions(auctionlet.auction_id);
 
-        auctionlet.unclaimed = false;
         deleteAuctionlet(auctionlet_id);
-
         settleBidderClaim(auction, auctionlet);
     }
 }
@@ -139,7 +137,7 @@ contract SplittingAuction is TwoWayAuction {
         internal
         returns (uint new_id, uint split_id)
     {
-        var auctionlet = _auctionlets[auctionlet_id];
+        var auctionlet = auctionlets(auctionlet_id);
 
         var (new_quantity, new_bid, split_bid) = _calculate_split(auctionlet_id, quantity);
 
@@ -171,11 +169,8 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     function assertBiddable(uint auctionlet_id, uint bid_how_much)
         internal
     {
-        var auctionlet = readAuctionlet(auctionlet_id);
-        var auction = readAuction(auctionlet.auction_id);
-
-        assert(auctionlet.auction_id > 0);  // test for deleted auction
-        assert(auctionlet_id > 0);  // test for deleted auctionlet
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         // auctionlet must not be expired
         // (N.B. base auctionlets never expire)
@@ -218,8 +213,8 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     function assertClaimable(uint auctionlet_id)
         internal
     {
-        var auctionlet = readAuctionlet(auctionlet_id);
-        var auction = readAuction(auctionlet.auction_id);
+        var auctionlet = auctionlets(auctionlet_id);
+        var auction = auctions(auctionlet.auction_id);
 
         // must be expired
         assert(isExpired(auctionlet_id));

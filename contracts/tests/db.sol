@@ -8,31 +8,35 @@ contract DBTester is Tester {
     }
 }
 
-contract CRUDTest is AuctionTest, AuctionDatabase {
+contract BasicDBTest is AuctionTest, AuctionDatabase {
     AuctionDatabase _db;
 
     function setUp() {
         _db = new AuctionDatabase();
 
         Auction memory auction;
+        auction.creator = 0x123;
         createAuction(auction);
 
         Auctionlet memory auctionlet;
+        auctionlet.auction_id = 1;
         createAuctionlet(auctionlet);
     }
-    function testReadOnlyAuction() {
-        var auction = readAuction(1);
-
-        assertEq(_auctions[1].ttl, 0);
-        auction.ttl = 100 years;
-        assertEq(_auctions[1].ttl, 0);
+    function testFailNullAccessAuction() {
+        Auction memory auction;
+        var id = createAuction(auction);
+        auctions(id);
     }
-    function testReadOnlyAuctionlet() {
-        var auctionlet = readAuctionlet(1);
-
-        assertEq(_auctionlets[1].base, false);
-        auctionlet.base = true;
-        assertEq(_auctionlets[1].base, false);
+    function testFailNullAccessAuctionlet() {
+        Auctionlet memory auctionlet;
+        var id = createAuctionlet(auctionlet);
+        auctionlets(id);
+    }
+    function testFailAccessZerothAuction() {
+        auctions(0);
+    }
+    function testFailAccessZerothAuctionlet() {
+        auctionlets(0);
     }
 }
 

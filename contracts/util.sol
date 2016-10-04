@@ -69,7 +69,7 @@ contract MutexUser {
     modifier exclusive {
         if (mutex_lock) throw;
         mutex_lock = true;
-        _
+        _;
         mutex_lock = false;
     }
 }

@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 import 'db.sol';
 import 'events.sol';
 import 'types.sol';

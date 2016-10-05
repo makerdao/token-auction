@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 import 'tests/base.sol';
 import 'db.sol';
 

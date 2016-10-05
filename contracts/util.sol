@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 contract Assertive {
     function assert(bool what) internal {
         if (!what) {

@@ -1,7 +1,10 @@
 pragma solidity ^0.4.0;
 
 import 'dapple/test.sol';
+
 import 'erc20/base.sol';
+
+import 'events.sol';
 import 'manager.sol';
 import 'types.sol';
 
@@ -76,42 +79,38 @@ contract AuctionTest is EventfulAuction, EventfulManager, Test {
     uint constant T2 = 7 ** 10;
 
     uint constant INFINITY = uint(uint128(-1));
+    uint constant million = 10 ** 6;
 
-    function setUp() {
+    function AuctionTest() {
         manager = new TestableManager();
-        manager.setTime(block.timestamp);
-
-        var million = 10 ** 6;
 
         t1 = new ERC20Base(million * T1);
         t2 = new ERC20Base(million * T2);
 
         seller = new AuctionTester();
-        seller.bindManager(manager);
-
-        t1.transfer(seller, 200 * T1);
-        seller.doApprove(manager, 200 * T1, t1);
-
         bidder1 = new AuctionTester();
-        bidder1.bindManager(manager);
-
-        t2.transfer(bidder1, 1000 * T2);
-        bidder1.doApprove(manager, 1000 * T2, t2);
-
         bidder2 = new AuctionTester();
-        bidder2.bindManager(manager);
+        beneficiary1 = new AuctionTester();
+        beneficiary2 = new AuctionTester();
 
-        t2.transfer(bidder2, 1000 * T2);
-        bidder2.doApprove(manager, 1000 * T2, t2);
+        manager.setTime(block.timestamp);
+
+        seller.bindManager(manager);
+        bidder1.bindManager(manager);
+        bidder2.bindManager(manager);
+        beneficiary1.bindManager(manager);
+        beneficiary2.bindManager(manager);
 
         t1.transfer(this, 1000 * T1);
         t2.transfer(this, 1000 * T2);
+        t1.transfer(seller, 200 * T1);
+        t2.transfer(bidder1, 1000 * T2);
+        t2.transfer(bidder2, 1000 * T2);
+
+        seller.doApprove(manager, 200 * T1, t1);
+        bidder1.doApprove(manager, 1000 * T2, t2);
+        bidder2.doApprove(manager, 1000 * T2, t2);
         t1.approve(manager, 1000 * T1);
         t2.approve(manager, 1000 * T2);
-
-        beneficiary1 = new AuctionTester();
-        beneficiary1.bindManager(manager);
-        beneficiary2 = new AuctionTester();
-        beneficiary2.bindManager(manager);
     }
 }

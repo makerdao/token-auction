@@ -73,7 +73,7 @@ contract AuctionTest is EventfulAuction, EventfulManager, Test {
     uint constant T1 = 5 ** 12;
     uint constant T2 = 7 ** 10;
 
-    uint constant INFINITY = uint(-1);
+    uint constant INFINITY = uint(uint128(-1));
 
     function setUp() {
         manager = new TestableManager();

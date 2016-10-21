@@ -205,7 +205,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         auction.min_increase = min_increase;
         auction.min_decrease = min_decrease;
         auction.ttl = ttl;
-        auction.expiration = uint(-1);  // infinity
+        auction.expiration = uint(uint128(-1));  // 'infinity'
         auction.collection_limit = collection_limit;
         auction.unsold = sell_amount;
 

@@ -81,7 +81,7 @@ contract AuctionController is MathUser
 }
 
 contract AuctionManagerFrontend is AuctionController, MutexUser {
-    uint constant INFINITY = uint(-1);
+    uint constant INFINITY = uint(uint128(-1));
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
     // of which there is one initially.

@@ -40,8 +40,8 @@ contract AuctionTester is Tester {
         frontend = SplittingAuctionFrontendType(manager);
         db = AuctionDatabaseUser(manager);
     }
-    function doApprove(address spender, uint value, ERC20 token) {
-        token.approve(spender, value);
+    function doApprove(address spender, uint value, address token) {
+        ERC20(token).approve(spender, value);
     }
     function doBid(uint auctionlet_id, uint bid_how_much)
     {
@@ -66,8 +66,8 @@ contract AuctionTest is EventfulAuction, EventfulManager, Test {
     AuctionTester beneficiary1;
     AuctionTester beneficiary2;
 
-    ERC20 t1;
-    ERC20 t2;
+    ERC20Base t1;
+    ERC20Base t2;
 
     // use prime numbers to avoid coincidental collisions
     uint constant T1 = 5 ** 12;

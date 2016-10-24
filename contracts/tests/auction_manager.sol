@@ -39,8 +39,8 @@ contract AuctionManagerTest is AuctionTest {
              sell_amount, start_bid, min_increase, ttl) = manager.getAuction(id);
 
         assertEq(beneficiary, seller);
-        assertTrue(selling == t1);
-        assertTrue(buying == t2);
+        assertTrue(selling == ERC20(t1));
+        assertTrue(buying == ERC20(t2));
         assertEq(sell_amount, 100 * T1);
         assertEq(start_bid, 10 * T2);
         assertEq(min_increase, 1);
@@ -164,8 +164,8 @@ contract AuctionManagerTest is AuctionTest {
              sell_amount, start_bid, min_increase, ttl) = manager.getAuction(id2);
 
         assertEq(beneficiary, seller);
-        assertTrue(selling == t2);
-        assertTrue(buying == t1);
+        assertTrue(selling == ERC20(t2));
+        assertTrue(buying == ERC20(t1));
         assertEq(sell_amount, 100 * T2);
         assertEq(start_bid, 10 * T1);
         assertEq(min_increase, 1);

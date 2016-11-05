@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 contract Assertive {
     function assert(bool what) internal {
         if (!what) {
@@ -69,7 +71,7 @@ contract MutexUser {
     modifier exclusive {
         if (mutex_lock) throw;
         mutex_lock = true;
-        _
+        _;
         mutex_lock = false;
     }
 }

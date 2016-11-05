@@ -1,10 +1,15 @@
+pragma solidity ^0.4.0;
+
 import 'tests/base.sol';
 
-contract AuctionManagerTest is AuctionTest {
+contract SetUpTest is AuctionTest {
     function testSetUp() {
         assertEq(t2.balanceOf(bidder1), 1000 * T2);
         assertEq(t2.allowance(bidder1, manager), 1000 * T2);
     }
+}
+
+contract NewAuctionTest is AuctionTest {
     function newAuction() returns (uint, uint) {
         return manager.newAuction( seller    // beneficiary
                                  , t1        // selling
@@ -20,16 +25,6 @@ contract AuctionManagerTest is AuctionTest {
 
         expectEventsExact(manager);
         LogNewAuction(id, base);
-    }
-    function testBidEvent() {
-        var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
-        bidder2.doBid(base, 12 * T2);
-
-        expectEventsExact(manager);
-        LogNewAuction(id, base);
-        LogBid(base);
-        LogBid(base);
     }
     function testNewAuction() {
         var (id, base) = newAuction();
@@ -73,6 +68,29 @@ contract AuctionManagerTest is AuctionTest {
         assertEq(last_bidder, seller);
         assertEq(buy_amount, 10 * T2);
         assertEq(sell_amount, 100 * T1);
+    }
+}
+
+contract BidTest is AuctionTest {
+    function newAuction() returns (uint, uint) {
+        return manager.newAuction( seller    // beneficiary
+                                 , t1        // selling
+                                 , t2        // buying
+                                 , 100 * T1  // sell_amount
+                                 , 10 * T2   // start_bid
+                                 , 1         // min_increase (%)
+                                 , 1 years   // ttl
+                                 );
+    }
+    function testBidEvent() {
+        var (id, base) = newAuction();
+        bidder1.doBid(base, 11 * T2);
+        bidder2.doBid(base, 12 * T2);
+
+        expectEventsExact(manager);
+        LogNewAuction(id, base);
+        LogBid(base);
+        LogBid(base);
     }
     function testFailBidUnderMinBid() {
         var (id, base) = newAuction();
@@ -142,6 +160,28 @@ contract AuctionManagerTest is AuctionTest {
 
         assertEq(balance_after - balance_before, 40 * T2);
     }
+    function testBidTransfersToDistinctBeneficiary() {
+        var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
+
+        var balance_before = t2.balanceOf(bidder2);
+        bidder1.doBid(base, 10 * T2);
+        var balance_after = t2.balanceOf(bidder2);
+
+        assertEq(balance_after - balance_before, 10 * T2);
+    }
+}
+
+contract MultipleAuctionTest is AuctionTest {
+    function newAuction() returns (uint, uint) {
+        return manager.newAuction( seller    // beneficiary
+                                 , t1        // selling
+                                 , t2        // buying
+                                 , 100 * T1  // sell_amount
+                                 , 10 * T2   // start_bid
+                                 , 1         // min_increase (%)
+                                 , 1 years   // ttl
+                                 );
+    }
     function testMultipleNewAuctions() {
         // auction manager should be able to manage multiple auctions
         t2.transfer(seller, 200 * T2);
@@ -195,15 +235,6 @@ contract AuctionManagerTest is AuctionTest {
         var balance_after = t1.balanceOf(this);
 
         assertEq(balance_before - balance_after, 200 * T1);
-    }
-    function testBidTransfersToDistinctBeneficiary() {
-        var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
-
-        var balance_before = t2.balanceOf(bidder2);
-        bidder1.doBid(base, 10 * T2);
-        var balance_after = t2.balanceOf(bidder2);
-
-        assertEq(balance_after - balance_before, 10 * T2);
     }
 }
 

@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 import 'tests/base.sol';
 
 
@@ -7,15 +9,15 @@ contract ForwardGasTest is AuctionTest {
 
     modifier pre_create {
         (id, base) = newAuction();
-        _
+        _;
     }
     modifier pre_bid(uint how_much) {
         bidder1.doBid(base, how_much);
-        _
+        _;
     }
     modifier force_expiry {
         manager.addTime(100 years);
-        _
+        _;
     }
     function newAuction() returns (uint, uint) {
         return manager.newAuction(beneficiary1, t1, t2, 100 * T1, 0, 1, 1 hours);
@@ -72,15 +74,15 @@ contract ReverseGasTest is AuctionTest {
 
     modifier pre_create {
         (id, base) = newAuction();
-        _
+        _;
     }
     modifier pre_bid(uint how_much) {
         bidder1.doBid(base, how_much);
-        _
+        _;
     }
     modifier force_expiry {
         manager.addTime(100 years);
-        _
+        _;
     }
     function newAuction() returns (uint, uint) {
         return manager.newReverseAuction(beneficiary1, t1, t2, 100 * T1, 100 * T2, 1, 1 hours);
@@ -137,11 +139,11 @@ contract TwoWayGasTest is AuctionTest {
 
     modifier pre_create {
         (id, base) = newAuction();
-        _
+        _;
     }
     modifier pre_bid(uint how_much) {
         bidder1.doBid(base, how_much);
-        _
+        _;
     }
     function newAuction() returns (uint, uint) {
         return manager.newTwoWayAuction(beneficiary1, t1, t2, 100 * T1, 10 * T2, 1, 1, 1 hours, 50 * T2);

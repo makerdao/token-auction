@@ -53,9 +53,6 @@ continually rewarded as well: bids are locked once they have existed
 for a given time with no higher bids, at which point the highest
 bidder can claim their dues.
 
-The auctions are **managed**. An auction manager can manage an
-unlimited number of auctions of multiple types.
-
 
 ## Usage
 

@@ -1,8 +1,8 @@
 pragma solidity ^0.4.0;
 
-import 'types.sol';
-import 'util.sol';
-import 'erc20/erc20.sol';
+import './types.sol';
+import './util.sol';
+import 'ds-token/base.sol';
 
 contract AuctionDatabase is Assertive, AuctionType {
     mapping(uint => Auction) private _auctions;

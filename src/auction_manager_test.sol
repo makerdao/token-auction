@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-import 'tests/base.sol';
+import './base_test.sol';
 
 contract SetUpTest is AuctionTest {
     function testSetUp() {
@@ -34,8 +34,8 @@ contract NewAuctionTest is AuctionTest {
              sell_amount, start_bid, min_increase, ttl) = manager.getAuction(id);
 
         assertEq(beneficiary, seller);
-        assertTrue(selling == ERC20(t1));
-        assertTrue(buying == ERC20(t2));
+        assert(selling == ERC20(t1));
+        assert(buying == ERC20(t2));
         assertEq(sell_amount, 100 * T1);
         assertEq(start_bid, 10 * T2);
         assertEq(min_increase, 1);
@@ -204,8 +204,8 @@ contract MultipleAuctionTest is AuctionTest {
              sell_amount, start_bid, min_increase, ttl) = manager.getAuction(id2);
 
         assertEq(beneficiary, seller);
-        assertTrue(selling == ERC20(t2));
-        assertTrue(buying == ERC20(t1));
+        assert(selling == ERC20(t2));
+        assert(buying == ERC20(t1));
         assertEq(sell_amount, 100 * T2);
         assertEq(start_bid, 10 * T1);
         assertEq(min_increase, 1);
@@ -347,7 +347,7 @@ contract MultipleBeneficiariesTest is AuctionTest {
     }
 }
 
-contract AssertionTest is Test, Assertive() {
+contract AssertionTest is DSTest, Assertive() {
     function testAssert() {
         assert(2 > 1);
     }
@@ -373,7 +373,7 @@ contract AssertionTest is Test, Assertive() {
     }
 }
 
-contract MathTest is Test, MathUser {
+contract MathTest is DSTest, MathUser {
     uint[] array;
     function setUp() {
         uint[] memory _array = new uint[](3);
@@ -509,13 +509,13 @@ contract ExpiryTest is AuctionTest {
         var (id, base) = newAuction({ ttl:        20 days
                                     , expiration: now + 10 days });
 
-        assertFalse(manager.isExpired(base));
+        assert(!manager.isExpired(base));
         manager.addTime(8 days);
-        assertFalse(manager.isExpired(base));
+        assert(!manager.isExpired(base));
         manager.addTime(8 days);
-        assertTrue(manager.isExpired(base));
+        assert(manager.isExpired(base));
         manager.addTime(8 days);
-        assertTrue(manager.isExpired(base));
+        assert(manager.isExpired(base));
     }
     function testFailBidPostAuctionExpiryPreAuctionletExpiry() {
         var (id, base) = newAuction({ ttl:        20 days

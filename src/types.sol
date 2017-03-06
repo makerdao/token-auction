@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-import 'erc20/erc20.sol';
+import 'ds-token/base.sol';
 
 contract AuctionType {
     struct Auction {

@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-import 'tests/base.sol';
+import './base_test.sol';
 
 contract TwoWayTest is AuctionTest {
     function newTwoWayAuction() returns (uint, uint) {
@@ -32,13 +32,13 @@ contract TwoWayTest is AuctionTest {
         // bids at the target should not cause the auction to reverse
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(base, 100 * T2);
-        assertEq(manager.isReversed(id), false);
+        assert(!manager.isReversed(id));
     }
     function testBidOverTargetReversal() {
         // bids over the target should cause the auction to reverse
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(base, 101 * T2);
-        assertEq(manager.isReversed(id), true);
+        assert(manager.isReversed(id));
     }
     function testBidOverTargetRefundsDifference() {
         var (id, base) = newTwoWayAuction();
@@ -87,12 +87,12 @@ contract TwoWayTest is AuctionTest {
     function testBaseSplitEqualTargetNoReversal() {
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(base, 100 * T2, 60 * T1);
-        assertEq(manager.isReversed(id), false);
+        assert(!manager.isReversed(id));
     }
     function testBaseSplitOverTargetReversal() {
         var (id, base) = newTwoWayAuction();
         bidder1.doBid(base, 110 * T2, 60 * T1);
-        assertEq(manager.isReversed(id), true);
+        assert(manager.isReversed(id));
     }
     function testBaseSplitOverTargetRefundsDifference() {
         var (id, base) = newTwoWayAuction();
@@ -208,7 +208,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         LogAuctionReversal(id);
         LogBid(base);
 
-        assertEq(manager.isReversed(id), true);
+        assert(manager.isReversed(id));
     }
     function testBidTransfersPartialToFirstPayee() {
         var (id, base) = newTwoWayTwoPayeeAuction();

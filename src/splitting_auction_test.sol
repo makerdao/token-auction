@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-import 'tests/base.sol';
+import './base_test.sol';
 
 contract ForwardSplittingTest is AuctionTest
 {
@@ -354,7 +354,7 @@ contract ForwardSplittingTest is AuctionTest
         bidder1.doBid(nid, 10 * T2);
         manager.addTime(200 days);
 
-        assertTrue(manager.isExpired(sid));
-        assertFalse(manager.isExpired(nid));
+        assert(manager.isExpired(sid));
+        assert(!manager.isExpired(nid));
     }
 }

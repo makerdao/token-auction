@@ -1,13 +1,13 @@
 pragma solidity ^0.4.0;
 
-import 'erc20/erc20.sol';
+import 'ds-token/base.sol';
 
-import 'auction.sol';
-import 'db.sol';
-import 'events.sol';
-import 'transfer.sol';
-import 'types.sol';
-import 'util.sol';
+import './auction.sol';
+import './db.sol';
+import './events.sol';
+import './transfer.sol';
+import './types.sol';
+import './util.sol';
 
 contract AuctionController is MathUser
                             , AuctionType

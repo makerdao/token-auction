@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-import 'tests/base.sol';
+import './base_test.sol';
 
 contract ReverseSplittingTest is AuctionTest {
     function newReverseAuction() returns (uint, uint) {
@@ -17,7 +17,7 @@ contract ReverseSplittingTest is AuctionTest {
         var (id, base) = newReverseAuction();
 
         assertEq(manager.getCollectMax(id), 0);
-        assertEq(manager.isReversed(id), true);
+        assert(manager.isReversed(id));
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(base);

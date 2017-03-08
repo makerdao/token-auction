@@ -1,9 +1,9 @@
 pragma solidity ^0.4.0;
 
-import 'tests/base.sol';
-import 'db.sol';
+import './base_test.sol';
+import './db.sol';
 
-contract DBTester is Tester {
+contract DBTester {
     TestableManager _manager;
     function bindManager(address manager) {
         _manager = TestableManager(manager);

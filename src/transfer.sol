@@ -1,7 +1,7 @@
 pragma solidity ^0.4.0;
 
-import 'types.sol';
-import 'util.sol';
+import './types.sol';
+import './util.sol';
 
 // Methods for transferring funds into and out of the auction manager
 // and between bidders and beneficiaries.

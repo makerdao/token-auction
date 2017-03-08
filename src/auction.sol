@@ -1,9 +1,9 @@
 pragma solidity ^0.4.0;
 
-import 'db.sol';
-import 'events.sol';
-import 'types.sol';
-import 'transfer.sol';
+import './db.sol';
+import './events.sol';
+import './types.sol';
+import './transfer.sol';
 
 contract TwoWayAuction is AuctionType
                         , AuctionDatabaseUser

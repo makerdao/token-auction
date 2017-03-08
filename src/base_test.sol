@@ -1,12 +1,12 @@
 pragma solidity ^0.4.0;
 
-import 'dapple/test.sol';
+import 'ds-test/test.sol';
 
-import 'erc20/base.sol';
+import 'ds-token/base.sol';
 
-import 'events.sol';
-import 'manager.sol';
-import 'types.sol';
+import './events.sol';
+import './manager.sol';
+import './types.sol';
 
 contract TestableManager is SplittingAuctionManager {
     uint public debug_timestamp;
@@ -38,7 +38,7 @@ contract TestableManager is SplittingAuctionManager {
     }
 }
 
-contract AuctionTester is Tester {
+contract AuctionTester {
     SplittingAuctionFrontendType frontend;
     AuctionDatabaseUser db;
     function bindManager(address manager) {
@@ -63,7 +63,7 @@ contract AuctionTester is Tester {
     }
 }
 
-contract AuctionTest is EventfulAuction, EventfulManager, Test {
+contract AuctionTest is EventfulAuction, EventfulManager, DSTest {
     TestableManager manager;
     AuctionTester seller;
     AuctionTester bidder1;
@@ -71,8 +71,8 @@ contract AuctionTest is EventfulAuction, EventfulManager, Test {
     AuctionTester beneficiary1;
     AuctionTester beneficiary2;
 
-    ERC20Base t1;
-    ERC20Base t2;
+    DSTokenBase t1;
+    DSTokenBase t2;
 
     // use prime numbers to avoid coincidental collisions
     uint constant T1 = 5 ** 12;
@@ -84,8 +84,8 @@ contract AuctionTest is EventfulAuction, EventfulManager, Test {
     function AuctionTest() {
         manager = new TestableManager();
 
-        t1 = new ERC20Base(million * T1);
-        t2 = new ERC20Base(million * T2);
+        t1 = new DSTokenBase(million * T1);
+        t2 = new DSTokenBase(million * T2);
 
         seller = new AuctionTester();
         bidder1 = new AuctionTester();

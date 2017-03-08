@@ -1,0 +1,5 @@
+name           token-auction
+description    Continuous auctions for ERC20 tokens
+version        0.1
+
+author         Rain <rainbreak@riseup.net>

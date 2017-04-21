@@ -134,6 +134,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         expired = auctionlet_expired || auction_expired;
     }
     function getRefundAddress(uint auction_id)
+        constant
         returns (address)
     {
         return auctions(auction_id).refund;

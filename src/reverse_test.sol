@@ -155,11 +155,11 @@ contract MinBidDecreaseTest is AuctionTest {
         bidder1.doBid(base, 75 * T1);
         bidder2.doBid(base, 75 * T1);
     }
-    function testFailFirstBidLowerThanMinIncrease() {
+    function testFailFirstBidHigherThanMinDecrease() {
         var (id, base) = newReverseAuction();
         bidder1.doBid(base, 90 * T1);
     }
-    function testFailSubsequentBidLowerThanMinIncrease() {
+    function testFailSubsequentBidHigherThanMinDecrease() {
         var (id, base) = newReverseAuction();
         bidder1.doBid(base, 75 * T1);
         bidder2.doBid(base, 70 * T1);

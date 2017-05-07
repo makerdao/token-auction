@@ -247,17 +247,17 @@ since the last high bid on `id`.
 **Creation** of a new auction:
 
 ```
-NewAuction(uint indexed auction_id, uint base_auctionlet_id)
+LogNewAuction(uint indexed id, uint base_id)
 ```
 
-- `uint auction_id` is the auction id.
-- `uint base_auctionlet_id` is the id of the base auctionlet (on
+- `uint id` is the auction id.
+- `uint base_id` is the id of the base auctionlet (on
   which bidding should start)
 
 **Reversal** of a two-way auction:
 
 ```
-AuctionReversal(uint indexed auction_id)
+LogAuctionReversal(uint indexed auction_id)
 ```
 
 - `uint auction_id` is the id of the auction that has been reversed.
@@ -266,7 +266,7 @@ AuctionReversal(uint indexed auction_id)
 Successful new **bid** on an auctionlet:
 
 ```
-Bid(uint indexed auctionlet_id)
+LogBid(uint indexed auctionlet_id)
 ```
 
 - `uint auctionlet_id` is the id of the auctionlet that has been bid
@@ -275,7 +275,7 @@ Bid(uint indexed auctionlet_id)
 Successful **split** of an auctionlet:
 
 ```
-Split(uint base_id, uint new_id, uint split_id)
+LogSplit(uint base_id, uint new_id, uint split_id)
 ```
 
 - `uint base_id` is the id of the auctionlet that has been split

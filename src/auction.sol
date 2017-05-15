@@ -70,7 +70,6 @@ contract TwoWayAuction is AuctionType
         var auction = auctions(auctionlet.auction_id);
 
         var previous_bidder = auctionlet.last_bidder;
-        var previous_buy = auctionlet.buy_amount;
 
         var excess_sell = safeSub(auctionlet.sell_amount, bid_how_much);
 
@@ -81,8 +80,8 @@ contract TwoWayAuction is AuctionType
         auctionlet.last_bid_time = getTime();
 
         // new bidder pays off the old bidder directly. For the first
-        // bid this is the seller, so they receive their minimum bid.
-        payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, previous_buy);
+        // bid this is the buyer, so they receive their buy amount.
+        payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, auctionlet.buy_amount);
         // excess sell token is sent from auction escrow to the refund address
         settleExcessSell(auction, excess_sell);
     }

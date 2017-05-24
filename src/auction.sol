@@ -74,8 +74,6 @@ contract TwoWayAuction is AuctionType
 
         var excess_sell = safeSub(auctionlet.sell_amount, bid_how_much);
 
-        auction.sell_amount -= excess_sell;
-
         auctionlet.sell_amount = bid_how_much;  // reverse bids compete on sell token
         auctionlet.last_bidder = new_bidder;
         auctionlet.last_bid_time = getTime();

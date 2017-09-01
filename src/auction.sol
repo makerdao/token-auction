@@ -99,8 +99,10 @@ contract TwoWayAuction is AuctionType
 
         // over the target, infer how much less they would have been
         // willing to accept, based on their bid price
-        var effective_target_bid = safeMul(auctionlet.sell_amount, auction.collection_limit) / auction.sell_amount;
-        var inferred_reverse_bid = safeMul(auctionlet.sell_amount, effective_target_bid) / bid_how_much;
+        var effective_target_bid = safeMul(auctionlet.sell_amount,
+                                           auction.collection_limit) / auction.sell_amount;
+        var inferred_reverse_bid = safeMul(auctionlet.sell_amount,
+                                           effective_target_bid) / bid_how_much;
 
         auction.collected = auction.collection_limit;
         auction.reversed = true;

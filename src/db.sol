@@ -54,8 +54,12 @@ contract AuctionDatabase is Assertive, AuctionType {
 }
 
 contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
-    function newAuctionlet(uint auction_id, uint bid,
-                           uint quantity, address last_bidder, bool base)
+    function newAuctionlet( uint auction_id
+                          , uint bid
+                          , uint quantity
+                          , address last_bidder
+                          , bool base
+                          )
         internal
         returns (uint auctionlet_id)
     {
@@ -85,8 +89,10 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                 )
     {
       var auctionlet = auctions(auction_id);
-      return (auctionlet.creator, auctionlet.selling, auctionlet.buying, auctionlet.start_bid, auctionlet.min_increase,
-              auctionlet.min_decrease, auctionlet.sell_amount, auctionlet.ttl, auctionlet.reversed, auctionlet.unsold);
+      return (auctionlet.creator, auctionlet.selling, auctionlet.buying,
+              auctionlet.start_bid, auctionlet.min_increase,
+              auctionlet.min_decrease, auctionlet.sell_amount, auctionlet.ttl,
+              auctionlet.reversed, auctionlet.unsold);
     }
 
     function getAuctionletInfo(uint auctionlet_id)
@@ -101,8 +107,9 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                 )
     {
         var auctionlet = auctionlets(auctionlet_id);
-        return (auctionlet.auction_id, auctionlet.last_bidder, auctionlet.last_bid_time,
-                auctionlet.buy_amount, auctionlet.sell_amount, auctionlet.unclaimed, auctionlet.base);
+        return (auctionlet.auction_id, auctionlet.last_bidder,
+                auctionlet.last_bid_time, auctionlet.buy_amount,
+                auctionlet.sell_amount, auctionlet.unclaimed, auctionlet.base);
     }
 
     function setReversed(uint auction_id, bool reversed)

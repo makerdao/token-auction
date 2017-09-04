@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-import './base_test.sol';
+import './base.t.sol';
 
 contract ForwardSplittingTest is AuctionTest
 {

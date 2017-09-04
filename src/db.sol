@@ -59,6 +59,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                           , uint quantity
                           , address last_bidder
                           , bool base
+                          , bool reversed
                           )
         internal
         returns (uint auctionlet_id)
@@ -71,7 +72,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
 
         auctionlet_id = createAuctionlet(auctionlet);
 
-        setLastBid(auctionlet_id, bid, quantity);
+        setLastBid(auctionlet_id, bid, quantity, reversed);
     }
 
     function getAuctionInfo(uint auction_id)
@@ -158,12 +159,13 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         var auction = auctions(auction_id);
         auction.expiration = expiration;
     }
-    function getLastBid(uint auctionlet_id)
+    function getLastBid(uint auctionlet_id, bool reversed)
         constant
         returns (uint prev_bid, uint prev_quantity)
     {
         var auctionlet = auctionlets(auctionlet_id);
         var auction = auctions(auctionlet.auction_id);
+        require(reversed == auction.reversed);
 
         if (auction.reversed) {
             prev_bid = auctionlet.sell_amount;
@@ -173,11 +175,13 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
             prev_quantity = auctionlet.sell_amount;
         }
     }
-    function setLastBid(uint auctionlet_id, uint bid, uint quantity)
+    function setLastBid(uint auctionlet_id, uint bid, uint quantity,
+                        bool reversed)
         internal
     {
         var auctionlet = auctionlets(auctionlet_id);
         var auction = auctions(auctionlet.auction_id);
+        require(reversed == auction.reversed);
 
         if (auction.reversed) {
             auctionlet.sell_amount = bid;
@@ -227,9 +231,11 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                                 , quantity:    auction.sell_amount
                                 , last_bidder: auction.beneficiaries[0]
                                 , base:        true
+                                , reversed:    auction.reversed
                                 });
 
         // set reversed after newAuctionlet because of reverse specific logic
+        setReversed(auction_id, reversed);
         setReversed(auction_id, reversed);
         // TODO: this is a code smell. There may be a way around this by
         // rethinking the reversed logic throughout - possibly renaming

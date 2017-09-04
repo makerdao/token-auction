@@ -12,7 +12,7 @@ contract ForwardGasTest is AuctionTest {
         _;
     }
     modifier pre_bid(uint how_much) {
-        bidder1.doBid(base, how_much);
+        bidder1.doBid(base, how_much, false);
         _;
     }
     modifier force_expiry {
@@ -26,27 +26,27 @@ contract ForwardGasTest is AuctionTest {
         pre_create
         logs_gas
     {
-        bidder1.doBid(base, 10 * T2);
+        bidder1.doBid(base, 10 * T2, false);
     }
     function testBaseSplit()
         pre_create
         logs_gas
     {
-        bidder1.doBid(base, 10 * T2, 50 * T1);
+        bidder1.doBid(base, 10 * T2, 50 * T1, false);
     }
     function testSubsequentBid()
         pre_create
         pre_bid(10 * T2)
         logs_gas
     {
-        bidder1.doBid(base, 20 * T2);
+        bidder1.doBid(base, 20 * T2, false);
     }
     function testSubsequentSplit()
         pre_create
         pre_bid(10 * T2)
         logs_gas
     {
-        bidder1.doBid(base, 20 * T2, 50 * T1);
+        bidder1.doBid(base, 20 * T2, 50 * T1, false);
     }
     function testClaim()
         pre_create
@@ -77,7 +77,7 @@ contract ReverseGasTest is AuctionTest {
         _;
     }
     modifier pre_bid(uint how_much) {
-        bidder1.doBid(base, how_much);
+        bidder1.doBid(base, how_much, true);
         _;
     }
     modifier force_expiry {
@@ -91,27 +91,27 @@ contract ReverseGasTest is AuctionTest {
         pre_create
         logs_gas
     {
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 90 * T1, true);
     }
     function testBaseSplit()
         pre_create
         logs_gas
     {
-        bidder1.doBid(base, 10 * T1, 50 * T2);
+        bidder1.doBid(base, 10 * T1, 50 * T2, true);
     }
     function testSubsequentBid()
         pre_create
         pre_bid(50 * T1)
         logs_gas
     {
-        bidder1.doBid(base, 10 * T1);
+        bidder1.doBid(base, 10 * T1, true);
     }
     function testSubsequentSplit()
         pre_create
         pre_bid(50 * T1)
         logs_gas
     {
-        bidder1.doBid(base, 10 * T1, 50 * T2);
+        bidder1.doBid(base, 10 * T1, 50 * T2, true);
     }
     function testClaim()
         pre_create
@@ -142,7 +142,7 @@ contract TwoWayGasTest is AuctionTest {
         _;
     }
     modifier pre_bid(uint how_much) {
-        bidder1.doBid(base, how_much);
+        bidder1.doBid(base, how_much, false);
         _;
     }
     function newAuction() returns (uint, uint) {
@@ -153,26 +153,26 @@ contract TwoWayGasTest is AuctionTest {
         pre_create
         logs_gas
     {
-        bidder1.doBid(base, 60 * T2);
+        bidder1.doBid(base, 60 * T2, false);
     }
     function testTransitionAfterBid()
         pre_create
         pre_bid(40 * T2)
         logs_gas
     {
-        bidder1.doBid(base, 60 * T2);
+        bidder1.doBid(base, 60 * T2, false);
     }
     function testSplitTransitionFromBase()
         pre_create
         logs_gas
     {
-        bidder1.doBid(base, 50 * T1, 60 * T2);
+        bidder1.doBid(base, 50 * T1, 60 * T2, false);
     }
     function testSplitTransitionAfterBid()
         pre_create
         pre_bid(40 * T2)
         logs_gas
     {
-        bidder1.doBid(base, 50 * T1, 60 * T2);
+        bidder1.doBid(base, 50 * T1, 60 * T2, false);
     }
 }

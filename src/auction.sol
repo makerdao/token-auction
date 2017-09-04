@@ -11,7 +11,8 @@ contract TwoWayAuction is AuctionType
                         , TransferUser
 {
     // Auctionlet bid logic, including transfers.
-    function doBid(uint auctionlet_id, address bidder, uint bid_how_much)
+    function doBid(uint auctionlet_id, address bidder, uint bid_how_much,
+                   bool reversed)
         internal
     {
         var auctionlet = auctionlets(auctionlet_id);
@@ -134,29 +135,32 @@ contract TwoWayAuction is AuctionType
 contract SplittingAuction is TwoWayAuction {
     // Auctionlet splitting logic.
     function doSplit(uint auctionlet_id, address splitter,
-                     uint bid_how_much, uint quantity)
+                     uint bid_how_much, uint quantity, bool reversed)
         internal
         returns (uint new_id, uint split_id)
     {
         var auctionlet = auctionlets(auctionlet_id);
 
-        var (new_quantity, new_bid, split_bid) = _calculate_split(auctionlet_id, quantity);
+        var (new_quantity, new_bid, split_bid) = _calculate_split(auctionlet_id,
+                                                                  quantity,
+                                                                  reversed);
 
         // modify the old auctionlet
-        setLastBid(auctionlet_id, new_bid, new_quantity);
+        setLastBid(auctionlet_id, new_bid, new_quantity, reversed);
         new_id = auctionlet_id;
 
         // create a new auctionlet with the split quantity
         split_id = newAuctionlet(auctionlet.auction_id, split_bid, quantity,
-                                 auctionlet.last_bidder, auctionlet.base);
-        doBid(split_id, splitter, bid_how_much);
+                                 auctionlet.last_bidder, auctionlet.base,
+                                 reversed);
+        doBid(split_id, splitter, bid_how_much, reversed);
     }
     // Work out how to split a bid into two parts
-    function _calculate_split(uint auctionlet_id, uint quantity)
+    function _calculate_split(uint auctionlet_id, uint quantity, bool reversed)
         private
         returns (uint new_quantity, uint new_bid, uint split_bid)
     {
-        var (prev_bid, prev_quantity) = getLastBid(auctionlet_id);
+        var (prev_bid, prev_quantity) = getLastBid(auctionlet_id, reversed);
         new_quantity = safeSub(prev_quantity, quantity);
 
         // n.b. associativity important because of truncating division
@@ -196,10 +200,11 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
         }
     }
     // Check that an auctionlet can be split by the new bid.
-    function assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
+    function assertSplittable(uint auctionlet_id, uint bid_how_much,
+                              uint quantity, bool reversed)
         internal
     {
-        var (_, prev_quantity) = getLastBid(auctionlet_id);
+        var (, prev_quantity) = getLastBid(auctionlet_id, reversed);
 
         // splits have to reduce the quantity being bid on
         assert(quantity < prev_quantity);
@@ -231,11 +236,11 @@ contract AuctionFrontend is AuctionFrontendType
                           , MutexUser
 {
     // Place a new bid on a specific auctionlet.
-    function bid(uint auctionlet_id, uint bid_how_much)
+    function bid(uint auctionlet_id, uint bid_how_much, bool reversed)
         exclusive
     {
         assertBiddable(auctionlet_id, bid_how_much);
-        doBid(auctionlet_id, msg.sender, bid_how_much);
+        doBid(auctionlet_id, msg.sender, bid_how_much, reversed);
         LogBid(auctionlet_id);
     }
     // Allow parties to an auction to claim their take.
@@ -261,19 +266,21 @@ contract SplittingAuctionFrontend is SplittingAuctionFrontendType
     // auctionlets and leaves the other to the previous bidder.
     // The new auctionlet ids are returned, corresponding to the new
     // auctionlets owned by (prev_bidder, new_bidder).
-    function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
+    function bid(uint auctionlet_id, uint bid_how_much, uint quantity,
+                 bool reversed)
         exclusive
         returns (uint new_id, uint split_id)
     {
-        var (, prev_quantity) = getLastBid(auctionlet_id);
+        var (, prev_quantity) = getLastBid(auctionlet_id, reversed);
         if (quantity == prev_quantity) {
             assertBiddable(auctionlet_id, bid_how_much);
-            doBid(auctionlet_id, msg.sender, bid_how_much);
+            doBid(auctionlet_id, msg.sender, bid_how_much, reversed);
             new_id = auctionlet_id;
             LogBid(auctionlet_id);
         } else {
-            assertSplittable(auctionlet_id, bid_how_much, quantity);
-            (new_id, split_id) = doSplit(auctionlet_id, msg.sender, bid_how_much, quantity);
+            assertSplittable(auctionlet_id, bid_how_much, quantity, reversed);
+            (new_id, split_id) = doSplit(auctionlet_id, msg.sender,
+                                         bid_how_much, quantity, reversed);
             LogSplit(auctionlet_id, new_id, split_id);
         }
     }

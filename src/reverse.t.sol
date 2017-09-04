@@ -45,7 +45,7 @@ contract ReverseTest is AuctionTest {
         var (id, base) = newReverseAuction();
 
         var bidder_t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 90 * T1, true);
         var bidder_t2_balance_after = t2.balanceOf(bidder1);
 
         // bidder should have reduced funds
@@ -55,7 +55,7 @@ contract ReverseTest is AuctionTest {
         var (id, base) = newReverseAuction();
 
         var balance_before = t2.balanceOf(seller);
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 90 * T1, true);
         var balance_after = t2.balanceOf(seller);
 
         // beneficiary should have received all the available buy
@@ -66,7 +66,7 @@ contract ReverseTest is AuctionTest {
         var (base, id) = newReverseAuction();
 
         var balance_before = t1.balanceOf(seller);
-        bidder1.doBid(1, 85 * T1);
+        bidder1.doBid(1, 85 * T1, true);
         var balance_after = t1.balanceOf(seller);
 
         // beneficiary should have received the excess sell token
@@ -74,24 +74,24 @@ contract ReverseTest is AuctionTest {
     }
     function testFailFirstBidOverStartBid() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 105 * T1);
+        bidder1.doBid(base, 105 * T1, true);
     }
     function testFailNextBidUnderMinimum() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 90 * T1);
-        bidder1.doBid(base, 89 * T1);
+        bidder1.doBid(base, 90 * T1, true);
+        bidder1.doBid(base, 89 * T1, true);
     }
     function testFailNextBidOverLast() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 90 * T1);
-        bidder1.doBid(base, 91 * T1);
+        bidder1.doBid(base, 90 * T1, true);
+        bidder1.doBid(base, 91 * T1, true);
     }
     function testNextBidRefundsPreviousBidder() {
         var (id, base) = newReverseAuction();
 
         var bidder_t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(base, 90 * T1);
-        bidder2.doBid(base, 85 * T1);
+        bidder1.doBid(base, 90 * T1, true);
+        bidder2.doBid(base, 85 * T1, true);
         var bidder_t2_balance_after = t2.balanceOf(bidder1);
 
         // bidder should have reduced funds
@@ -100,10 +100,10 @@ contract ReverseTest is AuctionTest {
     function testNextBidTransfersNoExtraBuyToken() {
         var (id, base) = newReverseAuction();
 
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 90 * T1, true);
 
         var balance_before = t2.balanceOf(seller);
-        bidder2.doBid(base, 85 * T1);
+        bidder2.doBid(base, 85 * T1, true);
         var balance_after = t2.balanceOf(seller);
 
         assertEq(balance_after, balance_before);
@@ -111,17 +111,17 @@ contract ReverseTest is AuctionTest {
     function testNextBidTransfersExcessSellToken() {
         var (id, base) = newReverseAuction();
 
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 90 * T1, true);
 
         var balance_before = t1.balanceOf(seller);
-        bidder2.doBid(base, 85 * T1);
+        bidder2.doBid(base, 85 * T1, true);
         var balance_after = t1.balanceOf(seller);
 
         assertEq(balance_after - balance_before, 5 * T1);
     }
     function testClaimBidder() {
         var (base, id) = newReverseAuction();
-        bidder1.doBid(1, 85 * T1);
+        bidder1.doBid(1, 85 * T1, true);
 
         // force expiry
         manager.addTime(2 years);
@@ -148,21 +148,21 @@ contract MinBidDecreaseTest is AuctionTest {
     }
     function testFailFirstBidEqualStartBid() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 100 * T1);
+        bidder1.doBid(base, 100 * T1, true);
     }
     function testFailSubsequentBidEqualLastBid() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 75 * T1);
-        bidder2.doBid(base, 75 * T1);
+        bidder1.doBid(base, 75 * T1, true);
+        bidder2.doBid(base, 75 * T1, true);
     }
     function testFailFirstBidHigherThanMinDecrease() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 90 * T1, true);
     }
     function testFailSubsequentBidHigherThanMinDecrease() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 75 * T1);
-        bidder2.doBid(base, 70 * T1);
+        bidder1.doBid(base, 75 * T1, true);
+        bidder2.doBid(base, 70 * T1, true);
     }
 }
 

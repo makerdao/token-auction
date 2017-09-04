@@ -17,7 +17,7 @@ contract TwoWayTest is AuctionTest {
     }
     function testReversalEvent() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(base, 101 * T2);
+        bidder1.doBid(base, 101 * T2, false);
 
         expectEventsExact(manager);
         LogNewAuction(id, base);
@@ -31,19 +31,19 @@ contract TwoWayTest is AuctionTest {
     function testBidEqualTargetNoReversal() {
         // bids at the target should not cause the auction to reverse
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(base, 100 * T2);
+        bidder1.doBid(base, 100 * T2, false);
         assert(!manager.isReversed(id));
     }
     function testBidOverTargetReversal() {
         // bids over the target should cause the auction to reverse
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(base, 101 * T2);
+        bidder1.doBid(base, 101 * T2, false);
         assert(manager.isReversed(id));
     }
     function testBidOverTargetRefundsDifference() {
         var (id, base) = newTwoWayAuction();
         var t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(base, 110 * T2);
+        bidder1.doBid(base, 110 * T2, false);
         var t2_balance_after = t2.balanceOf(bidder1);
 
         var balance_diff = t2_balance_before - t2_balance_after;
@@ -51,7 +51,7 @@ contract TwoWayTest is AuctionTest {
     }
     function testBidOverTargetSetsReverseBidder() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(base, 110 * T2);
+        bidder1.doBid(base, 110 * T2, false);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(base);
@@ -60,7 +60,7 @@ contract TwoWayTest is AuctionTest {
     }
     function testBidOverTargetSetsReverseBuyAmount() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(base, 110 * T2);
+        bidder1.doBid(base, 110 * T2, false);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(base);
@@ -69,7 +69,7 @@ contract TwoWayTest is AuctionTest {
     }
     function testBidOverTargetSetsReverseBid() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(base, 110 * T2);
+        bidder1.doBid(base, 110 * T2, false);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(base);
@@ -86,18 +86,18 @@ contract TwoWayTest is AuctionTest {
     }
     function testBaseSplitEqualTargetNoReversal() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(base, 100 * T2, 60 * T1);
+        bidder1.doBid(base, 100 * T2, 60 * T1, false);
         assert(!manager.isReversed(id));
     }
     function testBaseSplitOverTargetReversal() {
         var (id, base) = newTwoWayAuction();
-        bidder1.doBid(base, 110 * T2, 60 * T1);
+        bidder1.doBid(base, 110 * T2, 60 * T1, false);
         assert(manager.isReversed(id));
     }
     function testBaseSplitOverTargetRefundsDifference() {
         var (id, base) = newTwoWayAuction();
         var t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(base, 120 * T2, 60 * T1);
+        bidder1.doBid(base, 120 * T2, 60 * T1, false);
         var t2_balance_after = t2.balanceOf(bidder1);
 
         var balance_diff = t2_balance_before - t2_balance_after;
@@ -105,7 +105,7 @@ contract TwoWayTest is AuctionTest {
     }
     function testBaseSplitOverTargetSetsReverseBidder() {
         var (id, base) = newTwoWayAuction();
-        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1, false);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(sid);
@@ -114,7 +114,7 @@ contract TwoWayTest is AuctionTest {
     }
     function testBaseSplitOverTargetSetsReverseBuyAmount() {
         var (id, base) = newTwoWayAuction();
-        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1, false);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(sid);
@@ -123,7 +123,7 @@ contract TwoWayTest is AuctionTest {
     }
     function testBaseSplitOverTargetSetsReverseBid() {
         var (id, base) = newTwoWayAuction();
-        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 120 * T2, 50 * T1, false);
 
         var (auction_id, last_bidder,
              buy_amount, sell_amount) = manager.getAuctionlet(sid);
@@ -201,7 +201,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
     }
     function testSumPayoutsSetsCollectionLimit() {
         var (id, base) = newTwoWayTwoPayeeAuction();
-        bidder1.doBid(base, 101 * T2);
+        bidder1.doBid(base, 101 * T2, false);
 
         expectEventsExact(manager);
         LogNewAuction(id, base);
@@ -214,7 +214,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary1);
-        bidder1.doBid(base, 50 * T2);
+        bidder1.doBid(base, 50 * T2, false);
         var balance_after = t2.balanceOf(beneficiary1);
 
         assertEq(balance_after - balance_before, 50 * T2);
@@ -223,7 +223,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary1);
-        bidder1.doBid(base, 70 * T2);
+        bidder1.doBid(base, 70 * T2, false);
         var balance_after = t2.balanceOf(beneficiary1);
 
         assertEq(balance_after - balance_before, 60 * T2);
@@ -232,7 +232,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary2);
-        bidder1.doBid(base, 70 * T2);
+        bidder1.doBid(base, 70 * T2, false);
         var balance_after = t2.balanceOf(beneficiary2);
 
         assertEq(balance_after - balance_before, 10 * T2);
@@ -241,7 +241,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary2);
-        bidder1.doBid(base, 100 * T2);
+        bidder1.doBid(base, 100 * T2, false);
         var balance_after = t2.balanceOf(beneficiary2);
 
         assertEq(balance_after - balance_before, 40 * T2);
@@ -250,8 +250,8 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary1);
-        var (nid, sid) = bidder1.doBid(base, 20 * T2, 40 * T1);
-        bidder2.doBid(nid, 20 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 20 * T2, 40 * T1, false);
+        bidder2.doBid(nid, 20 * T2, 50 * T1, false);
         var balance_after = t2.balanceOf(beneficiary1);
 
         assertEq(balance_after - balance_before, 40 * T2);
@@ -260,8 +260,8 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary1);
-        var (nid, sid) = bidder1.doBid(base, 50 * T2, 40 * T1);
-        bidder2.doBid(nid, 20 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 50 * T2, 40 * T1, false);
+        bidder2.doBid(nid, 20 * T2, 50 * T1, false);
         var balance_after = t2.balanceOf(beneficiary1);
 
         assertEq(balance_after - balance_before, 60 * T2);
@@ -270,8 +270,8 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary2);
-        var (nid, sid) = bidder1.doBid(base, 40 * T2, 40 * T1);
-        bidder2.doBid(nid, 30 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 40 * T2, 40 * T1, false);
+        bidder2.doBid(nid, 30 * T2, 50 * T1, false);
         var balance_after = t2.balanceOf(beneficiary2);
 
         assertEq(balance_after - balance_before, 10 * T2);
@@ -280,8 +280,8 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary2);
-        var (nid, sid) = bidder1.doBid(base, 50 * T2, 40 * T1);
-        bidder2.doBid(nid, 50 * T2, 50 * T1);
+        var (nid, sid) = bidder1.doBid(base, 50 * T2, 40 * T1, false);
+        bidder2.doBid(nid, 50 * T2, 50 * T1, false);
         var balance_after = t2.balanceOf(beneficiary2);
 
         assertEq(balance_after - balance_before, 40 * T2);
@@ -290,7 +290,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary1);
-        bidder1.doBid(base, 200 * T2);
+        bidder1.doBid(base, 200 * T2, false);
         var balance_after = t2.balanceOf(beneficiary1);
 
         assertEq(balance_after - balance_before, 60 * T2);
@@ -299,7 +299,7 @@ contract TwoWayMultipleBeneficiariesTest is AuctionTest
         var (id, base) = newTwoWayTwoPayeeAuction();
 
         var balance_before = t2.balanceOf(beneficiary2);
-        bidder1.doBid(base, 200 * T2);
+        bidder1.doBid(base, 200 * T2, false);
         var balance_after = t2.balanceOf(beneficiary2);
 
         assertEq(balance_after - balance_before, 40 * T2);
@@ -330,11 +330,11 @@ contract TwoWayRefundTest is AuctionTest {
         // refund the `refund` address
         var (id, base) = newTwoWayAuction();
 
-        bidder1.doBid(base, 101 * T2);
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 101 * T2, false);
+        bidder1.doBid(base, 90 * T1, true);
 
         var balance_before = t1.balanceOf(beneficiary1);
-        bidder2.doBid(base, 80 * T1);
+        bidder2.doBid(base, 80 * T1, true);
         var balance_after = t1.balanceOf(beneficiary1);
 
         assertEq(balance_after - balance_before, 10 * T1);
@@ -344,11 +344,11 @@ contract TwoWayRefundTest is AuctionTest {
         // send nothing to the creator
         var (id, base) = newTwoWayAuction();
 
-        bidder1.doBid(base, 101 * T2);
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 101 * T2, false);
+        bidder1.doBid(base, 90 * T1, true);
 
         var balance_before = t1.balanceOf(this);
-        bidder2.doBid(base, 80 * T1);
+        bidder2.doBid(base, 80 * T1, true);
         var balance_after = t1.balanceOf(this);
 
         assertEq(balance_after, balance_before);
@@ -358,11 +358,11 @@ contract TwoWayRefundTest is AuctionTest {
         // send nothing to the given beneficiary
         var (id, base) = newTwoWayAuction();
 
-        bidder1.doBid(base, 101 * T2);
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 101 * T2, false);
+        bidder1.doBid(base, 90 * T1, true);
 
         var balance_before = t1.balanceOf(seller);
-        bidder2.doBid(base, 80 * T1);
+        bidder2.doBid(base, 80 * T1, true);
         var balance_after = t1.balanceOf(seller);
 
         assertEq(balance_after, balance_before);

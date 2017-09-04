@@ -33,7 +33,7 @@ contract ReverseSplittingTest is AuctionTest {
         var (auction_id0, last_bidder0,
              last_bid0, quantity0) = manager.getAuctionlet(base);
 
-        var (nid, sid) = bidder1.doBid(base, 40 * T1, 4 * T2);
+        var (nid, sid) = bidder1.doBid(base, 40 * T1, 4 * T2, true);
 
         var (auction_id1, last_bidder1,
              last_bid1, quantity1) = manager.getAuctionlet(nid);
@@ -55,7 +55,7 @@ contract ReverseSplittingTest is AuctionTest {
         var (id, base) = newReverseAuction();
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(base, 40 * T1, 4 * T2);
+        bidder1.doBid(base, 40 * T1, 4 * T2, true);
         var bidder1_t2_balance_after = t2.balanceOf(bidder1);
 
         var balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
@@ -64,7 +64,7 @@ contract ReverseSplittingTest is AuctionTest {
     function testSplitBaseAddresses() {
         var (id, base) = newReverseAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 40 * T1, 4 * T2);
+        var (nid, sid) = bidder1.doBid(base, 40 * T1, 4 * T2, true);
 
         var (auction_id1, last_bidder1,
              buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
@@ -78,7 +78,7 @@ contract ReverseSplittingTest is AuctionTest {
     function testSplitBaseResult() {
         var (id, base) = newReverseAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 40 * T1, 4 * T2);
+        var (nid, sid) = bidder1.doBid(base, 40 * T1, 4 * T2, true);
 
         uint sell_amount1;
         uint sell_amount2;
@@ -108,8 +108,8 @@ contract ReverseSplittingTest is AuctionTest {
     }
     function testSplitAfterBidAddresses() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 90 * T1);
-        var (nid, sid) = bidder2.doBid(base, 40 * T1, 4 * T2);
+        bidder1.doBid(base, 90 * T1, true);
+        var (nid, sid) = bidder2.doBid(base, 40 * T1, 4 * T2, true);
 
         var (auction_id1, last_bidder1,
              buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
@@ -122,8 +122,8 @@ contract ReverseSplittingTest is AuctionTest {
     }
     function testSplitAfterBidQuantities() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 90 * T1);
-        var (nid, sid) = bidder2.doBid(base, 40 * T1, 4 * T2);
+        bidder1.doBid(base, 90 * T1, true);
+        var (nid, sid) = bidder2.doBid(base, 40 * T1, 4 * T2, true);
 
         uint sell_amount1;
         uint sell_amount2;
@@ -151,41 +151,41 @@ contract ReverseSplittingTest is AuctionTest {
     }
     function testFailSplitExcessQuantity() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 90 * T2, 6 * T1);
+        bidder1.doBid(base, 90 * T2, 6 * T1, true);
     }
     function testPassSplitLowerValue() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 50 * T1, 3 * T2);
+        bidder1.doBid(base, 50 * T1, 3 * T2, true);
     }
     function testFailSplitLowerValue() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 80 * T1);
-        bidder2.doBid(base, 40 * T1, 2 * T2);
+        bidder1.doBid(base, 80 * T1, true);
+        bidder2.doBid(base, 40 * T1, 2 * T2, true);
     }
     function testFailSplitUnderMinBid() {
         var (id, base) = newReverseAuction();
-        bidder2.doBid(base, 50 * T1, 2 * T2);
+        bidder2.doBid(base, 50 * T1, 2 * T2, true);
     }
     function testFailSplitUnderMinDecrease() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 90 * T1);
-        bidder2.doBid(base, 89 * T1, 3 * T2);
+        bidder1.doBid(base, 90 * T1, true);
+        bidder2.doBid(base, 89 * T1, 3 * T2, true);
     }
     function testFailSplitExpired() {
         var (id, base) = newReverseAuction();
-        bidder1.doBid(base, 90 * T1);
+        bidder1.doBid(base, 90 * T1, true);
 
         // force expiry
         manager.addTime(2 years);
 
-        bidder2.doBid(base, 40 * T1, 4 * T2);
+        bidder2.doBid(base, 40 * T1, 4 * T2, true);
     }
     function testSplitReturnsToPrevBidder() {
         var (id, base) = newReverseAuction();
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(base, 90 * T1);
-        bidder2.doBid(base, 50 * T1, 3 * T2);
+        bidder1.doBid(base, 90 * T1, true);
+        bidder2.doBid(base, 50 * T1, 3 * T2, true);
         var bidder1_t2_balance_after = t2.balanceOf(bidder1);
 
         var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
@@ -195,8 +195,8 @@ contract ReverseSplittingTest is AuctionTest {
         var (id, base) = newReverseAuction();
 
         var balance_before = t1.balanceOf(seller);
-        bidder1.doBid(base, 80 * T1);
-        bidder2.doBid(base, 40 * T1, 4 * T2);
+        bidder1.doBid(base, 80 * T1, true);
+        bidder2.doBid(base, 40 * T1, 4 * T2, true);
         var balance_after = t1.balanceOf(seller);
 
         //@log seller t1 balance change

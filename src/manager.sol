@@ -29,6 +29,7 @@ contract AuctionController is MathUser
     }
     function _makeGenericAuction( address creator
                                 , address[] beneficiaries
+                                , address refund
                                 , uint[] payouts
                                 , ERC20 selling
                                 , ERC20 buying
@@ -37,6 +38,7 @@ contract AuctionController is MathUser
                                 , uint min_increase
                                 , uint min_decrease
                                 , uint ttl
+                                , uint expiration
                                 , uint collection_limit
                                 , bool reversed
                                 )
@@ -45,6 +47,7 @@ contract AuctionController is MathUser
     {
         (auction_id, base_id) = newGenericAuction({ creator: msg.sender
                                                   , beneficiaries: beneficiaries
+                                                  , refund: refund
                                                   , payouts: payouts
                                                   , selling: selling
                                                   , buying: buying
@@ -53,6 +56,7 @@ contract AuctionController is MathUser
                                                   , min_increase: min_increase
                                                   , min_decrease: min_decrease
                                                   , ttl: ttl
+                                                  , expiration: expiration
                                                   , collection_limit: collection_limit
                                                   , reversed: reversed
                                                   });
@@ -103,6 +107,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
 
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
+                                                    , refund: beneficiary
                                                     , payouts: payouts
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
@@ -111,10 +116,10 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: min_increase
                                                     , min_decrease: 0
                                                     , ttl: ttl
+                                                    , expiration: expiration
                                                     , collection_limit: INFINITY
                                                     , reversed: false
                                                     });
-        setExpiration(auction_id, expiration);
     }
     function newAuction( address beneficiary
                        , address selling
@@ -131,6 +136,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
 
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
+                                                    , refund: beneficiary
                                                     , payouts: payouts
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
@@ -139,6 +145,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: min_increase
                                                     , min_decrease: 0
                                                     , ttl: ttl
+                                                    , expiration: INFINITY
                                                     , collection_limit: INFINITY
                                                     , reversed: false
                                                     });
@@ -157,6 +164,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
     {
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
+                                                    , refund: beneficiaries[0]
                                                     , payouts: payouts
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
@@ -165,6 +173,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: min_increase
                                                     , min_decrease: 0
                                                     , ttl: ttl
+                                                    , expiration: INFINITY
                                                     , collection_limit: INFINITY
                                                     , reversed: false
                                                     });
@@ -187,6 +196,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
         // where the maximum collected buying token is zero.
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
+                                                    , refund: beneficiary
                                                     , payouts: payouts
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
@@ -195,6 +205,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: 0
                                                     , min_decrease: min_decrease
                                                     , ttl: ttl
+                                                    , expiration: INFINITY
                                                     , collection_limit: 0
                                                     , reversed: true
                                                     });
@@ -218,6 +229,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
         // where the maximum collected buying token is zero.
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
+                                                    , refund: refund
                                                     , payouts: payouts
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
@@ -226,10 +238,10 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: 0
                                                     , min_decrease: min_decrease
                                                     , ttl: ttl
+                                                    , expiration: INFINITY
                                                     , collection_limit: 0
                                                     , reversed: true
                                                     });
-        setRefundAddress(auction_id, refund);
     }
     // Create a new two-way auction.
     function newTwoWayAuction( address beneficiary
@@ -248,6 +260,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                                     , beneficiaries: beneficiaries
+                                                    , refund: beneficiary
                                                     , payouts: payouts
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
@@ -256,6 +269,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: min_increase
                                                     , min_decrease: min_decrease
                                                     , ttl: ttl
+                                                    , expiration: INFINITY
                                                     , collection_limit: collection_limit
                                                     , reversed: false
                                                     });
@@ -277,6 +291,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
         (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
                                                      , beneficiaries: beneficiaries
+                                                     , refund: refund
                                                      , payouts: payouts
                                                      , selling: ERC20(selling)
                                                      , buying: ERC20(buying)
@@ -285,10 +300,10 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                      , min_increase: min_increase
                                                      , min_decrease: min_decrease
                                                      , ttl: ttl
+                                                     , expiration: INFINITY
                                                      , collection_limit: collection_limit
                                                      , reversed: false
                                                      });
-        setRefundAddress(auction_id, refund);
     }
     function newTwoWayAuction( address[] beneficiaries
                              , uint[] payouts
@@ -306,6 +321,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
         var collection_limit = sum(payouts);
         (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
                                                      , beneficiaries: beneficiaries
+                                                     , refund: beneficiaries[0]
                                                      , payouts: payouts
                                                      , selling: ERC20(selling)
                                                      , buying: ERC20(buying)
@@ -314,6 +330,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                      , min_increase: min_increase
                                                      , min_decrease: min_decrease
                                                      , ttl: ttl
+                                                     , expiration: INFINITY
                                                      , collection_limit: collection_limit
                                                      , reversed: false
                                                      });
@@ -335,6 +352,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
         var collection_limit = sum(payouts);
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
                                    , beneficiaries: beneficiaries
+                                   , refund: refund
                                    , payouts: payouts
                                    , selling: ERC20(selling)
                                    , buying: ERC20(buying)
@@ -343,10 +361,10 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                    , min_increase: min_increase
                                    , min_decrease: min_decrease
                                    , ttl: ttl
+                                   , expiration: INFINITY
                                    , collection_limit: collection_limit
                                    , reversed: false
                                    });
-        setRefundAddress(auction_id, refund);
     }
 }
 

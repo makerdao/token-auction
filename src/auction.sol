@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.15;
 
 import './db.sol';
 import './events.sol';
@@ -33,16 +33,9 @@ contract TwoWayAuction is AuctionType
             auction.collected += excess_buy;
         }
 
-        if (auction.reversed) {
-            _doReverseBid(auctionlet_id, bidder, bid_how_much);
-        } else if (auction.collected > auction.collection_limit) {
-            _doTransitionBid(auctionlet_id, bidder, bid_how_much);
-            LogAuctionReversal(auctionlet.auction_id);
-        } else {
-            _doForwardBid(auctionlet_id, bidder, bid_how_much);
-        }
+        _doBid(auctionlet_id, bidder, bid_how_much);
     }
-    function _doForwardBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
+    function _doBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         private
     {
         var auctionlet = auctionlets(auctionlet_id);
@@ -52,72 +45,51 @@ contract TwoWayAuction is AuctionType
         var previous_bidder = auctionlet.last_bidder;
 
         var excess_buy = safeSub(bid_how_much, auctionlet.buy_amount);
-
-        auctionlet.buy_amount = bid_how_much;  // forward bids compete on buy token
-        auctionlet.last_bidder = new_bidder;
-        auctionlet.last_bid_time = getTime();
-
-        // new bidder pays off the old bidder directly. For the first
-        // bid this is the seller, so they receive their minimum bid.
-        payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, previous_buy);
-        // excess buy token is sent directly from bidder to beneficiary
-        settleExcessBuy(auction, new_bidder, excess_buy);
-    }
-    function _doReverseBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
-        private
-    {
-        var auctionlet = auctionlets(auctionlet_id);
-        var auction = auctions(auctionlet.auction_id);
-
-        var previous_bidder = auctionlet.last_bidder;
-
         var excess_sell = safeSub(auctionlet.sell_amount, bid_how_much);
+        //
 
-        auctionlet.sell_amount = bid_how_much;  // reverse bids compete on sell token
         auctionlet.last_bidder = new_bidder;
         auctionlet.last_bid_time = getTime();
 
-        // new bidder pays off the old bidder directly. For the first
-        // bid this is the buyer, so they receive their buy amount.
-        payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, auctionlet.buy_amount);
-        // excess sell token is sent from auction escrow to the refund address
-        settleExcessSell(auction, excess_sell);
-    }
-    function _doTransitionBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
-        private
-    {
-        var auctionlet = auctionlets(auctionlet_id);
-        var auction = auctions(auctionlet.auction_id);
+        if (auction.reversed) {
+            // Reversed bid
+            auctionlet.sell_amount = bid_how_much;  // reverse bids compete on sell token
+            // new bidder pays off the old bidder directly. For the first
+            // bid this is the buyer, so they receive their buy amount.
+            payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, auctionlet.buy_amount);
+            // excess sell token is sent from auction escrow to the refund address
+            settleExcessSell(auction, excess_sell);
 
-        var previous_bidder = auctionlet.last_bidder;
-        var previous_buy = auctionlet.buy_amount;
+        } else {
+            if (auction.collected > auction.collection_limit) {
+                // Transition bid
+                // only take excess from the bidder up to the collect target.
+                var bid_over_target = safeSub(auction.collected, auction.collection_limit);
 
-        var excess_buy = safeSub(bid_how_much, auctionlet.buy_amount);
+                // over the target, infer how much less they would have been
+                // willing to accept, based on their bid price
+                var effective_target_bid = safeMul(auctionlet.sell_amount,
+                                                   auction.collection_limit) / auction.sell_amount;
+                var inferred_reverse_bid = safeMul(auctionlet.sell_amount,
+                                                   effective_target_bid) / bid_how_much;
 
-        // only take excess from the bidder up to the collect target.
-        var bid_over_target = safeSub(auction.collected, auction.collection_limit);
+                auction.collected = auction.collection_limit;
+                auction.reversed = true;
 
-        // over the target, infer how much less they would have been
-        // willing to accept, based on their bid price
-        var effective_target_bid = safeMul(auctionlet.sell_amount,
-                                           auction.collection_limit) / auction.sell_amount;
-        var inferred_reverse_bid = safeMul(auctionlet.sell_amount,
-                                           effective_target_bid) / bid_how_much;
+                excess_buy = safeSub(excess_buy, bid_over_target);
+                bid_how_much = safeSub(bid_how_much, bid_over_target);
 
-        auction.collected = auction.collection_limit;
-        auction.reversed = true;
+                auctionlet.sell_amount = inferred_reverse_bid;
+            }
 
-        auctionlet.buy_amount = safeSub(bid_how_much, bid_over_target);
-        auctionlet.sell_amount = inferred_reverse_bid;
-        auctionlet.last_bidder = new_bidder;
-        auctionlet.last_bid_time = getTime();
-
-        // new bidder pays off the old bidder directly. For the first
-        // bid this is the seller, so they receive their minimum bid.
-        payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, previous_buy);
-        // excess buy token (up to the target) is sent directly
-        // from bidder to beneficiary
-        settleExcessBuy(auction, new_bidder, safeSub(excess_buy, bid_over_target));
+            // Forward bid
+            auctionlet.buy_amount = bid_how_much;  // forward bids compete on buy token
+            // new bidder pays off the old bidder directly. For the first
+            // bid this is the seller, so they receive their minimum bid.
+            payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, previous_buy);
+            // excess buy token is sent directly from bidder to beneficiary
+            settleExcessBuy(auction, new_bidder, excess_buy);
+        }
     }
     // Auctionlet claim logic, including transfers.
     function doClaim(uint auctionlet_id)

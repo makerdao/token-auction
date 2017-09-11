@@ -95,8 +95,8 @@ contract TwoWayAuction is AuctionType
     function doClaim(uint auctionlet_id)
         internal
     {
-        Auctionlet auctionlet = auctionlets(auctionlet_id);
-        Auction auction = auctions(auctionlet.auction_id);
+        Auctionlet memory auctionlet = auctionlets(auctionlet_id);
+        Auction memory auction = auctions(auctionlet.auction_id);
 
         auctionlet.unclaimed = false;
         settleBidderClaim(auction, auctionlet);

@@ -37,8 +37,8 @@ contract AuctionController is MathUser
                                 , uint start_bid
                                 , uint min_increase
                                 , uint min_decrease
-                                , uint ttl
-                                , uint expiration
+                                , uint64 ttl
+                                , uint64 expiration
                                 , uint collection_limit
                                 , bool reversed
                                 )
@@ -88,6 +88,8 @@ contract AuctionController is MathUser
 
 contract AuctionManagerFrontend is AuctionController, MutexUser {
     uint constant INFINITY = uint(uint128(-1));
+    uint64 constant INFINITY_64 = uint64(-1);
+
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
     // of which there is one initially.
@@ -97,8 +99,8 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                        , uint sell_amount
                        , uint start_bid
                        , uint min_increase
-                       , uint ttl
-                       , uint expiration
+                       , uint64 ttl
+                       , uint64 expiration
                        )
         exclusive
         returns (uint auction_id, uint base_id)
@@ -127,7 +129,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                        , uint sell_amount
                        , uint start_bid
                        , uint min_increase
-                       , uint ttl
+                       , uint64 ttl
                        )
         exclusive
         returns (uint auction_id, uint base_id)
@@ -145,7 +147,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: min_increase
                                                     , min_decrease: 0
                                                     , ttl: ttl
-                                                    , expiration: INFINITY
+                                                    , expiration: INFINITY_64
                                                     , collection_limit: INFINITY
                                                     , reversed: false
                                                     });
@@ -157,7 +159,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                        , uint sell_amount
                        , uint start_bid
                        , uint min_increase
-                       , uint ttl
+                       , uint64 ttl
                        )
         exclusive
         returns (uint auction_id, uint base_id)
@@ -173,7 +175,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: min_increase
                                                     , min_decrease: 0
                                                     , ttl: ttl
-                                                    , expiration: INFINITY
+                                                    , expiration: INFINITY_64
                                                     , collection_limit: INFINITY
                                                     , reversed: false
                                                     });
@@ -185,7 +187,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                               , uint max_sell_amount
                               , uint buy_amount
                               , uint min_decrease
-                              , uint ttl
+                              , uint64 ttl
                               )
         exclusive
         returns (uint auction_id, uint base_id)
@@ -205,7 +207,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: 0
                                                     , min_decrease: min_decrease
                                                     , ttl: ttl
-                                                    , expiration: INFINITY
+                                                    , expiration: INFINITY_64
                                                     , collection_limit: 0
                                                     , reversed: true
                                                     });
@@ -218,7 +220,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                               , uint max_sell_amount
                               , uint buy_amount
                               , uint min_decrease
-                              , uint ttl
+                              , uint64 ttl
                               )
         exclusive
         returns (uint auction_id, uint base_id)
@@ -238,7 +240,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: 0
                                                     , min_decrease: min_decrease
                                                     , ttl: ttl
-                                                    , expiration: INFINITY
+                                                    , expiration: INFINITY_64
                                                     , collection_limit: 0
                                                     , reversed: true
                                                     });
@@ -251,7 +253,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint start_bid
                              , uint min_increase
                              , uint min_decrease
-                             , uint ttl
+                             , uint64 ttl
                              , uint collection_limit
                              )
         exclusive
@@ -269,7 +271,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , min_increase: min_increase
                                                     , min_decrease: min_decrease
                                                     , ttl: ttl
-                                                    , expiration: INFINITY
+                                                    , expiration: INFINITY_64
                                                     , collection_limit: collection_limit
                                                     , reversed: false
                                                     });
@@ -282,7 +284,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint start_bid
                              , uint min_increase
                              , uint min_decrease
-                             , uint ttl
+                             , uint64 ttl
                              , uint collection_limit
                              )
         exclusive
@@ -300,7 +302,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                      , min_increase: min_increase
                                                      , min_decrease: min_decrease
                                                      , ttl: ttl
-                                                     , expiration: INFINITY
+                                                     , expiration: INFINITY_64
                                                      , collection_limit: collection_limit
                                                      , reversed: false
                                                      });
@@ -313,7 +315,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint start_bid
                              , uint min_increase
                              , uint min_decrease
-                             , uint ttl
+                             , uint64 ttl
                              )
         exclusive
         returns (uint auction_id, uint base_id)
@@ -330,7 +332,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                      , min_increase: min_increase
                                                      , min_decrease: min_decrease
                                                      , ttl: ttl
-                                                     , expiration: INFINITY
+                                                     , expiration: INFINITY_64
                                                      , collection_limit: collection_limit
                                                      , reversed: false
                                                      });
@@ -344,7 +346,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint start_bid
                              , uint min_increase
                              , uint min_decrease
-                             , uint ttl
+                             , uint64 ttl
                              )
         exclusive
         returns (uint auction_id, uint base_id)
@@ -361,7 +363,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                    , min_increase: min_increase
                                    , min_decrease: min_decrease
                                    , ttl: ttl
-                                   , expiration: INFINITY
+                                   , expiration: INFINITY_64
                                    , collection_limit: collection_limit
                                    , reversed: false
                                    });

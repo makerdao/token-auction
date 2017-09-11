@@ -16,15 +16,15 @@ contract AuctionType {
         uint sell_amount;
         uint collected;
         uint collection_limit;
-        uint ttl;
-        uint expiration;
+        uint64 ttl;
+        uint64 expiration;
         bool reversed;
         uint unsold;
     }
     struct Auctionlet {
         uint     auction_id;
         address  last_bidder;
-        uint     last_bid_time;
+        uint64   last_bid_time;
         uint     buy_amount;
         uint     sell_amount;
         bool     unclaimed;

@@ -83,7 +83,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                 , uint min_increase
                 , uint min_decrease
                 , uint sell_amount
-                , uint ttl
+                , uint64 ttl
                 , bool reversed
                 , uint unsold
                 )
@@ -146,7 +146,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     {
         return auctions(auction_id).refund;
     }
-    function setExpiration(uint auction_id, uint expiration)
+    function setExpiration(uint auction_id, uint64 expiration)
         internal
     {
         var auction = auctions(auction_id);
@@ -191,8 +191,8 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                               , uint start_bid
                               , uint min_increase
                               , uint min_decrease
-                              , uint ttl
-                              , uint expiration
+                              , uint64 ttl
+                              , uint64 expiration
                               , uint collection_limit
                               , bool reversed
                               )

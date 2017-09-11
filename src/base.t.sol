@@ -9,15 +9,15 @@ import './manager.sol';
 import './types.sol';
 
 contract TestableManager is SplittingAuctionManager {
-    uint public debug_timestamp;
+    uint64 public debug_timestamp;
 
-    function getTime() public constant returns (uint) {
+    function getTime() public constant returns (uint64) {
         return debug_timestamp;
     }
-    function setTime(uint timestamp) {
+    function setTime(uint64 timestamp) {
         debug_timestamp = timestamp;
     }
-    function addTime(uint time) {
+    function addTime(uint64 time) {
         setTime(getTime() + time);
     }
     function getCollectMax(uint auction_id) returns (uint) {
@@ -93,7 +93,7 @@ contract AuctionTest is EventfulAuction, EventfulManager, DSTest {
         beneficiary1 = new AuctionTester();
         beneficiary2 = new AuctionTester();
 
-        manager.setTime(block.timestamp);
+        manager.setTime(uint64(block.timestamp));
 
         seller.bindManager(manager);
         bidder1.bindManager(manager);

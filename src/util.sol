@@ -12,8 +12,8 @@ contract Assertive {
 
 contract TimeUser {
     // Using this allows override of the block timestamp in tests
-    function getTime() public constant returns (uint) {
-        return block.timestamp;
+    function getTime() public constant returns (uint64) {
+        return uint64(block.timestamp);
     }
 }
 

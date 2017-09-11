@@ -146,12 +146,6 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     {
         return auctions(auction_id).refund;
     }
-    function setRefundAddress(uint auction_id, address refund)
-        internal
-    {
-        var auction = auctions(auction_id);
-        auction.refund = refund;
-    }
     function setExpiration(uint auction_id, uint expiration)
         internal
     {
@@ -189,6 +183,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     }
     function newGenericAuction( address creator
                               , address[] beneficiaries
+                              , address refund
                               , uint[] payouts
                               , ERC20 selling
                               , ERC20 buying
@@ -197,6 +192,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                               , uint min_increase
                               , uint min_decrease
                               , uint ttl
+                              , uint expiration
                               , uint collection_limit
                               , bool reversed
                               )
@@ -207,7 +203,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         auction.creator = creator;
         auction.beneficiaries = beneficiaries;
         auction.payouts = payouts;
-        auction.refund = beneficiaries[0];
+        auction.refund = refund;
         auction.selling = selling;
         auction.buying = buying;
         auction.sell_amount = sell_amount;
@@ -215,7 +211,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         auction.min_increase = min_increase;
         auction.min_decrease = min_decrease;
         auction.ttl = ttl;
-        auction.expiration = uint(uint128(-1));  // 'infinity'
+        auction.expiration = expiration;
         auction.collection_limit = collection_limit;
         auction.unsold = sell_amount;
 

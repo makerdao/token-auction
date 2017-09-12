@@ -183,7 +183,6 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     }
     function newGenericAuction( address creator
                               , address[] beneficiaries
-                              , address refund
                               , uint[] payouts
                               , ERC20 selling
                               , ERC20 buying
@@ -203,7 +202,6 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         auction.creator = creator;
         auction.beneficiaries = beneficiaries;
         auction.payouts = payouts;
-        auction.refund = refund;
         auction.selling = selling;
         auction.buying = buying;
         auction.sell_amount = sell_amount;

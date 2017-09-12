@@ -276,6 +276,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                     , reversed: false
                                                     });
     }
+    /*
     function newTwoWayAuction( address beneficiary
                              , address refund
                              , address selling
@@ -288,24 +289,24 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint collection_limit
                              )
         exclusive
-        returns (uint auction_id, uint base_id)
+        returns (uint, uint)
     {
         var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
-        (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
-                                                     , beneficiaries: beneficiaries
-                                                     , refund: refund
-                                                     , payouts: payouts
-                                                     , selling: ERC20(selling)
-                                                     , buying: ERC20(buying)
-                                                     , sell_amount: sell_amount
-                                                     , start_bid: start_bid
-                                                     , min_increase: min_increase
-                                                     , min_decrease: min_decrease
-                                                     , ttl: ttl
-                                                     , expiration: INFINITY_64
-                                                     , collection_limit: collection_limit
-                                                     , reversed: false
-                                                     });
+        return  _makeGenericAuction({ creator: msg.sender
+                                    , beneficiaries: beneficiaries
+                                    , refund: refund
+                                    , payouts: payouts
+                                    , selling: ERC20(selling)
+                                    , buying: ERC20(buying)
+                                    , sell_amount: sell_amount
+                                    , start_bid: start_bid
+                                    , min_increase: min_increase
+                                    , min_decrease: min_decrease
+                                    , ttl: ttl
+                                    , expiration: INFINITY_64
+                                    , collection_limit: collection_limit
+                                    , reversed: false
+                                    });
     }
     function newTwoWayAuction( address[] beneficiaries
                              , uint[] payouts
@@ -368,6 +369,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                    , reversed: false
                                    });
     }
+    */
 }
 
 contract AuctionManager is AuctionManagerFrontend , AuctionFrontend {}

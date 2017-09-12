@@ -47,14 +47,15 @@ contract TransferUser is Assertive, MathUser, AuctionType {
         // collection state prior to this bid
         var prev_collected = auction.collected - excess_buy;
         // payout transition limits
-        var limits = cumsum(auction.payouts);
+        uint limit = 0;
+        uint prev_limit = 0;
 
-        for (uint i = 0; i < limits.length; i++) {
-            var prev_limit = (i == 0) ? 0 : limits[i - 1];
-            if (prev_limit > auction.collected) break;
+        for (uint i = 0; i < auction.payouts.length; i++) {
+            prev_limit = limit;
+            if (prev_limit >= auction.collected) break; // all funds distributed?
 
-            var limit = limits[i];
-            if (limit < prev_collected) continue;
+            limit += auction.payouts[i];
+            if (limit <= prev_collected) continue; // already paid out?
 
             var payout = excess_buy
                        - zeroSub(prev_limit, prev_collected)

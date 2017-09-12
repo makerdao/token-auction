@@ -11,7 +11,7 @@ contract TwoWayAuction is AuctionType
                         , TransferUser
 {
     // Auctionlet bid logic, including transfers.
-    function doBid(uint auctionlet_id, address bidder, uint bid_how_much)
+    function doBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
         internal
     {
         var auctionlet = auctionlets(auctionlet_id);
@@ -25,40 +25,27 @@ contract TwoWayAuction is AuctionType
             auctionlet.base = false;
         }
 
-        // Forward auctions increment the total auction collection on
-        // each bid. In reverse auctions this is unchanged per bid as
-        // bids compete on the sell side.
-        if (!auction.reversed) {
-            var excess_buy = safeSub(bid_how_much, auctionlet.buy_amount);
-            auction.collected += excess_buy;
-        }
-
-        _doBid(auctionlet_id, bidder, bid_how_much);
-    }
-    function _doBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
-        private
-    {
-        var auctionlet = auctionlets(auctionlet_id);
-        var auction = auctions(auctionlet.auction_id);
-
-        var previous_buy = auctionlet.buy_amount;
-        var previous_bidder = auctionlet.last_bidder;
+        // new bidder pays off the old bidder directly. For the first
+        // bid this is the seller, so they receive their minimum bid.
+        payOffLastBidder(auction, auctionlet, new_bidder, auctionlet.last_bidder, auctionlet.buy_amount);
 
         if (auction.reversed) {
             var excess_sell = safeSub(auctionlet.sell_amount, bid_how_much);
 
             auctionlet.sell_amount = bid_how_much;  // reverse bids compete on sell token
-            auctionlet.last_bidder = new_bidder;
-            auctionlet.last_bid_time = getTime();
 
             // new bidder pays off the old bidder directly. For the first
             // bid this is the buyer, so they receive their buy amount.
-            payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, auctionlet.buy_amount);
             // excess sell token is sent from auction escrow to the refund address
             settleExcessSell(auction, excess_sell);
 
         } else {
             var excess_buy = safeSub(bid_how_much, auctionlet.buy_amount);
+
+            // Forward auctions increment the total auction collection on
+            // each bid. In reverse auctions this is unchanged per bid as
+            // bids compete on the sell side.
+            auction.collected += excess_buy;
 
             if (auction.collected > auction.collection_limit) {
                 // only take excess from the bidder up to the collect target.
@@ -70,28 +57,22 @@ contract TwoWayAuction is AuctionType
                 var inferred_reverse_bid = safeMul(auctionlet.sell_amount, effective_target_bid) / bid_how_much;
 
                 auction.collected = auction.collection_limit;
-                auction.reversed = true;
 
-                auctionlet.buy_amount = safeSub(bid_how_much, bid_over_target);
+                // reverse bids compete on sell token.
                 auctionlet.sell_amount = inferred_reverse_bid;
-                auctionlet.last_bidder = new_bidder;
-                auctionlet.last_bid_time = getTime();
+                auction.reversed = true;
 
                 // excess buy token (up to the target) is sent directly
                 // from bidder to beneficiary
                 excess_buy = safeSub(excess_buy, bid_over_target);
-
-            } else {
-                  auctionlet.buy_amount = bid_how_much;  // forward bids compete on buy token
-                  auctionlet.last_bidder = new_bidder;
-                  auctionlet.last_bid_time = getTime();
+                bid_how_much = safeSub(bid_how_much, bid_over_target);
             }
 
-            // new bidder pays off the old bidder directly. For the first
-            // bid this is the seller, so they receive their minimum bid.
-            payOffLastBidder(auction, auctionlet, new_bidder, previous_bidder, previous_buy);
+            auctionlet.buy_amount = bid_how_much;  // forward bids compete on buy token
             settleExcessBuy(auction, new_bidder, excess_buy);
         }
+        auctionlet.last_bidder = new_bidder;
+        auctionlet.last_bid_time = getTime();
     }
     // Auctionlet claim logic, including transfers.
     function doClaim(uint auctionlet_id)

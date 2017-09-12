@@ -146,6 +146,12 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     {
         return auctions(auction_id).refund;
     }
+    function setRefundAddress(uint auction_id, address refund)
+        internal
+    {
+        var auction = auctions(auction_id);
+        auction.refund = refund;
+    }
     function setExpiration(uint auction_id, uint64 expiration)
         internal
     {
@@ -191,7 +197,6 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
                               , uint min_increase
                               , uint min_decrease
                               , uint64 ttl
-                              , uint64 expiration
                               , uint collection_limit
                               , bool reversed
                               )
@@ -202,6 +207,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         auction.creator = creator;
         auction.beneficiaries = beneficiaries;
         auction.payouts = payouts;
+        auction.refund = beneficiaries[0];
         auction.selling = selling;
         auction.buying = buying;
         auction.sell_amount = sell_amount;
@@ -209,7 +215,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         auction.min_increase = min_increase;
         auction.min_decrease = min_decrease;
         auction.ttl = ttl;
-        auction.expiration = expiration;
+        auction.expiration = uint64(-1);  // 'infinity'
         auction.collection_limit = collection_limit;
         auction.unsold = sell_amount;
 

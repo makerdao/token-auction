@@ -5,8 +5,7 @@ import 'ds-token/base.sol';
 contract AuctionType {
     struct Auction {
         address creator;
-        address[] beneficiaries;
-        uint[] payouts;
+        address beneficiary;
         address refund;
         ERC20 selling;
         ERC20 buying;

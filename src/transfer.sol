@@ -29,40 +29,7 @@ contract TransferUser is Assertive, MathUser, AuctionType {
     function settleExcessBuy(Auction auction, address bidder, uint excess_buy)
         internal
     {
-        // if there is only a single beneficiary, they get all of the
-        // settlement.
-        if (auction.beneficiaries.length == 1) {
-            assert(auction.buying.transferFrom(bidder, auction.beneficiaries[0], excess_buy));
-            return;
-        }
-
-        // If there are multiple beneficiaries, the settlement must be
-        // shared out. Each beneficiary has an associated payout, which
-        // is the maximum they can receive from the auction. As the
-        // auction collects more funds, beneficiaries receive their
-        // payouts in turn. The per bid settlement could span multiple
-        // payouts - the logic below partitions the settlement as
-        // needed.
-
-        // collection state prior to this bid
-        var prev_collected = auction.collected - excess_buy;
-        // payout transition limits
-        uint limit = 0;
-        uint prev_limit = 0;
-
-        for (uint i = 0; i < auction.payouts.length; i++) {
-            prev_limit = limit;
-            if (prev_limit >= auction.collected) break; // all funds distributed?
-
-            limit += auction.payouts[i];
-            if (limit <= prev_collected) continue; // already paid out?
-
-            var payout = excess_buy
-                       - zeroSub(prev_limit, prev_collected)
-                       - zeroSub(auction.collected, limit);
-
-            assert(auction.buying.transferFrom(bidder, auction.beneficiaries[i], payout));
-        }
+        require(auction.buying.transferFrom(bidder, auction.beneficiary, excess_buy));
     }
     function settleExcessSell(Auction auction, uint excess_sell)
         internal

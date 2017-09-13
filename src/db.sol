@@ -188,8 +188,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         }
     }
     function newGenericAuction( address creator
-                              , address[] beneficiaries
-                              , uint[] payouts
+                              , address beneficiary
                               , ERC20 selling
                               , ERC20 buying
                               , uint sell_amount
@@ -205,9 +204,8 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
     {
         Auction memory auction;
         auction.creator = creator;
-        auction.beneficiaries = beneficiaries;
-        auction.payouts = payouts;
-        auction.refund = beneficiaries[0];
+        auction.beneficiary = beneficiary;
+        auction.refund = beneficiary;
         auction.selling = selling;
         auction.buying = buying;
         auction.sell_amount = sell_amount;
@@ -225,7 +223,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         base_id = newAuctionlet({ auction_id:  auction_id
                                 , bid:         auction.start_bid
                                 , quantity:    auction.sell_amount
-                                , last_bidder: auction.beneficiaries[0]
+                                , last_bidder: auction.beneficiary
                                 , base:        true
                                 });
 

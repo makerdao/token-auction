@@ -295,38 +295,6 @@ contract AssertionTest is DSTest, Assertive() {
     }
 }
 
-contract MathTest is DSTest, MathUser {
-    uint[] array;
-    function setUp() {
-        uint[] memory _array = new uint[](3);
-        _array[0] = 1;
-        _array[1] = 3;
-        _array[2] = 0;
-        array = _array;
-    }
-    function testFlat() {
-        assertEq(0, zeroSub(1, 2));
-        assertEq(1, zeroSub(2, 1));
-    }
-    function testCumSum() {
-        uint[] memory expected = new uint[](3);
-        expected[0] = 1;
-        expected[1] = 4;
-        expected[2] = 4;
-
-        var found = cumsum(array);
-        for (uint i = 0; i < array.length; i++) {
-            assertEq(expected[i], found[i]);
-        }
-    }
-    function testSum() {
-        assertEq(4, sum(array));
-    }
-    function testSumEquivalentCumSum() {
-        assertEq(cumsum(array)[2], sum(array));
-    }
-}
-
 contract ClaimTest is AuctionTest {
     function newAuction() returns (uint, uint) {
         return manager.newAuction( beneficiary1  // beneficiary

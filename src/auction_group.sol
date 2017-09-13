@@ -24,8 +24,7 @@ contract AuctionGroup is DSMath {
         buying = ERC20(buying_);
         selling = ERC20(selling_);
 
-        // Do this somehow...
-        // assert(sum(auction.payouts) == auction.collection_limit);
+        // Is this check even relevant anymore?
         // if (!auction.reversed) assert(auction.payouts[0] >= auction.start_bid);
     }
 

@@ -3,6 +3,7 @@ pragma solidity ^0.4.15;
 import './types.sol';
 import './util.sol';
 import 'ds-token/base.sol';
+import 'ds-math/math.sol';
 
 contract AuctionDatabase is Assertive, AuctionType {
     mapping(uint => Auction) private _auctions;
@@ -53,7 +54,7 @@ contract AuctionDatabase is Assertive, AuctionType {
     }
 }
 
-contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
+contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
     function newAuctionlet( uint auction_id
                           , uint bid
                           , uint quantity
@@ -134,7 +135,7 @@ contract AuctionDatabaseUser is AuctionDatabase, SafeMathUser, TimeUser {
         var auction = auctions(auctionlet.auction_id);
 
         var auctionlet_expired = !auctionlet.base
-                && ((getTime() - auctionlet.last_bid_time) > auction.ttl);
+                && (sub(getTime(), auctionlet.last_bid_time) > auction.ttl);
 
         var auction_expired = getTime() > auction.expiration;
 

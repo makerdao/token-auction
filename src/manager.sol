@@ -8,8 +8,7 @@ import './events.sol';
 import './types.sol';
 import './util.sol';
 
-contract AuctionController is MathUser
-                            , AuctionType
+contract AuctionController is AuctionType
                             , AuctionDatabaseUser
                             , EventfulManager
 {

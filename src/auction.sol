@@ -3,12 +3,10 @@ pragma solidity ^0.4.15;
 import './db.sol';
 import './events.sol';
 import './types.sol';
-import './transfer.sol';
 
 contract TwoWayAuction is AuctionType
                         , AuctionDatabaseUser
                         , EventfulAuction
-                        , TransferUser
 {
     // Auctionlet bid logic, including transfers.
     function doBid(uint auctionlet_id, address new_bidder, uint bid_how_much)
@@ -27,7 +25,7 @@ contract TwoWayAuction is AuctionType
 
         // new bidder pays off the old bidder directly. For the first
         // bid this is the seller, so they receive their minimum bid.
-        payOffLastBidder(auction, auctionlet, new_bidder, auctionlet.last_bidder, auctionlet.buy_amount);
+        assert(auction.buying.transferFrom(new_bidder, auctionlet.last_bidder, auctionlet.buy_amount));
 
         if (auction.reversed) {
             var excess_sell = safeSub(auctionlet.sell_amount, bid_how_much);
@@ -37,7 +35,7 @@ contract TwoWayAuction is AuctionType
             // new bidder pays off the old bidder directly. For the first
             // bid this is the buyer, so they receive their buy amount.
             // excess sell token is sent from auction escrow to the refund address
-            settleExcessSell(auction, excess_sell);
+            assert(auction.selling.transfer(auction.refund, excess_sell));
 
         } else {
             var excess_buy = safeSub(bid_how_much, auctionlet.buy_amount);
@@ -69,7 +67,8 @@ contract TwoWayAuction is AuctionType
             }
 
             auctionlet.buy_amount = bid_how_much;  // forward bids compete on buy token
-            settleExcessBuy(auction, new_bidder, excess_buy);
+
+            require(auction.buying.transferFrom(new_bidder, auction.beneficiary, excess_buy));
         }
         auctionlet.last_bidder = new_bidder;
         auctionlet.last_bid_time = getTime();
@@ -82,7 +81,7 @@ contract TwoWayAuction is AuctionType
         Auction auction = auctions(auctionlet.auction_id);
 
         auctionlet.unclaimed = false;
-        settleBidderClaim(auction, auctionlet);
+        assert(auction.selling.transfer(auctionlet.last_bidder, auctionlet.sell_amount));
     }
 }
 

@@ -5,7 +5,6 @@ import 'ds-token/base.sol';
 import './auction.sol';
 import './db.sol';
 import './events.sol';
-import './transfer.sol';
 import './types.sol';
 import './util.sol';
 
@@ -13,7 +12,6 @@ contract AuctionController is MathUser
                             , AuctionType
                             , AuctionDatabaseUser
                             , EventfulManager
-                            , TransferUser
 {
     function _makeGenericAuction( address creator
                                 , address beneficiary
@@ -47,7 +45,8 @@ contract AuctionController is MathUser
 
         assertSafePercentages(auction);
 
-        takeFundsIntoEscrow(auction);
+        // Escrow funds.
+        assert(selling.transferFrom(creator, this, sell_amount));
 
         LogNewAuction(auction_id, base_id);
     }

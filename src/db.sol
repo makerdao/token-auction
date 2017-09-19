@@ -5,21 +5,21 @@ import './util.sol';
 import 'ds-token/base.sol';
 import 'ds-math/math.sol';
 
-contract AuctionDatabase is Assertive, AuctionType {
-    mapping(uint => Auction) private _auctions;
+contract AuctionDatabase is Assertive {
+    mapping(uint => AuctionType.Auction) private _auctions;
     uint private _last_auction_id;
 
-    mapping(uint => Auctionlet) private _auctionlets;
+    mapping(uint => AuctionType.Auctionlet) private _auctionlets;
     uint private _last_auctionlet_id;
 
-    function createAuctionlet(Auctionlet auctionlet)
+    function createAuctionlet(AuctionType.Auctionlet auctionlet)
         internal
         returns (uint id)
     {
         id = ++_last_auctionlet_id;
         _auctionlets[id] = auctionlet;
     }
-    function createAuction(Auction auction)
+    function createAuction(AuctionType.Auction auction)
         internal
         returns (uint id)
     {
@@ -28,7 +28,7 @@ contract AuctionDatabase is Assertive, AuctionType {
     }
     function auctionlets(uint id)
         internal
-        returns (Auctionlet storage auctionlet)
+        returns (AuctionType.Auctionlet storage auctionlet)
     {
         assert(id != 0);
         auctionlet = _auctionlets[id];
@@ -36,7 +36,7 @@ contract AuctionDatabase is Assertive, AuctionType {
     }
     function auctions(uint id)
         internal
-        returns (Auction storage auction)
+        returns (AuctionType.Auction storage auction)
     {
         assert(id != 0);
         auction = _auctions[id];
@@ -64,7 +64,7 @@ contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
         internal
         returns (uint auctionlet_id)
     {
-        Auctionlet memory auctionlet;
+        AuctionType.Auctionlet memory auctionlet;
         auctionlet.auction_id = auction_id;
         auctionlet.unclaimed = true;
         auctionlet.last_bidder = last_bidder;
@@ -203,7 +203,7 @@ contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
         internal
         returns (uint auction_id, uint base_id)
     {
-        Auction memory auction;
+        AuctionType.Auction memory auction;
         auction.creator = creator;
         auction.beneficiary = beneficiary;
         auction.refund = beneficiary;

@@ -4,8 +4,7 @@ import './db.sol';
 import './events.sol';
 import './types.sol';
 
-contract TwoWayAuction is AuctionType
-                        , AuctionDatabaseUser
+contract TwoWayAuction is AuctionDatabaseUser
                         , EventfulAuction
 {
     // Auctionlet bid logic, including transfers.
@@ -77,8 +76,8 @@ contract TwoWayAuction is AuctionType
     function doClaim(uint auctionlet_id)
         internal
     {
-        Auctionlet auctionlet = auctionlets(auctionlet_id);
-        Auction auction = auctions(auctionlet.auction_id);
+        AuctionType.Auctionlet auctionlet = auctionlets(auctionlet_id);
+        AuctionType.Auction auction = auctions(auctionlet.auction_id);
 
         auctionlet.unclaimed = false;
         assert(auction.selling.transfer(auctionlet.last_bidder, auctionlet.sell_amount));

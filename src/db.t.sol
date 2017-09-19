@@ -16,21 +16,21 @@ contract BasicDBTest is AuctionTest, AuctionDatabase {
     function setUp() {
         _db = new AuctionDatabase();
 
-        Auction memory auction;
+        AuctionType.Auction memory auction;
         auction.creator = 0x123;
         createAuction(auction);
 
-        Auctionlet memory auctionlet;
+        AuctionType.Auctionlet memory auctionlet;
         auctionlet.auction_id = 1;
         createAuctionlet(auctionlet);
     }
     function testFailNullAccessAuction() {
-        Auction memory auction;
+        AuctionType.Auction memory auction;
         var id = createAuction(auction);
         auctions(id);
     }
     function testFailNullAccessAuctionlet() {
-        Auctionlet memory auctionlet;
+        AuctionType.Auctionlet memory auctionlet;
         var id = createAuctionlet(auctionlet);
         auctionlets(id);
     }

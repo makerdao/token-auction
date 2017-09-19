@@ -2,7 +2,7 @@ pragma solidity ^0.4.15;
 
 import 'ds-token/base.sol';
 
-contract AuctionType {
+library AuctionType {
     struct Auction {
         address creator;
         address beneficiary;

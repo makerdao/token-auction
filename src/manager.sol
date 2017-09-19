@@ -8,8 +8,7 @@ import './events.sol';
 import './types.sol';
 import './util.sol';
 
-contract AuctionController is AuctionType
-                            , AuctionDatabaseUser
+contract AuctionController is AuctionDatabaseUser
                             , EventfulManager
 {
     function _makeGenericAuction( address creator
@@ -49,7 +48,7 @@ contract AuctionController is AuctionType
 
         LogNewAuction(auction_id, base_id);
     }
-    function assertSafePercentages(Auction auction)
+    function assertSafePercentages(AuctionType.Auction auction)
         internal
     {
         // risk of overflow in assertBiddable if these aren't constrained

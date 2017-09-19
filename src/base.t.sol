@@ -26,14 +26,14 @@ contract TestableManager is SplittingAuctionManager {
     function getAuction(uint id) constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)
     {
-        Auction auction = auctions(id);
+        AuctionType.Auction auction = auctions(id);
         return (auction.beneficiary, auction.selling, auction.buying,
                 auction.sell_amount, auction.start_bid, auction.min_increase, auction.ttl);
     }
     function getAuctionlet(uint id) constant
         returns (uint, address, uint, uint)
     {
-        Auctionlet auctionlet = auctionlets(id);
+        AuctionType.Auctionlet auctionlet = auctionlets(id);
         return (auctionlet.auction_id, auctionlet.last_bidder, auctionlet.buy_amount, auctionlet.sell_amount);
     }
 }

@@ -27,7 +27,7 @@ contract AuctionGroupTest is AuctionTest {
         var group = new AuctionGroup(t1, t2, beneficiaries, payouts);
         var (id, base2) = manager.newAuction(group, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
 
-        bidder1.doBid(id, 100 * T2);
+        bidder1.doBid(id, 100 * T2, false);
         group.payout();
 
         var g_balance_before = t2.balanceOf(group);
@@ -42,14 +42,14 @@ contract AuctionGroupTest is AuctionTest {
         var (id, base) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
 
         var g_balance_before = t2.balanceOf(group);
-        bidder1.doBid(id, 30 * T2);
+        bidder1.doBid(id, 30 * T2, false);
         var g_balance_after = t2.balanceOf(group);
         assertEq(g_balance_after - g_balance_before, 30 * T2);
     }
     function testPayoutFirstBeneficiary() {
         var group = _createGroup();
         var (id, base) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
-        bidder1.doBid(id, 30 * T2);
+        bidder1.doBid(id, 30 * T2, false);
 
         var b1_balance_before = t2.balanceOf(beneficiary1);
         group.payout();
@@ -59,7 +59,7 @@ contract AuctionGroupTest is AuctionTest {
     function testPayoutSecondBeneficiary() {
         var group = _createGroup();
         var (id, base) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
-        bidder1.doBid(id, 30 * T2);
+        bidder1.doBid(id, 30 * T2, false);
 
         var b2_balance_before = t2.balanceOf(beneficiary2);
         group.payout();

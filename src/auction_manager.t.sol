@@ -84,8 +84,8 @@ contract BidTest is AuctionTest {
     }
     function testBidEvent() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
-        bidder2.doBid(base, 12 * T2);
+        bidder1.doBid(base, 11 * T2, false);
+        bidder2.doBid(base, 12 * T2, false);
 
         expectEventsExact(manager);
         LogNewAuction(id, base);
@@ -94,11 +94,11 @@ contract BidTest is AuctionTest {
     }
     function testFailBidUnderMinBid() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 9 * T2);
+        bidder1.doBid(base, 9 * T2, false);
     }
     function testBid() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
+        bidder1.doBid(base, 11 * T2, false);
 
         var (auction_id, last_bidder1,
              buy_amount, sell_amount) = manager.getAuctionlet(base);
@@ -110,13 +110,13 @@ contract BidTest is AuctionTest {
         var (id, base) = newAuction();
 
         // this should throw as bidder1 only has 1000 t2
-        bidder1.doBid(base, 1001 * T2);
+        bidder1.doBid(base, 1001 * T2, false);
     }
     function testBidTransfer() {
         var (id, base) = newAuction();
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(base, 11 * T2);
+        bidder1.doBid(base, 11 * T2, false);
         var bidder1_t2_balance_after = t2.balanceOf(bidder1);
 
         var balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
@@ -126,8 +126,8 @@ contract BidTest is AuctionTest {
         var (id, base) = newAuction();
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
-        bidder1.doBid(base, 11 * T2);
-        bidder2.doBid(base, 12 * T2);
+        bidder1.doBid(base, 11 * T2, false);
+        bidder2.doBid(base, 12 * T2, false);
         var bidder1_t2_balance_after = t2.balanceOf(bidder1);
 
         var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
@@ -135,12 +135,12 @@ contract BidTest is AuctionTest {
     }
     function testFailBidExpired() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
+        bidder1.doBid(base, 11 * T2, false);
 
         // force expiry
         manager.addTime(2 years);
 
-        bidder2.doBid(base, 12 * T2);
+        bidder2.doBid(base, 12 * T2, false);
     }
     function testBaseDoesNotExpire() {
         var (id, base) = newAuction();
@@ -149,13 +149,13 @@ contract BidTest is AuctionTest {
         manager.addTime(2 years);
 
         // this should succeed as there are no real bidders
-        bidder1.doBid(base, 11 * T2);
+        bidder1.doBid(base, 11 * T2, false);
     }
     function testBidTransfersBenefactor() {
         var (id, base) = newAuction();
 
         var balance_before = t2.balanceOf(seller);
-        bidder1.doBid(base, 40 * T2);
+        bidder1.doBid(base, 40 * T2, false);
         var balance_after = t2.balanceOf(seller);
 
         assertEq(balance_after - balance_before, 40 * T2);
@@ -164,7 +164,7 @@ contract BidTest is AuctionTest {
         var (id, base) = manager.newAuction(bidder2, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
 
         var balance_before = t2.balanceOf(bidder2);
-        bidder1.doBid(base, 10 * T2);
+        bidder1.doBid(base, 10 * T2, false);
         var balance_after = t2.balanceOf(bidder2);
 
         assertEq(balance_after - balance_before, 10 * T2);
@@ -217,8 +217,8 @@ contract MultipleAuctionTest is AuctionTest {
 
         var seller_t2_balance_before = t2.balanceOf(seller);
 
-        bidder1.doBid(base1, 11 * T2);
-        bidder2.doBid(base2, 11 * T2);
+        bidder1.doBid(base1, 11 * T2, false);
+        bidder2.doBid(base2, 11 * T2, false);
 
         var seller_t2_balance_after = t2.balanceOf(seller);
 
@@ -251,21 +251,21 @@ contract MinBidIncreaseTest is AuctionTest {
     }
     function testFailFirstBidEqualStartBid() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 10 * T2);
+        bidder1.doBid(base, 10 * T2, false);
     }
     function testFailSubsequentBidEqualLastBid() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 13 * T2);
-        bidder2.doBid(base, 13 * T2);
+        bidder1.doBid(base, 13 * T2, false);
+        bidder2.doBid(base, 13 * T2, false);
     }
     function testFailFirstBidLowerThanMinIncrease() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
+        bidder1.doBid(base, 11 * T2, false);
     }
     function testFailSubsequentBidLowerThanMinIncrease() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 12 * T2);
-        bidder2.doBid(base, 13 * T2);
+        bidder1.doBid(base, 12 * T2, false);
+        bidder2.doBid(base, 13 * T2, false);
     }
 }
 
@@ -308,7 +308,7 @@ contract ClaimTest is AuctionTest {
     }
     function testClaimTransfersBidder() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
+        bidder1.doBid(base, 11 * T2, false);
         // force expiry
         manager.addTime(2 years);
 
@@ -321,7 +321,7 @@ contract ClaimTest is AuctionTest {
     }
     function testClaimNonParty() {
         var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
+        bidder1.doBid(base, 11 * T2, false);
         manager.addTime(2 years);
 
         var balance_before = t1.balanceOf(bidder1);
@@ -335,7 +335,7 @@ contract ClaimTest is AuctionTest {
         // bidders cannot claim their auctionlet until the auction has
         // expired.
         var (id, base) = newAuction();
-        bidder1.doBid(base, 11 * T2);
+        bidder1.doBid(base, 11 * T2, false);
         bidder1.doClaim(base);
     }
     function testFailBidderClaimAgain() {
@@ -345,8 +345,8 @@ contract ClaimTest is AuctionTest {
 
         // create bids on two different auctions so that the manager has
         // enough funds for us to attempt to withdraw all at once
-        bidder1.doBid(base1, 11 * T2);
-        bidder2.doBid(base2, 11 * T2);
+        bidder1.doBid(base1, 11 * T2, false);
+        bidder2.doBid(base2, 11 * T2, false);
 
         // force expiry
         manager.addTime(2 years);
@@ -414,16 +414,16 @@ contract ExpiryTest is AuctionTest {
         manager.addTime(15 days);
 
         // fails because auction has expired
-        bidder1.doBid(base, 1 * T2);
+        bidder1.doBid(base, 1 * T2, false);
     }
     function testFailBidPostAuctionletExpiryPostAuctionExpiry() {
         var (id, base) = newAuction({ ttl:        uint64(20 days)
                                     , expiration: uint64(now + 10 days) });
 
-        bidder1.doBid(base, 1 * T2);
+        bidder1.doBid(base, 1 * T2, false);
         manager.addTime(25 days);
 
-        bidder2.doBid(base, 2 * T2);
+        bidder2.doBid(base, 2 * T2, false);
     }
     function testFailSplitPostAuctionExpiryPreAuctionletExpiry() {
         var (id, base) = newAuction({ ttl:        uint64(20 days)
@@ -431,16 +431,16 @@ contract ExpiryTest is AuctionTest {
 
         manager.addTime(15 days);
 
-        bidder1.doBid(base, 1 * T2, 50 * T1);
+        bidder1.doBid(base, 1 * T2, 50 * T1, false);
     }
     function testFailSplitPostAuctionletExpiryPostAuctionExpiry() {
         var (id, base) = newAuction({ ttl:        uint64(20 days)
                                     , expiration: uint64(now + 10 days) });
 
-        bidder1.doBid(base, 1 * T2);
+        bidder1.doBid(base, 1 * T2, false);
         manager.addTime(25 days);
 
-        bidder2.doBid(base, 1 * T2, 50 * T1);
+        bidder2.doBid(base, 1 * T2, 50 * T1, false);
     }
     function testClaimBasePostAuctionExpiryPreAuctionletExpiry() {
         var (id, base) = newAuction({ ttl:        uint64(20 days)
@@ -466,7 +466,7 @@ contract ExpiryTest is AuctionTest {
         var (id, base) = newAuction({ ttl:        uint64(20 days)
                                     , expiration: uint64(now + 10 days) });
 
-        bidder1.doBid(base, 1 * T2);
+        bidder1.doBid(base, 1 * T2, false);
         manager.addTime(15 days);
 
         var balance_before = t1.balanceOf(bidder1);
@@ -477,7 +477,7 @@ contract ExpiryTest is AuctionTest {
         var (id, base) = newAuction({ ttl:        uint64(20 days)
                                     , expiration: uint64(now + 10 days) });
 
-        bidder1.doBid(base, 1 * T2);
+        bidder1.doBid(base, 1 * T2, false);
         manager.addTime(25 days);
 
         var balance_before = t1.balanceOf(bidder1);

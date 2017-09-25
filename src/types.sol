@@ -32,12 +32,13 @@ contract AuctionType {
 }
 
 contract AuctionFrontendType {
-    function bid(uint auctionlet_id, uint bid_how_much);
+    function bid(uint auctionlet_id, uint bid_how_much, bool reverse);
     function claim(uint auctionlet_id);
 }
 
 contract SplittingAuctionFrontendType {
-    function bid(uint auctionlet_id, uint bid_how_much, uint quantity)
+    function bid(uint auctionlet_id, uint bid_how_much, uint quantity,
+                 bool reverse)
         returns (uint new_id, uint split_id);
     function claim(uint auctionlet_id);
 }

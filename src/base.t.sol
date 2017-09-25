@@ -48,15 +48,16 @@ contract AuctionTester {
     function doApprove(address spender, uint value, address token) {
         ERC20(token).approve(spender, value);
     }
-    function doBid(uint auctionlet_id, uint bid_how_much)
+    function doBid(uint auctionlet_id, uint bid_how_much, bool reverse)
     {
         var (, quantity) = db.getLastBid(auctionlet_id);
-        frontend.bid(auctionlet_id, bid_how_much, quantity);
+        frontend.bid(auctionlet_id, bid_how_much, quantity, reverse);
     }
-    function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
+    function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount,
+                   bool reverse)
         returns (uint, uint)
     {
-        return frontend.bid(auctionlet_id, bid_how_much, sell_amount);
+        return frontend.bid(auctionlet_id, bid_how_much, sell_amount, reverse);
     }
     function doClaim(uint id) {
         return frontend.claim(id);

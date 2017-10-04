@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.17;
 
 contract EventfulAuction {
     event LogBid(uint indexed auctionlet_id);

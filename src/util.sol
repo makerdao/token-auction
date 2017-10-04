@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.17;
 
 contract Assertive {
     function assertIncreasing(uint[] array) internal pure {

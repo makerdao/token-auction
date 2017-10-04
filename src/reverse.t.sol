@@ -3,7 +3,7 @@ pragma solidity ^0.4.15;
 import './base.t.sol';
 
 contract ReverseTest is AuctionTest {
-    function newReverseAuction() returns (uint, uint) {
+    function newReverseAuction() public returns (uint, uint) {
         return manager.newReverseAuction( seller    // beneficiary
                                         , t1        // selling
                                         , t2        // buying
@@ -13,7 +13,7 @@ contract ReverseTest is AuctionTest {
                                         , 1 years   // ttl
                                         );
     }
-    function testNewReverseAuction() {
+    function testNewReverseAuction() public {
         var (id, base) = newReverseAuction();
 
         assertEq(manager.getCollectMax(id), 0);
@@ -27,22 +27,22 @@ contract ReverseTest is AuctionTest {
         assertEq(buy_amount, 5 * T2);
         assertEq(sell_amount, 100 * T1);
     }
-    function testNewReverseAuctionTransfersFromCreator() {
+    function testNewReverseAuctionTransfersFromCreator() public {
         var balance_before = t1.balanceOf(this);
-        var (id, base) = newReverseAuction();
+        newReverseAuction();
         var balance_after = t1.balanceOf(this);
 
         assertEq(balance_before - balance_after, 100 * T1);
     }
-    function testNewReverseAuctionTransfersToManager() {
+    function testNewReverseAuctionTransfersToManager() public {
         var balance_before = t1.balanceOf(manager);
-        var (id, base) = newReverseAuction();
+        newReverseAuction();
         var balance_after = t1.balanceOf(manager);
 
         assertEq(balance_after - balance_before, 100 * T1);
     }
-    function testFirstBidTransfersFromBidder() {
-        var (id, base) = newReverseAuction();
+    function testFirstBidTransfersFromBidder() public {
+        var (, base) = newReverseAuction();
 
         var bidder_t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(base, 90 * T1, true);
@@ -51,8 +51,8 @@ contract ReverseTest is AuctionTest {
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 5 * T2);
     }
-    function testFirstBidTransfersBuyTokenToBenefactor() {
-        var (id, base) = newReverseAuction();
+    function testFirstBidTransfersBuyTokenToBenefactor() public {
+        var (, base) = newReverseAuction();
 
         var balance_before = t2.balanceOf(seller);
         bidder1.doBid(base, 90 * T1, true);
@@ -62,8 +62,8 @@ contract ReverseTest is AuctionTest {
         // token, as a bidder has committed to the auction
         assertEq(balance_after - balance_before, 5 * T2);
     }
-    function testFirstBidTransfersExcessSellTokenToBenefactor() {
-        var (base, id) = newReverseAuction();
+    function testFirstBidTransfersExcessSellTokenToBenefactor() public {
+        newReverseAuction();
 
         var balance_before = t1.balanceOf(seller);
         bidder1.doBid(1, 85 * T1, true);
@@ -72,22 +72,22 @@ contract ReverseTest is AuctionTest {
         // beneficiary should have received the excess sell token
         assertEq(balance_after - balance_before, 15 * T1);
     }
-    function testFailFirstBidOverStartBid() {
-        var (id, base) = newReverseAuction();
+    function testFailFirstBidOverStartBid() public {
+        var (, base) = newReverseAuction();
         bidder1.doBid(base, 105 * T1, true);
     }
-    function testFailNextBidUnderMinimum() {
-        var (id, base) = newReverseAuction();
+    function testFailNextBidUnderMinimum() public {
+        var (, base) = newReverseAuction();
         bidder1.doBid(base, 90 * T1, true);
         bidder1.doBid(base, 89 * T1, true);
     }
-    function testFailNextBidOverLast() {
-        var (id, base) = newReverseAuction();
+    function testFailNextBidOverLast() public {
+        var (, base) = newReverseAuction();
         bidder1.doBid(base, 90 * T1, true);
         bidder1.doBid(base, 91 * T1, true);
     }
-    function testNextBidRefundsPreviousBidder() {
-        var (id, base) = newReverseAuction();
+    function testNextBidRefundsPreviousBidder() public {
+        var (, base) = newReverseAuction();
 
         var bidder_t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(base, 90 * T1, true);
@@ -97,8 +97,8 @@ contract ReverseTest is AuctionTest {
         // bidder should have reduced funds
         assertEq(bidder_t2_balance_before - bidder_t2_balance_after, 0);
     }
-    function testNextBidTransfersNoExtraBuyToken() {
-        var (id, base) = newReverseAuction();
+    function testNextBidTransfersNoExtraBuyToken() public {
+        var (, base) = newReverseAuction();
 
         bidder1.doBid(base, 90 * T1, true);
 
@@ -108,8 +108,8 @@ contract ReverseTest is AuctionTest {
 
         assertEq(balance_after, balance_before);
     }
-    function testNextBidTransfersExcessSellToken() {
-        var (id, base) = newReverseAuction();
+    function testNextBidTransfersExcessSellToken() public {
+        var (, base) = newReverseAuction();
 
         bidder1.doBid(base, 90 * T1, true);
 
@@ -119,8 +119,8 @@ contract ReverseTest is AuctionTest {
 
         assertEq(balance_after - balance_before, 5 * T1);
     }
-    function testClaimBidder() {
-        var (base, id) = newReverseAuction();
+    function testClaimBidder() public {
+        newReverseAuction();
         bidder1.doBid(1, 85 * T1, true);
 
         // force expiry
@@ -136,7 +136,7 @@ contract ReverseTest is AuctionTest {
 }
 
 contract MinBidDecreaseTest is AuctionTest {
-    function newReverseAuction() returns (uint, uint) {
+    function newReverseAuction() public returns (uint, uint) {
         return manager.newReverseAuction( seller    // beneficiary
                                         , t1        // selling
                                         , t2        // buying
@@ -146,28 +146,28 @@ contract MinBidDecreaseTest is AuctionTest {
                                         , 1 years   // ttl
                                         );
     }
-    function testFailFirstBidEqualStartBid() {
-        var (id, base) = newReverseAuction();
+    function testFailFirstBidEqualStartBid() public {
+        var (, base) = newReverseAuction();
         bidder1.doBid(base, 100 * T1, true);
     }
-    function testFailSubsequentBidEqualLastBid() {
-        var (id, base) = newReverseAuction();
+    function testFailSubsequentBidEqualLastBid() public {
+        var (, base) = newReverseAuction();
         bidder1.doBid(base, 75 * T1, true);
         bidder2.doBid(base, 75 * T1, true);
     }
-    function testFailFirstBidHigherThanMinDecrease() {
-        var (id, base) = newReverseAuction();
+    function testFailFirstBidHigherThanMinDecrease() public {
+        var (, base) = newReverseAuction();
         bidder1.doBid(base, 90 * T1, true);
     }
-    function testFailSubsequentBidHigherThanMinDecrease() {
-        var (id, base) = newReverseAuction();
+    function testFailSubsequentBidHigherThanMinDecrease() public {
+        var (, base) = newReverseAuction();
         bidder1.doBid(base, 75 * T1, true);
         bidder2.doBid(base, 70 * T1, true);
     }
 }
 
 contract ReverseRefundTest is AuctionTest {
-    function newTwoWayAuction() returns (uint, uint) {
+    function newTwoWayAuction() public returns (uint, uint) {
         return manager.newReverseAuction( seller        // beneficiary
                                         , beneficiary1  // refund
                                         , t1            // selling
@@ -178,8 +178,8 @@ contract ReverseRefundTest is AuctionTest {
                                         , 1 years       // ttl
                                         );
     }
-    function testNewReverseAuction() {
-        var (id, base) = newTwoWayAuction();
+    function testNewReverseAuction() public {
+        var (id, ) = newTwoWayAuction();
         assertEq(manager.getRefundAddress(id), beneficiary1);
     }
 }

@@ -14,6 +14,7 @@ contract AuctionGroup is DSMath {
 
     function AuctionGroup(address selling_, address buying_,
                           address[] members_, uint[] payouts_)
+    public
     {
         require(members_.length == payouts_.length);
 
@@ -28,11 +29,11 @@ contract AuctionGroup is DSMath {
         // if (!auction.reversed) assert(auction.payouts[0] >= auction.start_bid);
     }
 
-    function payout() {
+    function payout() public {
         payout(0, milestones.length);
     }
 
-    function payout(uint n, uint m) {
+    function payout(uint n, uint m) public {
         require(n < m);
 
         // Each member has an associated payout, which is the maximum they can
@@ -41,8 +42,6 @@ contract AuctionGroup is DSMath {
         // multiple payouts - the logic below partitions the settlement as
         // needed.
 
-        uint T1 = 5 ** 12;
-        uint T2 = 7 ** 10;
         // collection state prior to this bid
         uint holding = buying.balanceOf(this);
         uint collected = add(holding, paid_out);
@@ -70,18 +69,18 @@ contract AuctionGroup is DSMath {
         paid_out += holding; // Record the payout.
     }
 
-    function claimExcess() {
+    function claimExcess() public {
         require(msg.sender == creator &&
                 paid_out >= milestones[milestones.length-1]);
         require(buying.transfer(creator, buying.balanceOf(this)));
     }
 
-    function zeroSub(uint x, uint y) internal returns (uint) {
+    function zeroSub(uint x, uint y) pure internal returns (uint) {
         if (x > y) return x - y;
         else return 0;
     }
 
-    function cumsum(uint[] array) internal returns (uint[]) {
+    function cumsum(uint[] array) pure internal returns (uint[]) {
         uint[] memory out = new uint[](array.length);
         out[0] = array[0];
         for (uint i = 1; i < array.length; i++) {

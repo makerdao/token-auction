@@ -50,6 +50,7 @@ contract AuctionController is AuctionType
         LogNewAuction(auction_id, base_id);
     }
     function assertSafePercentages(Auction auction)
+        pure
         internal
     {
         // risk of overflow in assertBiddable if these aren't constrained
@@ -74,6 +75,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                        , uint64 ttl
                        , uint64 expiration
                        )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
@@ -99,6 +101,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                        , uint min_increase
                        , uint64 ttl
                        )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
@@ -124,6 +127,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                               , uint min_decrease
                               , uint64 ttl
                               )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
@@ -152,6 +156,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                               , uint min_decrease
                               , uint64 ttl
                               )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
@@ -182,6 +187,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint64 ttl
                              , uint collection_limit
                              )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
@@ -209,6 +215,7 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint64 ttl
                              , uint collection_limit
                              )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {

@@ -5,7 +5,7 @@ import './db.sol';
 
 contract DBTester {
     TestableManager _manager;
-    function bindManager(address manager) {
+    function bindManager(address manager) public {
         _manager = TestableManager(manager);
     }
 }
@@ -13,7 +13,7 @@ contract DBTester {
 contract BasicDBTest is AuctionTest, AuctionDatabase {
     AuctionDatabase _db;
 
-    function setUp() {
+    function setUp() public {
         _db = new AuctionDatabase();
 
         Auction memory auction;
@@ -24,20 +24,20 @@ contract BasicDBTest is AuctionTest, AuctionDatabase {
         auctionlet.auction_id = 1;
         createAuctionlet(auctionlet);
     }
-    function testFailNullAccessAuction() {
+    function testFailNullAccessAuction() public {
         Auction memory auction;
         var id = createAuction(auction);
         auctions(id);
     }
-    function testFailNullAccessAuctionlet() {
+    function testFailNullAccessAuctionlet() public {
         Auctionlet memory auctionlet;
         var id = createAuctionlet(auctionlet);
         auctionlets(id);
     }
-    function testFailAccessZerothAuction() {
+    function testFailAccessZerothAuction() public constant {
         auctions(0);
     }
-    function testFailAccessZerothAuctionlet() {
+    function testFailAccessZerothAuctionlet() public constant {
         auctionlets(0);
     }
 }
@@ -45,7 +45,7 @@ contract BasicDBTest is AuctionTest, AuctionDatabase {
 contract AuctionDBTest is AuctionTest {
     DBTester tester;
 
-    function newAuction() returns (uint, uint) {
+    function newAuction() public returns (uint, uint) {
         return manager.newAuction( seller    // beneficiary
                                  , t1        // selling
                                  , t2        // buying
@@ -55,8 +55,8 @@ contract AuctionDBTest is AuctionTest {
                                  , 1 years   // ttl
                                  );
     }
-    function testDefaultRefund() {
-        var (id, base) = newAuction();
+    function testDefaultRefund() public {
+        var (id,) = newAuction();
 
         assertEq(manager.getRefundAddress(id), seller);
     }

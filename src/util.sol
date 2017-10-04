@@ -1,7 +1,7 @@
 pragma solidity ^0.4.15;
 
 contract Assertive {
-    function assertIncreasing(uint[] array) internal {
+    function assertIncreasing(uint[] array) internal pure {
         if (array.length < 2) return;
 
         for (uint i = 1; i < array.length; i ++) {
@@ -20,7 +20,7 @@ contract TimeUser {
 contract MutexUser {
     bool private mutex_lock;
     modifier exclusive {
-        if (mutex_lock) throw;
+        assert(!mutex_lock);
         mutex_lock = true;
         _;
         mutex_lock = false;

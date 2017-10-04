@@ -81,8 +81,8 @@ contract TwoWayAuction is AuctionType
     function doClaim(uint auctionlet_id)
         internal
     {
-        Auctionlet auctionlet = auctionlets(auctionlet_id);
-        Auction auction = auctions(auctionlet.auction_id);
+        Auctionlet storage auctionlet = auctionlets(auctionlet_id);
+        Auction storage auction = auctions(auctionlet.auction_id);
 
         auctionlet.unclaimed = false;
         assert(auction.selling.transfer(auctionlet.last_bidder, auctionlet.sell_amount));
@@ -99,8 +99,7 @@ contract SplittingAuction is TwoWayAuction {
         var auctionlet = auctionlets(auctionlet_id);
 
         var (new_quantity, new_bid, split_bid) = _calculate_split(auctionlet_id,
-                                                                  quantity,
-                                                                  reverse);
+                                                                  quantity);
 
         // modify the old auctionlet
         setLastBid(auctionlet_id, new_bid, new_quantity);
@@ -112,8 +111,9 @@ contract SplittingAuction is TwoWayAuction {
         doBid(split_id, splitter, bid_how_much, reverse);
     }
     // Work out how to split a bid into two parts
-    function _calculate_split(uint auctionlet_id, uint quantity, bool reverse)
+    function _calculate_split(uint auctionlet_id, uint quantity)
         private
+        constant
         returns (uint new_quantity, uint new_bid, uint split_bid)
     {
         var (prev_bid, prev_quantity) = getLastBid(auctionlet_id);
@@ -129,6 +129,7 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     // Check whether an auctionlet is eligible for bidding on
     function assertBiddable(uint auctionlet_id, uint bid_how_much)
         internal
+        constant
     {
         var auctionlet = auctionlets(auctionlet_id);
         var auction = auctions(auctionlet.auction_id);
@@ -158,8 +159,9 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     // Check that an auctionlet can be split by the new bid.
     function assertSplittable(uint auctionlet_id, uint bid_how_much, uint quantity)
         internal
+        constant
     {
-        var (_, prev_quantity) = getLastBid(auctionlet_id);
+        var (, prev_quantity) = getLastBid(auctionlet_id);
 
         // splits have to reduce the quantity being bid on
         assert(quantity < prev_quantity);
@@ -173,9 +175,9 @@ contract AssertiveAuction is Assertive, AuctionDatabaseUser {
     // Check whether an auctionlet can be claimed.
     function assertClaimable(uint auctionlet_id)
         internal
+        constant
     {
         var auctionlet = auctionlets(auctionlet_id);
-        var auction = auctions(auctionlet.auction_id);
 
         // must be expired
         assert(isExpired(auctionlet_id));
@@ -192,6 +194,7 @@ contract AuctionFrontend is AuctionFrontendType
 {
     // Place a new bid on a specific auctionlet.
     function bid(uint auctionlet_id, uint bid_how_much, bool reverse)
+        public
         exclusive
     {
         assertBiddable(auctionlet_id, bid_how_much);
@@ -202,6 +205,7 @@ contract AuctionFrontend is AuctionFrontendType
     // If the auction has expired, individual auctionlet high bidders
     // can claim their winnings.
     function claim(uint auctionlet_id)
+        public
         exclusive
     {
         assertClaimable(auctionlet_id);
@@ -223,6 +227,7 @@ contract SplittingAuctionFrontend is SplittingAuctionFrontendType
     // auctionlets owned by (prev_bidder, new_bidder).
     function bid(uint auctionlet_id, uint bid_how_much, uint quantity,
                  bool reverse)
+        public
         exclusive
         returns (uint new_id, uint split_id)
     {
@@ -242,7 +247,7 @@ contract SplittingAuctionFrontend is SplittingAuctionFrontendType
     // Allow parties to an auction to claim their take.
     // If the auction has expired, individual auctionlet high bidders
     // can claim their winnings.
-    function claim(uint auctionlet_id) {
+    function claim(uint auctionlet_id) public {
         assertClaimable(auctionlet_id);
         doClaim(auctionlet_id);
     }

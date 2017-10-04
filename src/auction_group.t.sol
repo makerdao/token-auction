@@ -5,7 +5,7 @@ import './auction_group.sol';
 
 
 contract AuctionGroupTest is AuctionTest {
-    function testFailUnequalPayoutsLength() {
+    function testFailUnequalPayoutsLength() public {
         address[] memory beneficiaries = new address[](2);
         beneficiaries[0] = beneficiary1;
 
@@ -15,7 +15,7 @@ contract AuctionGroupTest is AuctionTest {
         var group = new AuctionGroup(t1, t2, beneficiaries, payouts);
         manager.newAuction(group, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
     }
-    function testClaimExcess() {
+    function testClaimExcess() public {
         address[] memory beneficiaries = new address[](2);
         beneficiaries[0] = beneficiary1;
         beneficiaries[1] = beneficiary2;
@@ -25,7 +25,7 @@ contract AuctionGroupTest is AuctionTest {
         payouts[1] = 10 * T2;
 
         var group = new AuctionGroup(t1, t2, beneficiaries, payouts);
-        var (id, base2) = manager.newAuction(group, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
+        var (id,) = manager.newAuction(group, t1, t2, 100 * T1, 0 * T2, 1, 1 years);
 
         bidder1.doBid(id, 100 * T2, false);
         group.payout();
@@ -37,18 +37,18 @@ contract AuctionGroupTest is AuctionTest {
 
         assertEq(this_balance_after, this_balance_before + g_balance_before);
     }
-    function testPayoutGroup() {
+    function testPayoutGroup() public {
         var group = _createGroup();
-        var (id, base) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
+        var (id,) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
 
         var g_balance_before = t2.balanceOf(group);
         bidder1.doBid(id, 30 * T2, false);
         var g_balance_after = t2.balanceOf(group);
         assertEq(g_balance_after - g_balance_before, 30 * T2);
     }
-    function testPayoutFirstBeneficiary() {
+    function testPayoutFirstBeneficiary() public {
         var group = _createGroup();
-        var (id, base) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
+        var (id,) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
         bidder1.doBid(id, 30 * T2, false);
 
         var b1_balance_before = t2.balanceOf(beneficiary1);
@@ -56,9 +56,9 @@ contract AuctionGroupTest is AuctionTest {
         var b1_balance_after = t2.balanceOf(beneficiary1);
         assertEq(b1_balance_after - b1_balance_before, 10 * T2);
     }
-    function testPayoutSecondBeneficiary() {
+    function testPayoutSecondBeneficiary() public {
         var group = _createGroup();
-        var (id, base) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
+        var (id,) = manager.newAuction(group, t1, t2, 100 * T1, 5 * T2, 1, 1 years);
         bidder1.doBid(id, 30 * T2, false);
 
         var b2_balance_before = t2.balanceOf(beneficiary2);

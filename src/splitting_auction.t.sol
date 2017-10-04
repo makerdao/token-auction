@@ -4,7 +4,7 @@ import './base.t.sol';
 
 contract ForwardSplittingTest is AuctionTest
 {
-    function newAuction() returns (uint, uint) {
+    function newAuction() public returns (uint, uint) {
         return manager.newAuction( seller    // beneficiary
                                  , t1        // selling
                                  , t2        // buying
@@ -14,7 +14,7 @@ contract ForwardSplittingTest is AuctionTest
                                  , 1 years   // ttl
                                  );
     }
-    function testSplitEvent() {
+    function testSplitEvent() public {
         var (id, base) = newAuction();
 
         var (nid1, sid1) = bidder1.doBid(base, 5 * T2, 40 * T1, false);
@@ -27,13 +27,13 @@ contract ForwardSplittingTest is AuctionTest
         LogSplit(nid1, nid2, sid2);
         LogSplit(sid1, nid3, sid3);
     }
-    function testSplitBase() {
-        var (id, base) = newAuction();
+    function testSplitBase() public {
+        var (, base) = newAuction();
 
         var (auction_id0, last_bidder0,
              buy_amount0, sell_amount0) = manager.getAuctionlet(base);
 
-        var (nid, sid) = bidder1.doBid(base, 5 * T2, 40 * T1, false);
+        var (nid, ) = bidder1.doBid(base, 5 * T2, 40 * T1, false);
 
         var (auction_id1, last_bidder1,
              buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
@@ -51,8 +51,8 @@ contract ForwardSplittingTest is AuctionTest
         assertEq(buy_amount1, expected_new_bid);
         assertEq(sell_amount1, expected_new_sell_amount);
     }
-    function testSplitTransfersFromBidder() {
-        var (id, base) = newAuction();
+    function testSplitTransfersFromBidder() public {
+        var (, base) = newAuction();
 
         var balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(base, 7 * T2, 60 * T1, false);
@@ -60,8 +60,8 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_before - balance_after, 7 * T2);
     }
-    function testSplitBaseTransfersToSeller() {
-        var (id, base) = newAuction();
+    function testSplitBaseTransfersToSeller() public {
+        var (, base) = newAuction();
 
         var balance_before = t2.balanceOf(seller);
         bidder1.doBid(base, 7 * T2, 60 * T1, false);
@@ -69,8 +69,8 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 7 * T2);
     }
-    function testSplitTransfersToPrevBidder() {
-        var (id, base) = newAuction();
+    function testSplitTransfersToPrevBidder() public {
+        var (, base) = newAuction();
 
         bidder1.doBid(base, 20 * T2, false);
 
@@ -80,10 +80,10 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 10 * T2);
     }
-    function testAnotherSplitTransfersToPrevSplitter() {
-        var (id, base) = newAuction();
+    function testAnotherSplitTransfersToPrevSplitter() public {
+        var (, base) = newAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
+        var (, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
 
         var balance_before = t2.balanceOf(bidder1);
         bidder2.doBid(sid, 20 * T2, 40 * T1, false);
@@ -91,10 +91,10 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 10 * T2);
     }
-    function testAnotherSplitTransfersToSeller() {
-        var (id, base) = newAuction();
+    function testAnotherSplitTransfersToSeller() public {
+        var (, base) = newAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
+        var (, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
 
         var balance_before = t2.balanceOf(seller);
         bidder2.doBid(sid, 20 * T2, 40 * T1, false);
@@ -102,10 +102,10 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 10 * T2);
     }
-    function testAnotherSplitTransfersFromSplitter() {
-        var (id, base) = newAuction();
+    function testAnotherSplitTransfersFromSplitter() public {
+        var (, base) = newAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
+        var (, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
 
         var balance_before = t2.balanceOf(bidder2);
         bidder2.doBid(sid, 20 * T2, 40 * T1, false);
@@ -113,10 +113,10 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_before - balance_after, 20 * T2);
     }
-    function testSplitTransfersToSeller() {
-        var (id, base) = newAuction();
+    function testSplitTransfersToSeller() public {
+        var (, base) = newAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
+        var (nid, ) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
 
         var balance_before = t2.balanceOf(seller);
         bidder2.doBid(nid, 20 * T2, 10 * T1, false);
@@ -124,10 +124,10 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 20 * T2);
     }
-    function testBidTransfersToPrevSplitter() {
-        var (id, base) = newAuction();
+    function testBidTransfersToPrevSplitter() public {
+        var (, base) = newAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
+        var (, sid) = bidder1.doBid(base, 20 * T2, 80 * T1, false);
 
         var balance_before = t2.balanceOf(bidder1);
         bidder2.doBid(sid, 30 * T2, false);
@@ -135,22 +135,20 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 20 * T2);
     }
-    function testSplitBaseAddresses() {
-        var (id, base) = newAuction();
+    function testSplitBaseAddresses() public {
+        var (, base) = newAuction();
 
         var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1, false);
 
-        var (auction_id1, last_bidder1,
-             buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
-        var (auction_id2, last_bidder2,
-             buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
+        var (auction_id1, last_bidder1, , ) = manager.getAuctionlet(nid);
+        var (auction_id2, last_bidder2, , ) = manager.getAuctionlet(sid);
 
         assertEq(auction_id1, auction_id2);
         assertEq(last_bidder1, seller);
         assertEq(last_bidder2, bidder1);
     }
-    function testSplitBaseResult() {
-        var (id, base) = newAuction();
+    function testSplitBaseResult() public {
+        var (, base) = newAuction();
 
         var (nid, sid) = bidder1.doBid(base, 5 * T2, 40 * T1, false);
 
@@ -180,25 +178,23 @@ contract ForwardSplittingTest is AuctionTest
         assertEq(buy_amount1, expected_new_bid1);
         assertEq(buy_amount2, expected_new_bid2);
     }
-    function testSplitAfterBidAddresses() {
-        var (id, base) = newAuction();
+    function testSplitAfterBidAddresses() public {
+        var (, base) = newAuction();
 
         bidder1.doBid(base, 11 * T2, false);
 
         // make split bid that has equivalent price of 20 T2 for full lot
         var (nid, sid) = bidder2.doBid(base, 12 * T2, 60 * T1, false);
 
-        var (auction_id1, last_bidder1,
-             buy_amount1, sell_amount1) = manager.getAuctionlet(nid);
-        var (auction_id2, last_bidder2,
-             buy_amount2, sell_amount2) = manager.getAuctionlet(sid);
+        var (auction_id1, last_bidder1, , ) = manager.getAuctionlet(nid);
+        var (auction_id2, last_bidder2, , ) = manager.getAuctionlet(sid);
 
         assertEq(auction_id1, auction_id2);
         assertEq(last_bidder1, bidder1);
         assertEq(last_bidder2, bidder2);
     }
-    function testSplitAfterBidQuantities() {
-        var (id, base) = newAuction();
+    function testSplitAfterBidQuantities() public {
+        var (, base) = newAuction();
 
         bidder1.doBid(base, 11 * T2, false);
 
@@ -242,41 +238,41 @@ contract ForwardSplittingTest is AuctionTest
         assertEq(buy_amount1, expected_new_bid1);
         assertEq(buy_amount2, expected_new_bid2);
     }
-    function testFailSplitExcessQuantity() {
-        var (id, base) = newAuction();
+    function testFailSplitExcessQuantity() public {
+        var (, base) = newAuction();
         bidder1.doBid(base, 7 * T2, 101 * T1, false);
     }
-    function testPassSplitLowerValue() {
+    function testPassSplitLowerValue() public {
         // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
         // and q2 < q0, i.e. it must be an increase in order valuation,
         // but a decrease in sell_amount.
-        var (id, base) = newAuction();
+        var (, base) = newAuction();
         bidder1.doBid(base, 6 * T2, 50 * T1, false);
     }
-    function testFailSplitLowerValue() {
+    function testFailSplitLowerValue() public {
         // The splitting bid must satisfy (b2 / q2) > (b0 / q0)
         // and q2 < q0, i.e. it must be an increase in order valuation,
         // but a decrease in sell_amount.
-        var (id, base) = newAuction();
+        var (, base) = newAuction();
         bidder1.doBid(base, 11 * T2, false);
 
         bidder2.doBid(base, 5 * T2, 50 * T1, false);
     }
-    function testFailSplitUnderMinBid() {
+    function testFailSplitUnderMinBid() public {
         // Splitting bids have to be over the scaled minimum bid
-        var (id, base) = newAuction();
+        var (, base) = newAuction();
         bidder1.doBid(base, 4 * T2, 50 * T1, false);
     }
-    function testFailSplitUnderMinIncrease() {
+    function testFailSplitUnderMinIncrease() public {
         // Splitting bids have to increase more than the scaled minimum
         // increase
-        var (id, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 10, 1 years);
+        var (, base) = manager.newAuction(seller, t1, t2, 100 * T1, 10 * T2, 10, 1 years);
         bidder1.doBid(base, 10 * T2, false);
 
         bidder2.doBid(base, 6 * T2, 50 * T1, false);
     }
-    function testFailSplitExpired() {
-        var (id, base) = newAuction();
+    function testFailSplitExpired() public {
+        var (, base) = newAuction();
         bidder1.doBid(base, 11 * T2, false);
 
         // force expiry
@@ -284,8 +280,8 @@ contract ForwardSplittingTest is AuctionTest
 
         bidder2.doBid(base, 10 * T2, 50 * T1, false);
     }
-    function testSplitReturnsToPrevBidder() {
-        var (id, base) = newAuction();
+    function testSplitReturnsToPrevBidder() public {
+        var (, base) = newAuction();
 
         var bidder1_t2_balance_before = t2.balanceOf(bidder1);
         bidder1.doBid(base, 20 * T2, false);
@@ -295,9 +291,9 @@ contract ForwardSplittingTest is AuctionTest
         var bidder_balance_diff = bidder1_t2_balance_before - bidder1_t2_balance_after;
         assertEq(bidder_balance_diff, 10 * T2);
     }
-    function testSplitBaseTransfersToBenefactor() {
+    function testSplitBaseTransfersToBenefactor() public {
 
-        var (id, base) = newAuction();
+        var (, base) = newAuction();
 
         var balance_before = t2.balanceOf(seller);
         bidder2.doBid(base, 20 * T2, 25 * T1, false);
@@ -305,8 +301,8 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 20 * T2);
     }
-    function testSplitTransfersBenefactor() {
-        var (id, base) = newAuction();
+    function testSplitTransfersBenefactor() public {
+        var (, base) = newAuction();
 
         var balance_before = t2.balanceOf(seller);
         bidder1.doBid(base, 40 * T2, false);
@@ -316,17 +312,17 @@ contract ForwardSplittingTest is AuctionTest
 
         assertEq(balance_after - balance_before, 50 * T2);
     }
-    function testFailSplitAfterSplit() {
+    function testFailSplitAfterSplit() public {
         // splitting deletes the old auctionlet_id
         // splitting on this id should error
-        var (id, base) = newAuction();
-        var (nid, sid) = bidder2.doBid(base, 12 * T2, 60 * T1, false);
+        var (, base) = newAuction();
+        bidder2.doBid(base, 12 * T2, 60 * T1, false);
         bidder1.doBid(base, 20 * T2, 60 * T1, false);
     }
-    function testBaseDoesNotExpire() {
-        var (id, base) = newAuction();
+    function testBaseDoesNotExpire() public {
+        var (, base) = newAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1, false);
+        var (nid, ) = bidder1.doBid(base, 7 * T2, 60 * T1, false);
 
         // push past the base auction ttl
         manager.addTime(2 years);
@@ -334,10 +330,10 @@ contract ForwardSplittingTest is AuctionTest
         // this should succeed as there are no real bidders
         bidder1.doBid(nid, 11 * T2, false);
     }
-    function testFailSplitExpires() {
-        var (id, base) = newAuction();
+    function testFailSplitExpires() public {
+        var (, base) = newAuction();
 
-        var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1, false);
+        var (, sid) = bidder1.doBid(base, 7 * T2, 60 * T1, false);
 
         // push past the base auction ttl
         manager.addTime(2 years);
@@ -345,8 +341,8 @@ contract ForwardSplittingTest is AuctionTest
         // this should succeed as there are no real bidders
         bidder1.doBid(sid, 11 * T2, false);
     }
-    function testIndependentExpirations() {
-        var (id, base) = newAuction();
+    function testIndependentExpirations() public {
+        var (, base) = newAuction();
 
         var (nid, sid) = bidder1.doBid(base, 7 * T2, 60 * T1, false);
 

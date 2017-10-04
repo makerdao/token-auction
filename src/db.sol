@@ -27,6 +27,7 @@ contract AuctionDatabase is Assertive, AuctionType {
         _auctions[id] = auction;
     }
     function auctionlets(uint id)
+        constant
         internal
         returns (Auctionlet storage auctionlet)
     {
@@ -35,6 +36,7 @@ contract AuctionDatabase is Assertive, AuctionType {
         assert(auctionlet.auction_id != 0);
     }
     function auctions(uint id)
+        constant
         internal
         returns (Auction storage auction)
     {
@@ -76,6 +78,7 @@ contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
     }
 
     function getAuctionInfo(uint auction_id)
+        public
         constant
         returns ( address creator
                 , ERC20 selling
@@ -97,6 +100,7 @@ contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
     }
 
     function getAuctionletInfo(uint auctionlet_id)
+        public
         constant
         returns ( uint auction_id
                 , address last_bidder
@@ -120,6 +124,7 @@ contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
     }
     // check if an auction is reversed
     function isReversed(uint auction_id)
+        public
         constant
         returns (bool reversed)
     {
@@ -128,6 +133,7 @@ contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
     // check if an auctionlet is expired
     // N.B. base auctionlets cannot expire
     function isExpired(uint auctionlet_id)
+        public
         constant
         returns (bool expired)
     {
@@ -142,6 +148,7 @@ contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
         expired = auctionlet_expired || auction_expired;
     }
     function getRefundAddress(uint auction_id)
+        public
         constant
         returns (address)
     {
@@ -160,6 +167,7 @@ contract AuctionDatabaseUser is AuctionDatabase, DSMath, TimeUser {
         auction.expiration = expiration;
     }
     function getLastBid(uint auctionlet_id)
+        public
         constant
         returns (uint prev_bid, uint prev_quantity)
     {

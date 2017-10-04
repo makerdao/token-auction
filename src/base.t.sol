@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.17;
 
 import 'ds-test/test.sol';
 
@@ -9,31 +9,31 @@ import './manager.sol';
 import './types.sol';
 
 contract TestableManager is SplittingAuctionManager {
-    uint public debug_timestamp;
+    uint64 public debug_timestamp;
 
-    function getTime() public constant returns (uint) {
+    function getTime() public constant returns (uint64) {
         return debug_timestamp;
     }
-    function setTime(uint timestamp) {
+    function setTime(uint64 timestamp) public {
         debug_timestamp = timestamp;
     }
-    function addTime(uint time) {
+    function addTime(uint64 time) public {
         setTime(getTime() + time);
     }
-    function getCollectMax(uint auction_id) returns (uint) {
+    function getCollectMax(uint auction_id) public constant returns (uint) {
         return auctions(auction_id).collection_limit;
     }
-    function getAuction(uint id) constant
+    function getAuction(uint id) public constant
         returns (address, ERC20, ERC20, uint, uint, uint, uint)
     {
-        Auction auction = auctions(id);
-        return (auction.beneficiaries[0], auction.selling, auction.buying,
+        Auction storage auction = auctions(id);
+        return (auction.beneficiary, auction.selling, auction.buying,
                 auction.sell_amount, auction.start_bid, auction.min_increase, auction.ttl);
     }
-    function getAuctionlet(uint id) constant
+    function getAuctionlet(uint id) public constant
         returns (uint, address, uint, uint)
     {
-        Auctionlet auctionlet = auctionlets(id);
+        Auctionlet storage auctionlet = auctionlets(id);
         return (auctionlet.auction_id, auctionlet.last_bidder, auctionlet.buy_amount, auctionlet.sell_amount);
     }
 }
@@ -41,24 +41,33 @@ contract TestableManager is SplittingAuctionManager {
 contract AuctionTester {
     SplittingAuctionFrontendType frontend;
     AuctionDatabaseUser db;
-    function bindManager(address manager) {
+    function bindManager(address manager)
+        public
+    {
         frontend = SplittingAuctionFrontendType(manager);
         db = AuctionDatabaseUser(manager);
     }
-    function doApprove(address spender, uint value, address token) {
+    function doApprove(address spender, uint value, address token)
+        public
+    {
         ERC20(token).approve(spender, value);
     }
-    function doBid(uint auctionlet_id, uint bid_how_much)
+    function doBid(uint auctionlet_id, uint bid_how_much, bool reverse)
+        public
     {
         var (, quantity) = db.getLastBid(auctionlet_id);
-        frontend.bid(auctionlet_id, bid_how_much, quantity);
+        frontend.bid(auctionlet_id, bid_how_much, quantity, reverse);
     }
-    function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount)
+    function doBid(uint auctionlet_id, uint bid_how_much, uint sell_amount,
+                   bool reverse)
+        public
         returns (uint, uint)
     {
-        return frontend.bid(auctionlet_id, bid_how_much, sell_amount);
+        return frontend.bid(auctionlet_id, bid_how_much, sell_amount, reverse);
     }
-    function doClaim(uint id) {
+    function doClaim(uint id)
+        public
+    {
         return frontend.claim(id);
     }
 }
@@ -81,7 +90,7 @@ contract AuctionTest is EventfulAuction, EventfulManager, DSTest {
     uint constant INFINITY = uint(uint128(-1));
     uint constant million = 10 ** 6;
 
-    function AuctionTest() {
+    function AuctionTest() public {
         manager = new TestableManager();
 
         t1 = new DSTokenBase(million * T1);
@@ -93,7 +102,7 @@ contract AuctionTest is EventfulAuction, EventfulManager, DSTest {
         beneficiary1 = new AuctionTester();
         beneficiary2 = new AuctionTester();
 
-        manager.setTime(block.timestamp);
+        manager.setTime(uint64(block.timestamp));
 
         seller.bindManager(manager);
         bidder1.bindManager(manager);

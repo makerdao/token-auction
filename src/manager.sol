@@ -1,42 +1,26 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.17;
 
 import 'ds-token/base.sol';
 
 import './auction.sol';
 import './db.sol';
 import './events.sol';
-import './transfer.sol';
 import './types.sol';
 import './util.sol';
 
-contract AuctionController is MathUser
-                            , AuctionType
+contract AuctionController is AuctionType
                             , AuctionDatabaseUser
                             , EventfulManager
-                            , TransferUser
 {
-    function _makeSinglePayout(address beneficiary, uint collection_limit)
-        internal
-        returns (address[], uint[])
-    {
-        address[] memory beneficiaries = new address[](1);
-        uint[] memory payouts = new uint[](1);
-
-        beneficiaries[0] = beneficiary;
-        payouts[0] = collection_limit;
-
-        return (beneficiaries, payouts);
-    }
     function _makeGenericAuction( address creator
-                                , address[] beneficiaries
-                                , uint[] payouts
+                                , address beneficiary
                                 , ERC20 selling
                                 , ERC20 buying
                                 , uint sell_amount
                                 , uint start_bid
                                 , uint min_increase
                                 , uint min_decrease
-                                , uint ttl
+                                , uint64 ttl
                                 , uint collection_limit
                                 , bool reversed
                                 )
@@ -44,8 +28,7 @@ contract AuctionController is MathUser
         returns (uint auction_id, uint base_id)
     {
         (auction_id, base_id) = newGenericAuction({ creator: msg.sender
-                                                  , beneficiaries: beneficiaries
-                                                  , payouts: payouts
+                                                  , beneficiary: beneficiary
                                                   , selling: selling
                                                   , buying: buying
                                                   , sell_amount: sell_amount
@@ -59,21 +42,15 @@ contract AuctionController is MathUser
 
         var auction = auctions(auction_id);
 
-        assertConsistentPayouts(auction);
         assertSafePercentages(auction);
 
-        takeFundsIntoEscrow(auction);
+        // Escrow funds.
+        assert(selling.transferFrom(creator, this, sell_amount));
 
         LogNewAuction(auction_id, base_id);
     }
-    function assertConsistentPayouts(Auction auction)
-        internal
-    {
-        assert(auction.beneficiaries.length == auction.payouts.length);
-        if (!auction.reversed) assert(auction.payouts[0] >= auction.start_bid);
-        assert(sum(auction.payouts) == auction.collection_limit);
-    }
     function assertSafePercentages(Auction auction)
+        pure
         internal
     {
         // risk of overflow in assertBiddable if these aren't constrained
@@ -84,6 +61,8 @@ contract AuctionController is MathUser
 
 contract AuctionManagerFrontend is AuctionController, MutexUser {
     uint constant INFINITY = uint(uint128(-1));
+    uint64 constant INFINITY_64 = uint64(-1);
+
     // Create a new forward auction.
     // Bidding is done through the auctions associated auctionlets,
     // of which there is one initially.
@@ -93,17 +72,15 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                        , uint sell_amount
                        , uint start_bid
                        , uint min_increase
-                       , uint ttl
-                       , uint expiration
+                       , uint64 ttl
+                       , uint64 expiration
                        )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
-        var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, INFINITY);
-
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
-                                                    , beneficiaries: beneficiaries
-                                                    , payouts: payouts
+                                                    , beneficiary: beneficiary
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
                                                     , sell_amount: sell_amount
@@ -122,42 +99,14 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                        , uint sell_amount
                        , uint start_bid
                        , uint min_increase
-                       , uint ttl
+                       , uint64 ttl
                        )
-        exclusive
-        returns (uint auction_id, uint base_id)
-    {
-        var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, INFINITY);
-
-        (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
-                                                    , beneficiaries: beneficiaries
-                                                    , payouts: payouts
-                                                    , selling: ERC20(selling)
-                                                    , buying: ERC20(buying)
-                                                    , sell_amount: sell_amount
-                                                    , start_bid: start_bid
-                                                    , min_increase: min_increase
-                                                    , min_decrease: 0
-                                                    , ttl: ttl
-                                                    , collection_limit: INFINITY
-                                                    , reversed: false
-                                                    });
-    }
-    function newAuction( address[] beneficiaries
-                       , uint[] payouts
-                       , address selling
-                       , address buying
-                       , uint sell_amount
-                       , uint start_bid
-                       , uint min_increase
-                       , uint ttl
-                       )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
-                                                    , beneficiaries: beneficiaries
-                                                    , payouts: payouts
+                                                    , beneficiary: beneficiary
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
                                                     , sell_amount: sell_amount
@@ -176,18 +125,16 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                               , uint max_sell_amount
                               , uint buy_amount
                               , uint min_decrease
-                              , uint ttl
+                              , uint64 ttl
                               )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
-        var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, 0);
-
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
-                                                    , beneficiaries: beneficiaries
-                                                    , payouts: payouts
+                                                    , beneficiary: beneficiary
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
                                                     , sell_amount: max_sell_amount
@@ -207,18 +154,16 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                               , uint max_sell_amount
                               , uint buy_amount
                               , uint min_decrease
-                              , uint ttl
+                              , uint64 ttl
                               )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
-        var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, 0);
-
         // the Reverse Auction is the limit of the two way auction
         // where the maximum collected buying token is zero.
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
-                                                    , beneficiaries: beneficiaries
-                                                    , payouts: payouts
+                                                    , beneficiary: beneficiary
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
                                                     , sell_amount: max_sell_amount
@@ -239,16 +184,15 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint start_bid
                              , uint min_increase
                              , uint min_decrease
-                             , uint ttl
+                             , uint64 ttl
                              , uint collection_limit
                              )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
-        var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
         (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
-                                                    , beneficiaries: beneficiaries
-                                                    , payouts: payouts
+                                                    , beneficiary: beneficiary
                                                     , selling: ERC20(selling)
                                                     , buying: ERC20(buying)
                                                     , sell_amount: sell_amount
@@ -268,16 +212,15 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                              , uint start_bid
                              , uint min_increase
                              , uint min_decrease
-                             , uint ttl
+                             , uint64 ttl
                              , uint collection_limit
                              )
+        public
         exclusive
         returns (uint auction_id, uint base_id)
     {
-        var (beneficiaries, payouts) = _makeSinglePayout(beneficiary, collection_limit);
         (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
-                                                     , beneficiaries: beneficiaries
-                                                     , payouts: payouts
+                                                     , beneficiary: beneficiary
                                                      , selling: ERC20(selling)
                                                      , buying: ERC20(buying)
                                                      , sell_amount: sell_amount
@@ -288,64 +231,6 @@ contract AuctionManagerFrontend is AuctionController, MutexUser {
                                                      , collection_limit: collection_limit
                                                      , reversed: false
                                                      });
-        setRefundAddress(auction_id, refund);
-    }
-    function newTwoWayAuction( address[] beneficiaries
-                             , uint[] payouts
-                             , address selling
-                             , address buying
-                             , uint sell_amount
-                             , uint start_bid
-                             , uint min_increase
-                             , uint min_decrease
-                             , uint ttl
-                             )
-        exclusive
-        returns (uint auction_id, uint base_id)
-    {
-        var collection_limit = sum(payouts);
-        (auction_id, base_id) =  _makeGenericAuction({ creator: msg.sender
-                                                     , beneficiaries: beneficiaries
-                                                     , payouts: payouts
-                                                     , selling: ERC20(selling)
-                                                     , buying: ERC20(buying)
-                                                     , sell_amount: sell_amount
-                                                     , start_bid: start_bid
-                                                     , min_increase: min_increase
-                                                     , min_decrease: min_decrease
-                                                     , ttl: ttl
-                                                     , collection_limit: collection_limit
-                                                     , reversed: false
-                                                     });
-    }
-    function newTwoWayAuction( address[] beneficiaries
-                             , uint[] payouts
-                             , address refund
-                             , address selling
-                             , address buying
-                             , uint sell_amount
-                             , uint start_bid
-                             , uint min_increase
-                             , uint min_decrease
-                             , uint ttl
-                             )
-        exclusive
-        returns (uint auction_id, uint base_id)
-    {
-        var collection_limit = sum(payouts);
-        (auction_id, base_id) = _makeGenericAuction({ creator: msg.sender
-                                   , beneficiaries: beneficiaries
-                                   , payouts: payouts
-                                   , selling: ERC20(selling)
-                                   , buying: ERC20(buying)
-                                   , sell_amount: sell_amount
-                                   , start_bid: start_bid
-                                   , min_increase: min_increase
-                                   , min_decrease: min_decrease
-                                   , ttl: ttl
-                                   , collection_limit: collection_limit
-                                   , reversed: false
-                                   });
         setRefundAddress(auction_id, refund);
     }
 }
